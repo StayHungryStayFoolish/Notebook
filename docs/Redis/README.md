@@ -312,11 +312,11 @@
         -   buf数组中的buf[0]字节保存了一字节长的位数组。
         -   buf数组中的buf[1]字节保存了SDS程序自动追加到值的末尾的空字符'\0'。
 
-        ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure.jpg?raw=true)
+            ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure.jpg?raw=true)
 
         -   存储一个`字节`的位数组：`0100 1101`，`Redis`在保存数组顺序时，与我们书写顺序时完全相反的。也就是`逆序存储`，在数组中的表示为：`1011 0010`。**注意：数组索引顺序依然是从左到右，不是逆序存储的时候采用了逆序索引，这点在后续会明确解释。**
 
-        ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-1.jpg?raw=true)
+            ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-1.jpg?raw=true)
 
         -   存储多个`字节`的位数组：`1111 0000 1100 0011 1010 0101`，在 `buf数组中`表示为：`1010 0101 1100 0011 0000 1111`。
 
@@ -384,14 +384,25 @@
                 ![SETBIT-ORDER](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIE-12-3.jpg?raw=true)
 
             -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
-
+                ```c#
+                    /* GET current values*/
+                    // 将指针定位到要设置的为所在的字节上
+                    byteva1 = ((uint8_t*)o->ptr)[byte];
+                    // 定位到要设置的位上面
+                    // 此处是逆序存储的关键步骤，将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0
+                    bit = 7 - (bitoffset & 0x7)
+                    // 记录位现在的值
+                    bitva1 = byteva1 & (1 << bit);
+                    // 更新字节中的位，设置它的值为 on 参数的值
+                    byteva1 &= ~(1 << bit);
+                    byteva1 |= ((on & 0x1) << bit);
+                    ((uint8_t*)o->prt)[byte] = byteva1 
+                ```            
                 ![Question-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-1.jpg?raw=true)
 
                 ![Question-2](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-2.jpg?raw=true)
 
                 ![Question-3](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/%20bitmap-3.png?raw=true)
-
-                ![Reverse-Code](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-reverse.png?raw=true)
 
 ###  2. Hash
 
