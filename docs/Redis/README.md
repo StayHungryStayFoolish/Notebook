@@ -384,6 +384,7 @@
                 ![SETBIT-ORDER](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIE-12-3.jpg?raw=true)
 
             -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
+                
                 ```c#
                     /* GET current values*/
                     // 将指针定位到要设置的为所在的字节上
@@ -398,6 +399,7 @@
                     byteva1 |= ((on & 0x1) << bit);
                     ((uint8_t*)o->prt)[byte] = byteva1 
                 ```            
+                
                 ![Question-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-1.jpg?raw=true)
 
                 ![Question-2](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-2.jpg?raw=true)
