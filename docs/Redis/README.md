@@ -316,9 +316,7 @@
 
         -   存储一个`字节`的位数组：`0100 1101`，`Redis`在保存数组顺序时，与我们书写顺序时完全相反的。也就是`逆序存储`，在数组中的表示为：`1011 0010`。**注意：数组索引顺序依然是从左到右，不是逆序存储的时候采用了逆序索引，这点在后续会明确解释。**
 
-            
-
-            ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-1.jpg?raw=true)
+        ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-1.jpg?raw=true)
 
         -   存储多个`字节`的位数组：`1111 0000 1100 0011 1010 0101`，在 `buf数组中`表示为：`1010 0101 1100 0011 0000 1111`。
 
