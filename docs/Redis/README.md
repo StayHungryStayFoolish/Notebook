@@ -59,7 +59,7 @@
 
 -   **SDS** 结构
 
-    ```c#
+    ```c
     typedef char *sds;
     
     struct sdshdr {
@@ -181,10 +181,10 @@
                ![BitMap-5](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-add.jpg?raw=true)
                 
         -   删除一个元素`4`，使数组变为`[2，7]`
+               - **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
                 
                ![BitMap-4](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-del.jpg?raw=true)
                
-               - **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
         -   增加一个元素`20`,使数据变为`[2,4,7,20]`。
             -   如果现有数组要增加元素，并且元素大于7，则再分配字节，并且`offset`仍然`从右向左`依次标记。例如增加20，则分配三个字节，分别是`buf[0]`、`buf[1]`、`buf[2]`，在`buf[2]`的`offset`对应元素标记为`1`。其中`buf[1]`的所有元素肯定为`0`。
             
@@ -390,7 +390,7 @@
 
             -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
                 
-                ```c#
+                ```c
                     /* GET current values*/
                     // 将指针定位到要设置的为所在的字节上
                     byteva1 = ((uint8_t*)o->ptr)[byte];
