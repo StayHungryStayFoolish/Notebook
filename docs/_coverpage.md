@@ -1,9 +1,9 @@
-# 恩会的学习文档
+# Bonismo`s Notebook
 > 使用docsify搭建的学习文档
 
-[![stars](https://github.com/StayHungryStayFoolish/Notebook?icon=github&color=4ab8a1)](https://github.com/StayHungryStayFoolish/Notebook) 
-[![forks](https://github.com/StayHungryStayFoolish/Notebook?icon=github&color=4ab8a1)](https://github.com/StayHungryStayFoolish/Notebook)
-
+[![stars](https://badgen.net/github/stars/?icon=github&color=4ab8a1)](https://github.com/StayHungryStayFoolish/Notebook) 
+[![forks](https://badgen.net/github/stars/?icon=github&color=4ab8a1)](https://github.com/StayHungryStayFoolish/Notebook)
+![GitHub deployments](https://img.shields.io/github/deployments/StayHungryStayFoolish/Notebook/master)
 <span id="busuanzi_container_site_pv">
     👁️本页总访问次数:<span id="busuanzi_value_site_pv"></span>
 </span>
