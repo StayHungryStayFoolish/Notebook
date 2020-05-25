@@ -316,7 +316,7 @@
 
         -   存储一个`字节`的位数组：`0100 1101`，`Redis`在保存数组顺序时，与我们书写顺序时完全相反的。也就是`逆序存储`，在数组中的表示为：`1011 0010`。**注意：数组索引顺序依然是从左到右，不是逆序存储的时候采用了逆序索引，这点在后续会明确解释。**
 
-              
+            
 
             ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-1.jpg?raw=true)
 
@@ -324,7 +324,7 @@
 
             ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-2.jpg?raw=true)
 
-        -   `GETBIT <bitarray> <offset>` 命令实现
+        -   `GETBIT <bitarray> <offset>` 命令实现，复杂度为`O(1)`
 
             -   1.**byte = offset ÷ 8 并向下取整（byte 值是图22-3的 buf[0]、buf[1]、buf[2]  ）**
 
@@ -334,6 +334,8 @@
 
                 -   bit 值记录了`offset`指定的二进制位中字节的第几个位置（**不是索引，是位置**）。
 
+            -   3.根据 `byte` 和 `bit` 值，在位数组 `bitarray` 中定位 `offset` 指定的二进制位，返回该位上的值。
+
             -   `GETBIT <bitarray> 3`
 
                 ![GETBIT-3](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/GETBIT-3.jpg?raw=true)
@@ -342,10 +344,319 @@
 
                 ![GETBIT-10](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/GETBIT-10.jpg?raw=true)
 
-            -   
+        -   `SETBIT <bitarray> <offset> <value>` 命令实现，复杂度为`O(1)`
 
-### 2. Hash
+            -   1.**len = ( offset ÷ 8 ) + 1**
 
-3.  **List**
-4.  **Set**
-5.  **ZSet(Sorted Set)**
+                -   len 值记录了保存`offset`指定的二进制位需要多少字节（计算 bug[] ）
+
+            -   2.检查 `bitarray` 键保存的位数组**(sdshdr)**的长度是否小于 len。
+
+                -   2.1 如果小于 len，则需要扩展字节。`sdshdr` 空间预分配策略会额外多分配 `len` 个字节的未使用空间，再加上为保存空字符而额外分配的1字节，及扩展后的字节为：**( len × 2 ) + 1**
+
+            -   3.**byte = offset ÷ 8 并向下取整**
+
+                -   byte 值记录了`offset` 指定的二进制位保存在位数组的哪个字节。
+
+            -   4.**bit = ( offset mod 8 ) + 1**
+
+                -   bit 值记录了`offset`指定的二进制位中字节的第几个位置（**不是索引，是位置**）。
+
+            -   5.根据 **byte** 和 **bit** 值，在 `bitarray` 键保存的位数组中定位`offset`指定的二进制位。
+
+                -   首先将指定的二进制位上当前值保存在 `oldvalue` 变量。
+                -   然后将新值 `value` 设置为二进制位的值。
+
+            -   6.返回 `oldvalue` 变量值。
+
+            -   `SETBIT <bitarray> 1 1` 无需扩展字节
+
+                ![SETBIT-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIT-1.jpg?raw=true)
+
+                ![SETBIE-1-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIT-1-1.jpg?raw=true)
+
+            -   `SETBIT <bitarray> 12 1`需扩展字节
+
+                ![SETBIT-12](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIT-12.jpg?raw=true)
+
+                ![SETBIT-12-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIE-12-1.jpg?raw=true)
+
+            -   **SETBIT 如果采用正常书写顺序保存，在每次扩展buf数组之后，程序都需要将位数组已有的位进行移动，然后才能执行写入操作，这比SETBIT命令目前的实现方式要复杂，并且移位带来的CPU时间消耗也会影响命令的执行速度。对位数组0100 1101执行命令SETBIT ＜bitarray＞ 12 1，将值改为0001 0000 0100 1101的整个过程。如下图。**
+
+                ![SETBIT-ORDER](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIE-12-3.jpg?raw=true)
+
+            -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
+
+                ![Question-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-1.jpg?raw=true)
+
+                ![Question-2](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-2.jpg?raw=true)
+
+                ![Question-3](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/%20bitmap-3.png?raw=true)
+
+                ![Reverse-Code](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-reverse.png?raw=true)
+
+###  2. Hash
+
+>   进入Redis 客户端使用  help @hash 查看命令
+
+-   `Redis` 的 `Hash` 是一个 `key-value` 结构。外层的哈希（k-v）用到了`Hashtable`，内存的哈希（value 内的 k-v）则使用了两种数据结构来实现，查看哈希对象的编码命令为：`OBJECT ENCODING <key>`
+
+    -   **ziplist**
+
+        -   当 `Hash` 对象满足两个条件使用 `ziplist`，如果不能满足这两个条件的哈希对象需要使用 `hashtable` 编码，以下两个条件可以通过配置文件修改。
+            -   哈希对象保存的所有键值对的键和值的字符串长度都小于 64 字节`hash-max-ziplist-value 64`
+            -   哈希对象保存的键值对数量小于 512 个`hash-max-ziplist-entries 512`
+
+        ![Ziplist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/hash-ziplist.jpg?raw=true)
+
+    -   **hashtable**
+
+        ![Hashtable](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/hash-table.jpg?raw=true)
+
+-   常用命令
+
+    ```bash
+    # 设置 Hash 里面一个或多个字段的值
+    HSET key field value
+    # 获取 Hash 里面 key 指定字段的值
+    HGET key field
+    # 获取 Hash 所有字段
+    HKEYS key
+    # 获取 Hash 所有值
+    HVALS key
+    # 获取 Hash 所有的 filed 和 value
+    HGETALL key
+    # 删除一个或多个 Hash 的 filed
+    HDEL key field [field ...]
+    # 判断 filed 是否存在该 key 中
+    HEXISTS key field
+    # 将 Hash 中 key 指定的 filed 增加给定的整型数值，前提该 filed 的值可以被 Redis 作为数值解释
+    HINCRBY key field increment
+    # 将 Hash 中 key 指定的 filed 增加给定的浮点数值，前提该 filed 的值可以被 Redis 作为数值解释
+    HINCRBYFLOAT key field increment
+    # 获取指定 key 的字段数量
+    HLEN key
+    # 获取 Hash 里面 key 指定 filed 的字节长度
+    HSTRLEN key filed
+    ```
+
+-   应用场景
+
+    -   存储对象缓存
+
+### 3. List
+
+>   进入Redis 客户端使用  help @list 查看命令
+
+-   `Redis` 使用 `quicklist` 的双向链表数据结构实现 List。在链表两段插入数据的复杂度为O(1)，在中间操作性能会很差。
+
+    -   `quicklist` 结构
+
+        -   两端各有2个橙黄色的节点，是没有被压缩的。它们的数据指针zl指向真正的 `ziplist`。中间的其它节点是被压缩过的，它们的数据指针zl指向被压缩后的 `ziplist` 结构，即一个 `quicklistLZF` 结构。
+
+        -   左侧头节点上的`ziplist`里有2项数据，右侧尾节点上的`ziplist`里有1项数据，中间其它节点上的 `ziplist` 里都有3项数据（包括压缩的节点内部）。这表示在表的两端执行过多次`push`和`pop`操作后的一个状态。
+
+        -   ```c
+            typedef struct quicklist {
+                quicklistNode *head;
+                quicklistNode *tail;
+                unsigned long count;        /* 所有的 ziplists 中的所有节点的总数 */
+                unsigned long len;          /* quicklistNodes 的个数 */
+                int fill : 16;              /* 每个 quicklistNodes 的 fill factor */
+                unsigned int compress : 16; /* 0 表示不进行压缩，否则这个值表示，表的头和尾不压缩的节点的个数  */
+            } quicklist;
+            
+            typedef struct quicklistNode {
+                struct quicklistNode *prev;  /* 指向上一个节点 */
+                struct quicklistNode *next;  /* 指向下一个节点 */
+                unsigned char *zl;           /* 当节点保存的是压缩 ziplist 时，指向 quicklistLZF，否则指向 ziplist */
+                unsigned int sz;             /* ziplist 的大小（字节为单位） */
+                unsigned int count : 16;     /* ziplist 的项目个数 */
+                unsigned int encoding : 2;   /* RAW==1 或者 LZF==2 */
+                unsigned int container : 2;  /* NONE==1 或者 ZIPLIST==2 */
+                unsigned int recompress : 1; /* 这个节点是否之前是被压缩的 */
+                unsigned int attempted_compress : 1; /* 节点太小，不压缩 */
+                unsigned int extra : 10; /* 未使用，保留字段 */
+            } quicklistNode;
+            
+            typedef struct quicklistLZF {
+                unsigned int sz; /* 压缩后的 ziplist 长度 */
+                char compressed[]; /* 压缩后的实际内容 */
+            } quicklistLZF;
+            ```
+
+            ![quciklist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/quicklist.jpg?raw=true)
+
+-   常用命令
+
+    ```bash
+    # 从队列右边入队一个元素
+    RPUSH key value [value ...]
+    # 从队列左边入队一个元素
+    LPUSH key value [value ...]
+    # 以队里从左到有发现的第一个元素为轴心，在其指定方向插入一个元素
+    # 如果一个List 是 a a b c d，在执行 LINSERT k1 after a 1 之后，会变成 a 1 a b c d
+    LINSERT key BEFORE|AFTER pivot value
+    # 根据索引设置队列里边一个值
+    LSET key index value
+    # 根据 count 移除指定的元素
+    # count = 0，移除列表所有指定元素
+    # count > 0，从左到右移除 count 个指定元素
+    # count < 0，从右到左移除 count 个指定元素
+    LREM key count value
+    # 根据指定索引获取一个元素
+    LINDEX key index
+    # 根据指定范围获取元素(0,-1 获取所有)
+    LRANGE key start stop
+    # 从队列左侧出队一个元素
+    LPOP key
+    # 从队列右侧出队一个元素
+    RPOP key
+    # 在指定的时间内，一直出于阻塞状态，从左侧出队一个元素
+    # 如果阻塞状态时，列表元素已经为空，当另外一个执行了 PUSH 命令，则出于阻塞状态的命令会将 PUSH 的元素进行出队操作
+    BLPOP key [key ...] timeout
+    # 在指定的时间内，一直出于阻塞状态，从右侧出队一个元素
+    # 原理同 BLPOP
+    BRPOP key [key ...] timeout
+    # 将 源列表的最右端元素（source） 弹出并推入 目标列表的最左端（destination）
+    RPOPPUSH source destination
+    # 阻塞状态的 RPOPPUSH，当 source 没有元素时，可以参考 BLPOP
+    BRPOPLPUSH source destination timeout
+    ```
+
+-   使用场景
+
+    -   LREM 可以实现待办事项列表
+    -   PUSH 相关命令可以实现评论列表等
+    -   POP 相关的命令可以实现阻塞、非阻塞队列
+
+### 4.Set
+
+>   进入Redis 客户端使用  help @set 查看命令
+
+-   `Redis` 使用 `intset` 编码的整数集合或`hashtable` 编码的集合对象实现`无序` Set。
+
+    -   当 `Set` 内所有元素对象都可以被 `Redis` 解释为整型数值时，且元素数量不超过 `512`  个，使用 `intset` 编码。
+    -   当 `Set` 内有元素为 `String ` 类型是，使用 `hashtable` 编码，每个元素对应 `hashtable` 字典的键，值全部设置为 `Null`。
+
+    ![Set](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/set-1.jpg?raw=true)
+
+-   常用命令
+
+    ```bash
+    # 添加一个或多个元素到集合（set）内
+    SADD key member [member ...]
+    # 获取集合内所有元素
+    SMEMBERS key
+    # 判断给定的元素是否属于集合成员，是返回1，否返回0
+    SISMEMBER key member
+    # 获取集合元素数量
+    SCARD key
+    # 移动 源集合（source）的指定元素（member）到目标集合（destination）
+    SMOVE source destination member
+    # 移除一个或多个元素
+    SREM key member [member ...]
+    # 随机返回一个或 count 个数的元素（不同于 POP 命令，只是返回元素，不会移除）
+    SRANDMEMBER key [count]
+    # 随机返回 count 个数元素，并从集合内移除
+    SPOP key [count]
+    # 集合交集
+    SINTER key [key ...]
+    # 集合并集
+    SUNION key [key ...]
+    # 集合差集，按照给定顺序，从左到右计算
+    # k1(a,b,c)		k2(b,c,d)		SDIFF k1 k2 ==> a
+    SDIFF key [key ...]
+    # 计算交集。按照给定的集合，并将结果存储到 destination 中
+    SINTERSTORE destination key [key ...]
+    # 计算并集。按照给定的集合，并将结果存储到 destination 中
+    SUNIONSTORE destination key [key ...]
+    # 计算差集集。按照给定的集合顺序，从左到右计算，并将结果存储到 destination 中 
+    SDIFFSTORE destination key [key ...]
+    ```
+
+-   应用场景
+
+    -   SCARD 命令实现`唯一计数器`
+    -   SADD、SREM、SISMEMBER 命令实现`点赞`、`喜欢`、`Tags`、`投票`、`社交关系（关注）`
+    -   SRANDMEMBER、SPOP 命令实现`抽奖`
+    -   SINTER 命令实现社交关系的`共同好友`
+    -   SUNION 命令实现社交关系的`推荐关注`
+
+### 5.ZSet(Sorted Set)
+
+>   进入Redis 客户端使用  help @sorted_set 查看命令
+
+-   `Redis` 使用 `ziplist` 或者 `skiplist` 的编码实现 `有序的 Sorted set`。
+
+    -   编码转换
+
+        -   有序集合保存的元素数量小于128个，且有序集合保存的所有元素成员的长度都小于64字节，使用 `ziplist`，当元素数量和长度超过规定则使用 `skiplist`。
+
+    -   `ziplist` 编码的压缩列表底层内部，每个集合元素使用两个紧挨一起的压缩列表节点来保存。第一个节点保存元素的`成员（member）`，第二个元素保存元素的`分值（score）`。分值较小的放置在靠近表头的方向，分值较大的放置在靠近表尾的方向。
+
+        ![ziplist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/ziplist.jpg?raw=true)
+
+        ![ziplist-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/ziplist-1.jpg?raw=true)
+
+    -   `skiplist` 编码使用 `zset` 结构作为底层实现。`zset` 结构包含一个`字典(dict)`和一个`跳跃表(zskiplist)`。
+
+        -   `zset` 的 `zsl`按分值从小到大保存了所有集合元素，每个跳跃吧节点保存了一个结合元素。跳跃表的 `object` 属性保存了元素成员， `score` 属性保存了元素分值。`ZRANK、ZRANGE`等基于跳跃表API实现。
+        -   `zset` 的 `dict` 为有序集合创建了成员到分值的映射，字典中的每个键值对都保存了一个集合元素。字典的键保存了元素成员，字典的值保存了元素的分值。如果使用 `ZSCORE` 查看成员分值，复杂度为 `O(1)`。
+        -   两种数据结构虽然都保存了有序集合元素，但是两种数据结构通过指针共享相同元素的成员和分支，所以不会出现重复的成员或分值。
+        -   **采用两种数据结构共同实现的原因：**
+            -   单独使用字典：因为字典以无序方式来保存集合元素，当执行范围型操作，比如`ZRANK、ZRANGE`，需要对字典内所有元素排序，时间复杂度为`O(nlogn)`，及额外的`O(N)`内存空间（需要创建数组来保存排序后的元素）。
+            -   单独使用跳跃表：当执行 `ZSCORE` 操作是，复杂度为 `O(logN)`.
+
+        ```c
+        typedef struct zset {
+            zskiplist *zsl; /* 跳跃表 */
+            dict *dict; /* 字典 */
+        }zset;
+        ```
+
+        ![skiplist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/skiplist.jpg?raw=true)
+
+-   常用命令
+
+    ```bash
+    # 添加一个或多个成员，或更新成员的分数（如果已经存在则更新，不存在添加）
+    ZADD key [NX|XX] [CH] [INCR] score member [score member ...]
+    # 对给定成员进行指定的增量（increment）
+    ZINCRBY key increment member
+    # 获取成员数量
+    ZCARD key
+    # 获取成员分数
+    ZSCORE key member
+    # 计算成员之间的成员数量（包含该成员本身，正数后查，复数前前查）
+    ZLEXCOUNT key min max
+    # 获取分数范围内的成员数量
+    ZCOUNT key min max
+    # 按成员位置从低到高排列
+    ZRANGE key start stop [WITHSCORES]
+    # 按成员位置从高到底排列
+    ZREVRANGE key start stop [WITHSCORES]
+    # 移除指定的成员
+    ZREM key member [member ...]
+    # 按成员范围移除
+    # min 和 max 如果使用 (min (max 则不包含该元素，只移除元素范围内的元素
+    # min 和 max 如果使用 [min [max 则包含该元素，移除元素和其范围内的元素
+    ZREMRANGEBYLEX key min max
+    # 按成员下边索引移除
+    ZREMRANGEBYRANK key start stop
+    # 按成员分数移除
+    ZREMRANGEBYSCORE key min max
+    # 获取分数范围内的成员（如果使用 WITHSCORES 则会显示分数）
+    ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]
+    # 计算并集，给定 key 的数量由 numkeys 决定，并将结果保存在 destination 中。
+    # 如果使用 WEIGHTS 参数，后边的参数因子跟 key 的顺序是对应的。
+    # ZUNIONSTORE result 2 k1 k2 WEIGHTS 1 2 （k1的成员分数×1，k2的成员分数×2）
+    ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MIN|MAX]
+    # 计算交集，参考上边并集
+    ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MIN|MAX]
+    ```
+
+-   应用场景
+
+    -   ZRANGE 命令集合实现排行榜、权重排名
+
