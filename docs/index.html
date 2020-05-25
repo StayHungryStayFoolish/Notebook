@@ -30,7 +30,7 @@
         alias: {
             '/.*/_sidebar.md': '/_sidebar.md'
         },
-        subMaxLevel: 5,   // 设置生成目录的最大层级，开启目录功能
+        subMaxLevel: 3,   // 设置生成目录的最大层级，开启目录功能
         coverpage: true,  //激活封面功能。如果为true，则会从中加载_coverpage.md。
         // themeColor: '#3F51B5',
         count: {
@@ -95,7 +95,7 @@
     }
 </script>
 <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
-
+<script src="//unpkg.com/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js">
 <script>
     if (typeof navigator.serviceWorker !== 'undefined') {
         navigator.serviceWorker.register('./sw.js')
