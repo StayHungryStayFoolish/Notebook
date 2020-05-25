@@ -184,7 +184,7 @@
                 
                ![BitMap-4](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-del.jpg?raw=true)
                
-                -   **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
+               - **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
         -   增加一个元素`20`,使数据变为`[2,4,7,20]`。
             -   如果现有数组要增加元素，并且元素大于7，则再分配字节，并且`offset`仍然`从右向左`依次标记。例如增加20，则分配三个字节，分别是`buf[0]`、`buf[1]`、`buf[2]`，在`buf[2]`的`offset`对应元素标记为`1`。其中`buf[1]`的所有元素肯定为`0`。
             
