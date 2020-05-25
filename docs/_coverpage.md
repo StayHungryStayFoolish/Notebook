@@ -8,8 +8,10 @@
 
 ```
 
-<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-<span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span>
+
+Total <span id="busuanzi_value_site_pv"></span> views.
+您是xxx的第<span id="busuanzi_value_site_uv"></span>个小伙伴
+<span id="busuanzi_value_page_pv"></span> Hits
 
 [GitHub](https://github.com/StayHungryStayFoolish/Notebook/tree/master/docs)
 [Get Started](README.md)
