@@ -9,9 +9,13 @@
 ```
 
 
-Total <span id="busuanzi_value_site_pv"></span> views.
-您是xxx的第<span id="busuanzi_value_site_uv"></span>个小伙伴
-<span id="busuanzi_value_page_pv"></span> Hits
+<span id="busuanzi_container_site_pv">
+    本站总访问量: <span id="busuanzi_value_site_pv"></span>
+</span>
+
+<span id="busuanzi_container_site_uv">
+  本站访客数: <span id="busuanzi_value_site_uv"></span>
+</span>
 
 [GitHub](https://github.com/StayHungryStayFoolish/Notebook/tree/master/docs)
 [Get Started](README.md)
