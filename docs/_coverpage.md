@@ -1,5 +1,5 @@
 # Bonismo`s Notebook
-> 使用docsify搭建的学习文档
+
 
 ![GitHub stars](https://img.shields.io/github/stars/StayHungryStayFoolish/Notebook?style=social) 
 ![GitHub stars](https://img.shields.io/github/stars/StayHungryStayFoolish/Notebook?style=social)
