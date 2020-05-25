@@ -1,5 +1,5 @@
 * Notebook
 
-    * [Redis](Redis/README.md)
+    * [Redis](Redis/)
     
-    * [设计模式](设计模式/README.md)
+    * [设计模式](设计模式/)
