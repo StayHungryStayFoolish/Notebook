@@ -659,11 +659,13 @@
 -   **常用命令**
 
 ```bash
-
+# 添加一个或多个元素（自动去重）
 PFADD key element [element ...]
 
+# 查看一个或多个 key 内包含的元素近似基数
 PFCOUNT key [key ...]
 
+# 合并多个 HyperLogLog 为一个，并保存到 destkey 中。（去重多个 HyperLogLog 内元素）
 PFMERGE destkey sourcekey [sourcekey ...]
 ```
 
