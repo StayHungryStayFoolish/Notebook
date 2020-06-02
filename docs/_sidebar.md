@@ -6,5 +6,6 @@
     - [Spring](Spring/)    
 - **Redis**
     - [Redis](Redis/)
+    - [Redis的9种数据结构](Redis/DataStructure.md)
 - **设计模式**
     - [设计模式](设计模式/)
