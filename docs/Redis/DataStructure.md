@@ -1,21 +1,21 @@
-# Redis 的 9 种数据结构
+# Redis 的 9 种数据类型
 
-## Redis 数据结构
+## Redis 数据类型
 
 ## 1.String
 
 >   进入Redis 客户端使用  help @string 查看命令
 
-### 1.1二进制安全
+### 1.1 二进制安全
 
 -   计算机存储的最小单位是 `Bit（比特，也成位）`，一个`Byte（字节）`。1 Byte = 8 bit。每个 Bit 用 `0` 或 `1` 来表示。`Character（字符）`通过不同的字符编码（ASCII、Unicode、UTF-8 、GBK等）由其指定固定的字节来表示。
 -   `二进制安全` 是一个`输入`和`输出`以`字节`为单位的流，当数据`输入`时，不会对数据进行任何`限制`、`过滤`等（*例如：C 语言使用长度 N + 1 的方式表示字符串，N 为字符串，1 表示字符数组最后一个元素以'\0' 结尾，当读取到以 '\0' 结尾时结束*）。即无论`字符`以任何编码形式，最终存储的只是`字节`，保证了`输入`时的原始数据。存储和读取的双方只需约定好编码集就可以获取数据内容，具有跨平台、跨语言、防止数据类型溢出等优点。
 
-### 1.2Redis 的 SDS
+### 1.2 Redis 的 SDS
 
 -   C 语言的 `char`存储方式
 
-    -   ![C char](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/c-char.png?raw=true)
+    -   ![C char](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/c-char.png)
         -   以 `\0` 结尾，当获取`char`的`length`需要遍历数组直到空字符（**\0**）停止，复杂度为 **0(N)**
         -   `char`本身不记录长度，容易产生缓冲区溢出。
 
@@ -46,7 +46,7 @@
 
 -   通过 `len` 属性， `sdshdr` 可以实现复杂度为 θ(1)θ(1) 的长度计算操作。
 
-       
+    ​     
 
 ### 1.3 字符串操作
 
@@ -99,7 +99,7 @@
     -   数据缓存（信息缓存、图片缓存、文件缓存）
     -   锁
 
-### 1.4数值操作
+### 1.4 数值操作
 
 -   `Redis` 存储以`k-v`结构存储，`v`默认是字符串值，没有专用的`整数`和`浮点`类型。如果一个字符串值可以被`Redis内部`解释为`十进制64位有符号的整数、128位有符号的浮点数`时（Redis 内部有一个`RedisObject`的结构体会记录数据类型和编码格式等），则可以执行数值计算操作。
 
@@ -129,8 +129,7 @@
     -   计数器（统计访问次数）
     -   限速器（防止资源滥用）
 
-
-##  2. Hash
+## 2. Hash
 
 >   进入Redis 客户端使用  help @hash 查看命令
 
@@ -142,11 +141,11 @@
             -   哈希对象保存的所有键值对的键和值的字符串长度都小于 64 字节`hash-max-ziplist-value 64`
             -   哈希对象保存的键值对数量小于 512 个`hash-max-ziplist-entries 512`
 
-        ![Ziplist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/hash-ziplist.jpg?raw=true)
+        ![Ziplist](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/hash-ziplist.jpg)
 
     -   **hashtable**
 
-        ![Hashtable](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/hash-table.jpg?raw=true)
+        ![Hashtable](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/hash-table.jpg)
 
 -   常用命令
 
@@ -187,6 +186,8 @@
 
     -   `quicklist` 结构
 
+        ![QuickList](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/redis_quicklist_structure.png)
+
         -   两端各有2个橙黄色的节点，是没有被压缩的。它们的数据指针zl指向真正的 `ziplist`。中间的其它节点是被压缩过的，它们的数据指针zl指向被压缩后的 `ziplist` 结构，即一个 `quicklistLZF` 结构。
 
         -   左侧头节点上的`ziplist`里有2项数据，右侧尾节点上的`ziplist`里有1项数据，中间其它节点上的 `ziplist` 里都有3项数据（包括压缩的节点内部）。这表示在表的两端执行过多次`push`和`pop`操作后的一个状态。
@@ -220,7 +221,7 @@
             } quicklistLZF;
             ```
 
-            ![quciklist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/quicklist.jpg?raw=true)
+            
 
 -   常用命令
 
@@ -274,7 +275,7 @@
     -   当 `Set` 内所有元素对象都可以被 `Redis` 解释为整型数值时，且元素数量不超过 `512`  个，使用 `intset` 编码。
     -   当 `Set` 内有元素为 `String ` 类型是，使用 `hashtable` 编码，每个元素对应 `hashtable` 字典的键，值全部设置为 `Null`。
 
-    ![Set](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/set-1.jpg?raw=true)
+    ![Set](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/set-1.jpg)
 
 -   常用命令
 
@@ -330,9 +331,9 @@
 
     -   `ziplist` 编码的压缩列表底层内部，每个集合元素使用两个紧挨一起的压缩列表节点来保存。第一个节点保存元素的`成员（member）`，第二个元素保存元素的`分值（score）`。分值较小的放置在靠近表头的方向，分值较大的放置在靠近表尾的方向。
 
-        ![ziplist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/ziplist.jpg?raw=true)
+        ![ziplist](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/ziplist.jpg)
 
-        ![ziplist-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/ziplist-1.jpg?raw=true)
+        ![ziplist-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/ziplist-1.jpg)
 
     -   `skiplist` 编码使用 `zset` 结构作为底层实现。`zset` 结构包含一个`字典(dict)`和一个`跳跃表(zskiplist)`。
 
@@ -350,7 +351,7 @@
         }zset;
         ```
 
-        ![skiplist](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/skiplist.jpg?raw=true)
+        ![skiplist](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/skiplist.jpg)
 
 -   常用命令
 
@@ -394,7 +395,7 @@
 -   应用场景
 
     -   ZRANGE 命令集合实现排行榜、权重排名
-    
+
 ## 6. BitMap    
 
 **BitMap(二进制位)属于 String 内的一种数据结构，因其应用场景较多，故单独拿出来。**
@@ -404,23 +405,28 @@
 -   **BitMap**
 
     -   **使用一个 `bit` 标记一个元素对应的`value`，`Key`即是该元素。**
+
         -   存储一个数组`[2,4,7]`
+
             -   1.  计算机分配一个`byte`，初始化为8个为`0`的`bit`。
             -   2.  根据数组给定的值，在对应的`offset`将`bit`的值修改为`1`标记该元素。
-                ![BitMap-Array](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap.jpg?raw=true)
+                    ![BitMap-Array](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap.jpg)
+
         -   增加一个元素`5`，使数组变为`[2,4,5,7]`
-        
-               ![BitMap-5](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-add.jpg?raw=true)
-                
+
+            ![BitMap-5](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-add.jpg)
+
         -   删除一个元素`4`，使数组变为`[2，7]`
-               - **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
-                
-               ![BitMap-4](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-del.jpg?raw=true)
-               
+
+            -   **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
+
+            ![BitMap-4](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-del.jpg)
+
         -   增加一个元素`20`,使数据变为`[2,4,7,20]`。
+
             -   如果现有数组要增加元素，并且元素大于7，则再分配字节，并且`offset`仍然`从右向左`依次标记。例如增加20，则分配三个字节，分别是`buf[0]`、`buf[1]`、`buf[2]`，在`buf[2]`的`offset`对应元素标记为`1`。其中`buf[1]`的所有元素肯定为`0`。
-            
-                ![BitMap-add](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-capacity.jpg?raw=true)
+
+                ![BitMap-add](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-capacity.jpg)
 
 -   **常用命令**
 
@@ -453,7 +459,7 @@
 
         -   ascii 码表
 
-            ![ascii](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/ascii.jpg?raw=true)
+            ![ascii](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/ascii.jpg)
 
         -   [二进制计算器]([https://cn.calcuworld.com/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%AE%A1%E7%AE%97%E5%99%A8](https://cn.calcuworld.com/二进制计算器))（该网站计算的值如果不够8位，需要在高位`左侧`补齐0）
 
@@ -545,19 +551,22 @@
     -   `Redis`使用字符串对象保存位数组。因为字符串对象使用的`SDS`数据结构是二进制安全的。
 
         -   redisObject.type的值为REDIS_STRING，表示这是一个字符串对象。
+
         -   sdshdr.len的值为1，表示这个SDS保存了一个一字节长的位数组。
+
         -   buf数组中的buf[0]字节保存了一字节长的位数组。
+
         -   buf数组中的buf[1]字节保存了SDS程序自动追加到值的末尾的空字符'\0'。
 
-            ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure.jpg?raw=true)
+            ![SDS-Structure](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-structure.jpg)
 
         -   存储一个`字节`的位数组：`0100 1101`，`Redis`在保存数组顺序时，与我们书写顺序时完全相反的。也就是`逆序存储`，在数组中的表示为：`1011 0010`。**注意：数组索引顺序依然是从左到右，不是逆序存储的时候采用了逆序索引，这点在后续会明确解释。**
 
-            ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-1.jpg?raw=true)
+            ![SDS-Structure](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-structure-1.jpg)
 
         -   存储多个`字节`的位数组：`1111 0000 1100 0011 1010 0101`，在 `buf数组中`表示为：`1010 0101 1100 0011 0000 1111`。
 
-            ![SDS-Structure](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-structure-2.jpg?raw=true)
+            ![SDS-Structure](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-structure-2.jpg)
 
         -   `GETBIT <bitarray> <offset>` 命令实现，复杂度为`O(1)`
 
@@ -573,11 +582,11 @@
 
             -   `GETBIT <bitarray> 3`
 
-                ![GETBIT-3](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/GETBIT-3.jpg?raw=true)
+                ![GETBIT-3](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/GETBIT-3.jpg)
 
             -   `GETBIT <bitarray> 10`
 
-                ![GETBIT-10](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/GETBIT-10.jpg?raw=true)
+                ![GETBIT-10](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/GETBIT-10.jpg)
 
         -   `SETBIT <bitarray> <offset> <value>` 命令实现，复杂度为`O(1)`
 
@@ -606,22 +615,22 @@
 
             -   `SETBIT <bitarray> 1 1` 无需扩展字节
 
-                ![SETBIT-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIT-1.jpg?raw=true)
+                ![SETBIT-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1.jpg)
 
-                ![SETBIE-1-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIT-1-1.jpg?raw=true)
+                ![SETBIE-1-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1-1.jpg)
 
             -   `SETBIT <bitarray> 12 1`需扩展字节
 
-                ![SETBIT-12](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIT-12.jpg?raw=true)
+                ![SETBIT-12](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-12.jpg)
 
-                ![SETBIT-12-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIE-12-1.jpg?raw=true)
+                ![SETBIT-12-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIE-12-1.jpg)
 
             -   **SETBIT 如果采用正常书写顺序保存，在每次扩展buf数组之后，程序都需要将位数组已有的位进行移动，然后才能执行写入操作，这比SETBIT命令目前的实现方式要复杂，并且移位带来的CPU时间消耗也会影响命令的执行速度。对位数组0100 1101执行命令SETBIT ＜bitarray＞ 12 1，将值改为0001 0000 0100 1101的整个过程。如下图。**
 
-                ![SETBIT-ORDER](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/SETBIE-12-3.jpg?raw=true)
+                ![SETBIT-ORDER](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIE-12-3.jpg)
 
             -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
-                
+
                 ```c
                     /* GET current values*/
                     // 将指针定位到要设置的为所在的字节上
@@ -635,26 +644,34 @@
                     byteva1 &= ~(1 << bit);
                     byteva1 |= ((on & 0x1) << bit);
                     ((uint8_t*)o->prt)[byte] = byteva1 
-                ```            
-                
-                ![Question-1](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-1.jpg?raw=true)
+                ```
 
-                ![Question-2](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/bitmap-2.jpg?raw=true)
+                -   **Question-1**
 
-                ![Question-3](https://github.com/StayHungryStayFoolish/Images-Blog/blob/master/redis/%20bitmap-3.png?raw=true)
+                ![Question-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-1.jpg)
 
+                -   **Question-2**
+
+                ![Question-2](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-2.jpg)
+
+                -   **Question-3**
+
+                ![Question-3](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/%20bitmap-3.png)
 
 ## 7. HyperLogLog
 
-> 进入Redis 客户端使用     help @hyperloglog
+>   进入Redis 客户端使用     help @hyperloglog
 
+**HyperLogLog 计算一个集合内近似元素个数的数据结构**
 
-`HyperLogLog` 是一个专门为了计算集合的基数而创建的概率算法，对于一个给定的集合，`HyperLogLog` 可以计算出这个集合的近似基数：近似基数并非集合的实际基数，
-它可能会比实际的基数小一点或者大一点，但是估算基数和实际基数之间的误差会处于一个合理的范围之内，因此那些不需要知道实际基数或者因为条件限制而无法计算出实际基数的程序
-就可以把这个近似基数当作集合的基数来使用。
+`HyperLogLog` 是一个专门为了计算集合的基数而创建的概率算法，对于一个给定的集合，`HyperLogLog` 可以计算出这个集合的近似基数：近似基数并非集合的实际基数，它可能会比实际的基数小一点或者大一点，但是估算基数和实际基数之间的误差会处于一个合理的范围之内，因此那些不需要知道实际基数或者因为条件限制而无法计算出实际基数的程序就可以把这个近似基数当作集合的基数来使用。
 
 `HyperLogLog` 的优点在于它计算近似基数所需的内存并不会因为集合的大小而改变，无论集合包含的元素有多少个，`HyperLogLog` 进行计算所需的内存总是固定的，并且是非常少的。
 具体到实现上，`Redis` 的每个 `HyperLogLog` 只需要使用12KB内存空间，就可以对接近：264个元素进行计数，而算法的标准误差仅为0.81%，因此它计算出的近似基数是相当可信的。
+
+-   **内部数据结构**
+
+    ![HyperLogLog-Bucket](https://gitee.com/bonismo/notebook-img/raw/f8fa4987d5e09afdf5a3507ba6a29f380333fcfa/img/redis/HyperLogLog.jpg)
 
 -   **常用命令**
 
