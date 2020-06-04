@@ -703,6 +703,8 @@
 
 **HyperLogLog	计算一个集合内近似元素个数的概率算法，Redis 做了去重处理**
 
+**HyperLogLog 通过记录二进制出现的第一个 1 来实现基数计数**
+
 `HyperLogLog` 是一个专门为了计算集合的基数而创建的概率算法，对于一个给定的集合，`HyperLogLog` 可以计算出这个集合的近似基数：近似基数并非集合的实际基数，它可能会比实际的基数小一点或者大一点，但是估算基数和实际基数之间的误差会处于一个合理的范围之内，因此那些不需要知道实际基数或者因为条件限制而无法计算出实际基数的程序就可以把这个近似基数当作集合的基数来使用。
 
 `HyperLogLog` 的优点在于它计算近似基数所需的内存并不会因为集合的大小而改变，无论集合包含的元素有多少个，`HyperLogLog` 进行计算所需的内存总是固定的，并且是非常少的。
@@ -749,10 +751,10 @@
                         -   第 1 次试验: 抛了 3 次才出现正面，此时 k=3，n=1
                             第 2 次试验: 抛了 2 次才出现正面，此时 k=2，n=2
                             第 3 次试验: 抛了 6 次才出现正面，此时 k=6，n=3
-                            第 n 次试验: 抛了 12 次才出现正面，估算 n=2^12
+                            第 n 次试验: 抛了 12 次才出现正面，估算 n=2<sup>12</sup>
                     -   实验结论：
-                        -   如果认为硬币正面为 **1**，第一次抛到硬币正面的次数记为 `k`，`n` 次实验出现的最大值为 `k_max`，则出现数据集合的基数公式为：\hat{n} = 2<sup>k_max</sup> 
-                        -   只有 `n` 足够大时，误差率才会减小 \hat{x}
+                        -   如果认为硬币正面为 **1**，第一次抛到硬币正面的次数记为 `k`，`n` 次实验出现的最大值为 `k_max`，则出现数据集合的基数公式为：**$\widehat{n}$ = 2<sup>k_max</sup>** `此处 n 的显示应该是 n 带帽一个 ^ 符号，Github 的 MD 语法不支持，意思为 n 无穷大`
+                        -   只有 `n` 足够大时，误差率才会减小 
                         -   `Redis` 的 `HyperLogLog` 使用 `Bitmap` 记录第一次 `1` 的位置来计算基数
     
 -   **HyperLogLog 算法** 
@@ -769,21 +771,73 @@
     -   **偏差修正**
       -   使用**分桶平均**后，虽然误差可以减少很多，但是无法做到无偏估计。[Loglog Counting of Large Cardinalities](http://algo.inria.fr/flajolet/Publications/DuFl03-LNCS.pdf) 的作者提供了一种分阶段修正的算法，感兴趣的可以深入了解。
     
--   **Redis 的 HyperLogLog 数据结构**
+### 7.2 Redis 的 HyperLogLog 数据结构
 
-    ![HyperLogLog-Bucket](https://gitee.com/bonismo/notebook-img/raw/f8fa4987d5e09afdf5a3507ba6a29f380333fcfa/img/redis/HyperLogLog.jpg)
-
-    -   `Redis` 的 `HyperLogLog` 占用 **12k** 内存的原因
-        -   `Redis` 设置了**16384（2<sup>14</sup>）** 个桶。请留意 14 这个数字，接下来会具体解释。
+![HyperLogLog-Bucket](https://gitee.com/bonismo/notebook-img/raw/f8fa4987d5e09afdf5a3507ba6a29f380333fcfa/img/redis/HyperLogLog.jpg)
+    
+-   `Redis` 的 `HyperLogLog` 占用 **12k** 内存的原因
+    -   `Redis` 设置了**16384（2<sup>14</sup>）** 个桶。请留意 14 这个数字，接下来会具体解释。
         -   每个桶有 **6 个bit**，每个桶可以表达的最大二进制：**111 111**，对应的十进制：**2<sup>5</sup> + 2<sup>4</sup> + 2<sup>3</sup> + 2<sup>2</sup> + 2<sup>1</sup> = 63**。
-        -   `HyperLogLog` 占用的内存为：**16384 * 6 / 8 / 1024 = 12k**
-    -   `Redis` 的 `HyperLogLog` 内部维护了 **16384 个桶（bucket）**来记录各自桶内元素数量。每个桶内有 **6 个bit**，这 **6个bit** 自然无法容纳桶中元素，在 `Redis` 中记录的是**value 被哈希为 64 位 bit 后 50 位 bit 从右到左第一次出现 1 的索引位置  **。
-    -   2<sup>14</sup> * 6 /8/1024 = 12 k
-        -   2<sup>14</sup> = 16834
-        -   
-    -   
+        -   `HyperLogLog` 占用的内存为：**16384 * 6 / 8 / 1024 = 12k  等价于 2<sup>14</sup> * 6 / 8 / 1024 = 12 k**
+        -   `Redis` 的 `HyperLogLog` 内部维护了 **16384 个桶（bucket）**来记录各自桶内元素数量。每个桶内有 **6 个bit**，这 **6个bit** 自然无法容纳桶中元素，在 `Redis` 中记录的是**value 被哈希为 64 位 bit 后 50 位 bit 从右到左第一次出现 1 的索引位置**。
+-   **16384 的桶是否和 16384 个 Slot 有关系呢？**
+    -   我也不清楚。但是`Redis` 的作者 **antirez** 解释了采用 **2<sup>14</sup>** 的原因，可以简单的理解为：当使用 `Redis` 集群时，`Redis` 节点发送心跳包时，需要使用 `Bitmap` 压缩到消息头。**16384 / 8(bit) / 1024(k) = 2k**，那么这 **2k** 数据存储的什么呢？消息头有一个 `myslots` 的 `char` 数组（**本质是bitmap**），每一个 `bit` 代表一个槽，如果该位为 **1**，则代表这个槽是映射到该节点的。
+    -   如果采用 **2<sup>16</sup> = 65536**，则消息头占用的空间为：**65536 / 8(bit) / 1024(k) = 8k**
+    -   [antirez 的回答](https://github.com/antirez/redis/issues/2576)
+        -   1.  Normal heartbeat packets carry the full configuration of a node, that can be replaced in an idempotent way with the old in order to update an old config. This means they contain the slots configuration for a node, in raw form, that uses 2k of space with16k slots, but would use a prohibitive 8k of space using 65k slots.
+        -   2.  the same time it is unlikely that Redis Cluster would scale to more than 1000 mater nodes because of other design tradeoffs.
+        -   So 16k was in the right range to ensure enough slots per master with a max of 1000 maters, but a small enough number to propagate the slot configuration as a raw bitmap easily. Note that in small clusters the bitmap would be hard to compress because when N is small the bitmap would have slots/N bits set that is a large percentage of bits set.
 
--   **常用命令**
+### 7.3 Redis 的 HyperLogLog 原理（从右到左查找第一个出现的 1 ）
+
+-   [Redis HyperLogLog 源码](https://github.com/antirez/redis/blob/unstable/src/hyperloglog.c)
+  
+-   **存储过程：**
+
+    -   **1. 计算桶坐标**
+    -   `value` 在存入时，会被 `hash` 成 **64 个 bit** 。前 **14** 位 `bit` 用来计算 `value` 的 `bit` 数组（**从右到左**）第一个 **1** 出现的下标位置，然后利用下标的索引数值用来计算存入哪个桶中。
+        -   例如：设第一个 **1** 出现位置的数值为 `index` 。当 `index=2` 时，`hash` 后的 `bit 数组`简单表示为: `...000010 [01 0000 0000 0000...]`，**从右到左看**，则前 **14** 位的二进制可以换算成**十进制的 2**，那么 `index` 会被转化后放入编号为 **2** 的桶。
+        -   选择 `hash` 后的 **前 14 位** 来标记桶号，因为 **2<sup>14</sup> = 16384** ，最大值正好可以将桶利用完，不浪费空间。
+        
+    -   **2. index 转化，并在桶内存入值**
+    
+          -   `value` 被 `hash` 后的 **64 位减去 14 位后，剩余 50 位从右到左** ，第一个出现 **1** 的位置再换算成**二进制**。然后将二进制设置到桶中。
+          -   每个桶有 **6 个bit**，每个桶可以表达的最大二进制：**111 111**，对应的十进制：**2<sup>5</sup> + 2<sup>4</sup> + 2<sup>3</sup> + 2<sup>2</sup> + 2<sup>1</sup> = 63**。所以极端情况第 **50** 位出现第一个 **1** 也不会越界。
+          -   例如：极端情况下，第一个出现 **1** 的位置在第 **50** 位，即 `index = 50`，**转换为二进制为**：`110010`
+    
+      -   **3. 原桶内已存储值的情况（保留 index 值最大）**
+      
+          -   如果前 14 位一样，则比较 `新 index 值` 是否大于 `原来的 index 值`。只有大于已有值时进行设置。
+    
+-   **统计基数**
+  
+      -   最终地，一个 `key` 所对应的 **16384** 个桶都设置了很多的 `value` 了，每个桶有一个`k_max`。此时调用 `PFCOUNT` 时，按照前面介绍的估算方式，可以计算出 `key` 的设置了多少次 `value`，也就是统计值。
+      
+-   **存储上限**
+      
+      
+      
+      -   `value` 被转为 **64** 位的 `bit 数组` ，最终被按照上面的做法记录到每个桶中去。**64 位转为十进制**就是：**2<sup>64</sup>**，`HyperLogLog` 仅用了：`16384 * 6 /8 / 1024 K` 存储空间就能统计多达 **2<sup>64</sup>** 个数。
+      
+-   **偏差修正**
+
+      -   **伪代码，浮点数就是修正因子数，可以看出每个桶的因子数不一样**
+
+```c
+// m 为桶数
+switch (p) {
+	case 4:
+		constant = 0.673 * m * m;
+	case 5:
+		constant = 0.697 * m * m;
+	case 6:
+		constant = 0.709 * m * m;
+    default:
+		constant = (0.7213 / (1 + 1.079 / m)) * m * m;
+	}
+```
+
+### 7.4 HyperLogLog 常用命令
 
 ```bash
 # 添加一个或多个元素（自动去重）
@@ -796,6 +850,11 @@ PFCOUNT key [key ...]
 PFMERGE destkey sourcekey [sourcekey ...]
 ```
 
+### 7.4 HyperLogLog 应用场景
+
+-   大数据统计月活、日活
+-   数据量不要求精确，允许少许误差的都可以，比 `Bitmap` 更节省内存
+
 ## 8. Geo
 
 >   进入Redis 客户端使用     help @geo
@@ -803,3 +862,7 @@ PFMERGE destkey sourcekey [sourcekey ...]
 >   示例：https://redis.io/commands#geo
 
 ## 9. Stream
+
+```
+
+```
