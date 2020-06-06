@@ -455,7 +455,7 @@
         
 
   ![BitMap-Array](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap.jpg)
-  
+
   -   增加一个元素`5`，使数组变为`[2,4,5,7]`
 	
 
@@ -665,13 +665,13 @@
             -   `SETBIT <bitarray> 1 1` 无需扩展字节
             
                 ![SETBIT-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1.jpg)
-              
+                  
                 ![SETBIE-1-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1-1.jpg)
               
             -   `SETBIT <bitarray> 12 1`需扩展字节
             
                 ![SETBIT-12](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-12.jpg)
-              
+                  
                 ![SETBIT-12-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIE-12-1.jpg)
               
             -   **SETBIT 如果采用正常书写顺序保存，在每次扩展buf数组之后，程序都需要将位数组已有的位进行移动，然后才能执行写入操作，这比SETBIT命令目前的实现方式要复杂，并且移位带来的CPU时间消耗也会影响命令的执行速度。对位数组0100 1101执行命令SETBIT ＜bitarray＞ 12 1，将值改为0001 0000 0100 1101的整个过程。如下图。**
@@ -871,6 +871,9 @@ switch (p) {
             -  **offset_bytes = ( regnum * 6 ) / 8** 	求商，计算字节偏移
             -  **offset_bits = ( regnum * 6 ) % 8**      求余，计算桶内从第几位开始计数的。offset_bits 大于 2 则跨越了字节边界，需要拼接两个字节的位片段。如果小于 2 ，这 `6bit` 在一个字节内部。
             -  例如：**桶编号为 2** ，则 ( 2 * 6 ) / 8 = 1，表示**第 2 个字节**，( 2 * 6 ) % 8 = 4，表示第 2 个字节**第 5 个位**是计数值。
+-  **稀疏结构转换为秘籍存储结构条件：**
+    -  1. 任意一个计数值从 **32** 变成 **33**，因为 `VAL` 指令已经无法容纳，它能表示的计数值最大为 **32**
+    -  2. 稀疏存储占用的总字节数超过 **3000** 字节，这个阈值可以通过 `hll_sparse_max_bytes` 参数进行调整。
 -  此处内容较为抽象，如有描述不清楚，请根据参考文章详细阅读或者自行查阅相关资料。
 
 ### 7.5 HyperLogLog 常用命令
