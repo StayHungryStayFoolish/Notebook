@@ -472,10 +472,9 @@
 
   - 增加一个元素`20`,使数据变为`[2,4,7,20]`。
     
-    
-      	- 如果现有数组要增加元素，并且元素大于7，则再分配字节，并且`offset`仍然`从右向左`依次标记。例如增加20，则分配三个字节，分别是`buf[0]`、`buf[1]`、`buf[2]`，在`buf[2]`的`offset`对应元素标记为`1`。其中`buf[1]`的所有元素肯定为`0`。
+      - 如果现有数组要增加元素，并且元素大于7，则再分配字节，并且`offset`仍然`从右向左`依次标记。例如增加20，则分配三个字节，分别是`buf[0]`、`buf[1]`、`buf[2]`，在`buf[2]`的`offset`对应元素标记为`1`。其中`buf[1]`的所有元素肯定为`0`。
 
-  ![BitMap-add](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-capacity.jpg)
+![BitMap-add](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-capacity.jpg)
 
 ### 6.1 Bitmap 常用命令
 
