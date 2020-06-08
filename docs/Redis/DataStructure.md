@@ -627,88 +627,85 @@
         
             -   bit 值记录了`offset`指定的二进制位中字节的第几个位置（**不是索引，是位置**）。
         
-        -   3.根据 `byte` 和 `bit` 值，在位数组 `bitarray` 中定位 `offset` 指定的二进制位，返回该位上的值。
+        -   3.  根据 `byte` 和 `bit` 值，在位数组 `bitarray` 中定位 `offset` 指定的二进制位，返回该位上的值。
         
-        -   `GETBIT <bitarray> 3`
+        -   **示例：**`GETBIT <bitarray> 3`
         
             ![GETBIT-3](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/GETBIT-3.jpg)
         
-        -   `GETBIT <bitarray> 10`
+        -   **示例：**`GETBIT <bitarray> 10`
         
-    
-    ![GETBIT-10](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/GETBIT-10.jpg)
-    
+            ![GETBIT-10](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/GETBIT-10.jpg)
+        
     -   `SETBIT <bitarray> <offset> <value>` 命令实现，复杂度为`O(1)`
-      -   1.  **len = ( offset ÷ 8 ) + 1**
-        
+
+        -   1. **len = ( offset ÷ 8 ) + 1**
+
             -   len 值记录了保存`offset`指定的二进制位需要多少字节（计算 bug[] ）
-          
-      -   2. 检查 `bitarray` 键保存的位数组**(sdshdr)**的长度是否小于 len。
-        
+
+        -   2. 检查 `bitarray` 键保存的位数组**(sdshdr)**的长度是否小于 len。
+
             -   2.1 如果小于 len，则需要扩展字节。`sdshdr` 空间预分配策略会额外多分配 `len` 个字节的未使用空间，再加上为保存空字符而额外分配的1字节，及扩展后的字节为：**( len × 2 ) + 1**
-          
-      -   3.  **byte = offset ÷ 8 并向下取整**
-        
+
+        -   3.  **byte = offset ÷ 8 并向下取整**
+
             -   byte 值记录了`offset` 指定的二进制位保存在位数组的哪个字节。
-          
-      -   4. **bit = ( offset mod 8 ) + 1**
-        
+
+        -   4.  **bit = ( offset mod 8 ) + 1**
+
             -   bit 值记录了`offset`指定的二进制位中字节的第几个位置（**不是索引，是位置**）。
-          
-      -   5. 根据 **byte** 和 **bit** 值，在 `bitarray` 键保存的位数组中定位`offset`指定的二进制位。
-        
+
+        -   5.  根据 **byte** 和 **bit** 值，在 `bitarray` 键保存的位数组中定位`offset`指定的二进制位。
+
             -   首先将指定的二进制位上当前值保存在 `oldvalue` 变量。
             -   然后将新值 `value` 设置为二进制位的值。
+
+        -   6.  返回 `oldvalue` 变量值。
+
+        -   **示例：**`SETBIT <bitarray> 1 1` 无需扩展字节
+
+            ![SETBIT-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1.jpg)
+
+        ![SETBIE-1-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1-1.jpg)
+
+        -   **示例：**`SETBIT <bitarray> 12 1`需扩展字节
+
+            ![SETBIT-12](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-12.jpg)
+            
+            ![SETBIT-12-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIE-12-1.jpg)
           
-      -   6.返回 `oldvalue` 变量值。
-        
-            -   `SETBIT <bitarray> 1 1` 无需扩展字节
-            
-                ![SETBIT-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1.jpg)
-                  
-                ![SETBIE-1-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-1-1.jpg)
-              
-            -   `SETBIT <bitarray> 12 1`需扩展字节
-            
-                ![SETBIT-12](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIT-12.jpg)
-                  
-                ![SETBIT-12-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIE-12-1.jpg)
-              
-            -   **SETBIT 如果采用正常书写顺序保存，在每次扩展buf数组之后，程序都需要将位数组已有的位进行移动，然后才能执行写入操作，这比SETBIT命令目前的实现方式要复杂，并且移位带来的CPU时间消耗也会影响命令的执行速度。对位数组0100 1101执行命令SETBIT ＜bitarray＞ 12 1，将值改为0001 0000 0100 1101的整个过程。如下图。**
-            
-                ![SETBIT-ORDER](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIE-12-3.jpg)
-              
-            -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
-            
-                ```c
-                    /* GET current values*/
-                    // 将指针定位到要设置的为所在的字节上
-                    byteva1 = ((uint8_t*)o->ptr)[byte];
-                    // 定位到要设置的位上面
-                    // 此处是逆序存储的关键步骤，将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0
-                    bit = 7 - (bitoffset & 0x7)
-                    // 记录位现在的值
-                    bitva1 = byteva1 & (1 << bit);
-                    // 更新字节中的位，设置它的值为 on 参数的值
-                    byteva1 &= ~(1 << bit);
-                    byteva1 |= ((on & 0x1) << bit);
-                    ((uint8_t*)o->prt)[byte] = byteva1 
-                ```
-              
-                -   **Question-1**
-                
-                
+        -   **SETBIT 如果采用正常书写顺序保存，在每次扩展buf数组之后，程序都需要将位数组已有的位进行移动，然后才能执行写入操作，这比SETBIT命令目前的实现方式要复杂，并且移位带来的CPU时间消耗也会影响命令的执行速度。对位数组0100 1101执行命令SETBIT ＜bitarray＞ 12 1，将值改为0001 0000 0100 1101的整个过程。如下图。**
+
+            ![SETBIT-ORDER](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/SETBIE-12-3.jpg)
+          
+        -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
+
+            ```c
+                /* GET current values*/
+                // 将指针定位到要设置的为所在的字节上
+                byteva1 = ((uint8_t*)o->ptr)[byte];
+                // 定位到要设置的位上面
+                // 此处是逆序存储的关键步骤，将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0
+                bit = 7 - (bitoffset & 0x7)
+                // 记录位现在的值
+                bitva1 = byteva1 & (1 << bit);
+                // 更新字节中的位，设置它的值为 on 参数的值
+                byteva1 &= ~(1 << bit);
+                byteva1 |= ((on & 0x1) << bit);
+                ((uint8_t*)o->prt)[byte] = byteva1 
+            ```
+
+            -   **Question-1**
+
               ![Question-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-1.jpg)
-              
-                -   **Question-2**
-              
-              
-                ![Question-2](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-2.jpg)
-              
-                -   **Question-3**
-              
-              
-                ![Question-3](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/%20bitmap-3.png)
+
+            -   **Question-2**
+
+              ![Question-2](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-2.jpg)
+
+            -   **Question-3**
+
+              ![Question-3](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/%20bitmap-3.png)
 
 
 
