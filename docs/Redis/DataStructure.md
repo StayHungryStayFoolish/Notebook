@@ -16,7 +16,7 @@
 
 -   Bitmap
 -   HyperLogLog
--   Geo 
+-   GeoHash 
 -   Stream
 
 ## 1.String
@@ -891,13 +891,15 @@ PFMERGE destkey sourcekey [sourcekey ...]
 -   大数据统计月活、日活
 -   数据量不要求精确，允许少许误差的都可以，比 `Bitmap` 更节省内存
 
-## 8. Geo
+## 8. GeoHash
 
 >   进入Redis 客户端使用     help @geo
 >
 >   示例：https://redis.io/commands#geo
 
--   
+### 8.1 GeoHash 算法
+
+
 
 ## 9. Stream
 
