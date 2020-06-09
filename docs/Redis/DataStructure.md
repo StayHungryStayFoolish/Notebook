@@ -897,9 +897,41 @@ PFMERGE destkey sourcekey [sourcekey ...]
 >
 >   示例：https://redis.io/commands#geo
 
-### 8.1 GeoHash 算法
+### 8.1 空间索引
 
+- **维基百科：空间索引**（空间数据库（存储与空间中的对象有关的信息的数据库））使用**空间索引**来优化[空间查询](https://en.wikipedia.org/wiki/Spatial_query)。
+- 传统的索引类型不能有效地处理空间查询，**例如：两个点相差多远，或者给定一个点的坐标，如何查找附近范围内或者最近的点。**常见的空间索引方法包括以下：
+  - [Geohash](https://en.wikipedia.org/wiki/Geohash)
+  - [HHCode](https://en.wikipedia.org/wiki/HHCode)
+  - [Grid (spatial index)](https://en.wikipedia.org/wiki/Grid_(spatial_index))
+  - [Z-order (curve)](https://en.wikipedia.org/wiki/Z-order_(curve))
+  - [Quadtree](https://en.wikipedia.org/wiki/Quadtree)
+  - [Octree](https://en.wikipedia.org/wiki/Octree)
+  - [UB-tree](https://en.wikipedia.org/wiki/UB-tree)
+  - [R-tree](https://en.wikipedia.org/wiki/R-tree): Typically the preferred method for indexing spatial data.[*[citation needed](https://en.wikipedia.org/wiki/Wikipedia:Citation_needed)*] Objects (shapes, lines and points) are grouped using the [minimum bounding rectangle](https://en.wikipedia.org/wiki/Minimum_bounding_rectangle) (MBR). Objects are added to an MBR within the index that will lead to the smallest increase in its size.
+  - [R+ tree](https://en.wikipedia.org/wiki/R%2B_tree)
+  - [R* tree](https://en.wikipedia.org/wiki/R*_tree)
+  - [Hilbert R-tree](https://en.wikipedia.org/wiki/Hilbert_R-tree)
+  - [X-tree](https://en.wikipedia.org/wiki/X-tree)
+  - [kd-tree](https://en.wikipedia.org/wiki/Kd-tree)
+  - [m-tree](https://en.wikipedia.org/wiki/M-tree) – an m-tree index can be used for the efficient resolution of similarity queries on complex objects as compared using an arbitrary metric.
+  - [Binary space partitioning](https://en.wikipedia.org/wiki/Binary_space_partitioning) (BSP-Tree): Subdividing space by hyperplanes.
 
+### 8.2 GeoHash 算法
+
+- Geohash 是一种地理编码，由 [Gustavo Niemeyer](https://en.wikipedia.org/w/index.php?title=Gustavo_Niemeyer&action=edit&redlink=1) 发明的。它是一种分级的数据结构，把空间划分为网格。Geohash 属于空间填充曲线中的 Z 阶曲线（[Z-order curve](https://en.wikipedia.org/wiki/Z-order_curve)）的实际应用。
+
+- **Z 阶曲线：** 简单的可以理解为使用 **Z 曲线** 使 `Z 和 Z` 的首尾相连，来填充多维空间，从而是多维降到一维，最终使其可以用一个数组来表示。
+
+  - 二位空间的 **Z阶曲线**，只需要把每个 Z 首尾相连即可。
+
+  ![Z](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/z.png)
+
+  - **Z 阶曲线**同样可以扩展到**三维空间**。只要 Z 形状足够小并且足够密，也能填满整个三维空间。
+
+  ![Z](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/z-1.png)
+
+-  **GeoHash** 算法的理论基础就是基于 **Z 阶曲线** 的生成原理。
 
 ## 9. Stream
 
