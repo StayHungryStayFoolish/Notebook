@@ -509,8 +509,7 @@
 
             ![ascii](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/ascii.jpg)
 
-        -   [二进制计算器](https://cn.calcuworld.com/二进制计算器) （该网站计算的值如果不够8位，需要在高位`左侧`补齐0）
-        -   [二进制计算器](https://cn.calcuworld.com/%e4%ba%8c%e8%bf%9b%e5%88%b6%e8%ae%a1%e7%ae%97%e5%99%a8?iframe=1 ':include :type=iframe width=100% height=400px')
+        -   [二进制计算器](https://cn.calcuworld.com/%e4%ba%8c%e8%bf%9b%e5%88%b6%e8%ae%a1%e7%ae%97%e5%99%a8?iframe=1 ':include :type=iframe width=100% height=400px')（该网站计算的值如果不够8位，需要在高位`左侧`补齐0）
     
 -   操作 `Bitmap` 设置一个字符串
     
