@@ -6,7 +6,9 @@
     - [Spring](Spring/)    
 - **Redis**
     - [Redis](Redis/)
-    - [Redis的9种数据结构](Redis/DataStructure.md)
+    - [Redis的9种数据类型](Redis/DataType.md)
+    - [Redis的底层数据机构](Redis/DataStructure.md)
+    - [Redis 持久化](Redis/AOF&RDB.md)
     - [Redis参考文章](Redis/Refereneces.md)
 - **设计模式**
     - [设计模式](设计模式/)
