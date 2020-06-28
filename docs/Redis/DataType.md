@@ -976,7 +976,7 @@ PFMERGE destkey sourcekey [sourcekey ...]
 
     - 可以在该网站进行测试。[GeoHash-Map](http://geohash.gofreerange.com/)
 
-  - **精度问题：** 仔细观察精度分级会发现相邻级别相差比较大，如果需求是 50 km，则选字符串长度 3 太大，选字符串 4 又太小。后边会简单介绍 **S2** 算法及精度分级。
+  - **精度问题：** 仔细观察精度分级会发现相邻级别相差比较大，如果需求是 50 km，则选字符串长度 3 太大，选字符串 4 又太小。后边会简单介绍 **Google S2** 算法及精度分级。
 
 - **Geohash 常用算法：Base 32 和 Base 36** 
 
@@ -998,7 +998,7 @@ PFMERGE destkey sourcekey [sourcekey ...]
 
 - **使用 Base 32 对坐标进行区间划分，采用 6 个字符的 GeoHash，则经纬度解析分别需要 15 次（因为每 5 位二进制转换一次十进制，十进制再对应 Base 32 取值），值在左区间取 0，在右区间取 1**
 
-- **以上图银科大厦的坐标 [ Lat:39.981498991524006, Lng:116.3063484933343 ]，可以进行如下解析：**
+- **以上图银科大厦的坐标 [ Lat:39.981498991524006, Lng:116.3063484933343 ]，对应的字符值为 wx4eqw，可以进行如下解析：**
 
   - 如果要实际测试，一定要将地图放大为最大，拿到精确的经纬值，否则很有可能解析不出正确的结论。
 
@@ -1058,3 +1058,84 @@ PFMERGE destkey sourcekey [sourcekey ...]
     | 11100  |   28   |    w    |
   
   -  **由此简单验证了 Geohash 基于 Z 阶曲线和 Base 32 算法的结论。**
+
+### 8.3 Google S2 算法
+
+-   [Google’s S2 library](https://code.google.com/p/s2-geometry-library/) is a real treasure, not only due to its capabilities for spatial indexing but also because it is a library that was released more than 4 years ago and it didn’t get the attention it deserved.
+
+### 8.3 Geohash 存储方式
+
+-   `Redis` 采用了 `Sorted Set` 存储地理位置。每一个 `member` 的 `score` 的大小是一个 **52 为的 Geohash 值（Double 精度为 52），由 26 位经度二进制和 26 位维度二进制交叉组合，最后转为十进制作为 score。 **
+
+```bash
+redis> GEOADD k1 116.3063484933343 39.981498991524006 yinke
+1
+redis> ZRANGE k1 0 -1 withscores
+yinke
+4069880514976585
+redis> GEOHASH k1 yinke
+wx4eqw7tn70
+
+#########################
+4069880514976585
+十进制转换为二进制 
+1110011101011000100011100110010111111001101101001001(对应的 Hash 值为：wx4eqw7tn70)
+手动解析的六字符二进制
+111001110100100011011011011100(对应的 Hash 值为：wx4eqw)
+仔细对比发现前17位是一样的，这是因为 Geohash 精度不一样，Redis 自身采用 11 位，手动验证的时候为了简便取的是 6 位
+```
+
+### 8.4 Geohash 优缺点
+
+-   **优点：**
+
+    -   采用 `Z 阶曲线` 进行编码，将二维或者多维空间的所有点转换为一堆曲线，进而可以转换为一维数组结构，并具有局部保序性。在一维数组中可以采用二叉搜索树、B树、跳跃表或哈希表等处理数据。
+
+-   **缺点：**
+
+    -   虽然有局部保序性，但也有突变性。**相邻的 Z 首尾虽然两个点事相邻的，但是距离相隔很远。**
+
+        ![Z-突变](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/20200628185553.png)
+
+### 8.5 Geohash 常用命令
+
+```
+# 将指定的地理空间位置（纬度、经度、名称）添加到指定的key中。这些数据将会存储到 sorted set
+GEOADD key longitude latitude member [longitude latitude member ...]
+
+# 返回两个给定位置之间的距离。如果两个位置之间的其中一个不存在， 那么命令返回空值。
+# unit 参数：不显示指定 unit 默认参数为 m
+# m 单位 米
+# km 单位 千米
+# mi 单位 英里
+# ft 单位 英尺
+GEODIST key member1 member2 [unit]
+
+# 返回一个或多个位置元素的 Geohash 表示。
+GEOHASH key member [member ...]
+
+# 从key里返回所有给定位置元素的位置（第一个元素是经度和第二个元素是纬度）
+GEOPOS key member [member ...]
+
+# 以给定的经纬度为中心，返回键包含的位置元素当中，与中心的距离不超过给定最大距离的所有位置元素。
+
+# 额外参数：
+# WITHDIST：在返回位置元素的同时，将位置元素与中心之间的距离也一并返回。距离的单位和用户给定的范围单位保持一致。
+# WITHCOORD：将位置元素的经度和维度也一并返回。
+# WITHHASH：以 52 位有符号整数的形式， 返回位置元素经过原始 geohash 编码的有序集合分值。这个选项主要用于底层应用或者调试，实际中的作用并不大。
+
+# ASC: 根据中心的位置，按照从近到远的方式返回位置元素。
+# DESC: 根据中心的位置，按照从远到近的方式返回位置元素。
+
+# COUNT <count> 选项去获取前 N 个匹配元素，但是因为命令在内部可能会需要对所有被匹配的元素进行处理， 所以在对一个非常大的区域进行搜索时，即使只使用 COUNT 选项去获取少量元素，命令的执行速度也可能会非常慢。 但是从另一方面来说，使用 COUNT 选项去减少需要返回的元素数量，对于减少带宽来说仍然是非常有用的。
+
+GEORADIUS key longitude latitude radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count] [ASC|DESC] [STORE key] [STOREDIST key]
+
+# 和 GEORADIUS 命令一样，都可以找出位于指定范围内的元素，但是 GEORADIUSBYMEMBER 的中心点是由给定的位置元素决定的，而不是像 GEORADIUS 那样，使用输入的经度和纬度来决定中心点。
+# 指定成员的位置被用作查询的中心。
+GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count] [ASC|DESC] [STORE key] [STOREDIST key]
+```
+
+### 8.7 应用场景
+
+-   附近地理相关的所有应用
