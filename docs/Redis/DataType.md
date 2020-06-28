@@ -1214,3 +1214,20 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
 ## 9. Stream
 
+> 进入Redis 客户端使用     help @stream
+>
+> 示例：https://redis.io/commands#stream
+
+**每一个 Steam 本质是一个 Rax Tree（基数树，也称前缀树） 和 Listpack（链表） 组成的数据结构，Rax Tree 用来存储 Stream 的 key，List 才存储 key 对应的消息内容（k-v）**
+
+- Stream 简单结构如下
+
+  ```
+  
+  				 |--- Rax Tree 存储 StreamID（StremID 由 Unix + Sequence 组成）
+  Stream --|
+  		     |--- 每个 StreamId 对应一个 Listpack 组成 （Listpack 内包含多个 Entry 结构，每个 Entry 包含消息内容的键值对）
+  ```
+
+  
+
