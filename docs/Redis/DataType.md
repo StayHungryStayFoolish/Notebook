@@ -1061,9 +1061,80 @@ PFMERGE destkey sourcekey [sourcekey ...]
 
 ### 8.3 Google S2 算法
 
--   [Google’s S2 library](https://code.google.com/p/s2-geometry-library/) is a real treasure, not only due to its capabilities for spatial indexing but also because it is a library that was released more than 4 years ago and it didn’t get the attention it deserved.
+- [Google’s S2 library](https://code.google.com/p/s2-geometry-library/) is a real treasure, not only due to its capabilities for spatial indexing but also because it is a library that was released more than 4 years ago and it didn’t get the attention it deserved.
 
-### 8.3 Geohash 存储方式
+- 上边介绍了如何使用  `Z 阶曲线` 来解决多维空间点索引问题。接下来介绍另外一种算法 **S2** 。
+
+- **多维空间点索引需要解决 2 个问题**
+
+  -   **如何把多维降维低维或者一维？**
+  -   **一维曲线如何分形（采用哪一种图像作为基本的 Cell）？**
+
+-   **空间填充曲线，将多维降为一维**
+
+    -   **在数学分析中，有这样一个难题：能否用一条无限长的线，穿过任意维度空间里面的所有点？**
+
+        -   Peano Curve（1890 年）
+            -   取一个正方形并且把它分出九个相等的小正方形，然后从左下角的正方形开始至右上角的正方形结束，依次把小正方形的中心用线段连接起来；下一步把每个小正方形分成九个相等的正方形，然后上述方式把其中中心连接起来……将这种操作手续无限进行下去，最终得到的极限情况的曲线就被称作皮亚诺曲线。
+
+        ![PeanoCurve](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChat1bf2f8b89674332c99f07727e0f33b2f.png)
+
+    -   Hilbert Curve（一年后，希尔伯特做出了这条曲线）
+
+        ![HilbertCurve](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/20200628224218.png)
+
+-   **分形**
+
+    -   多维空间降维以后，如何分形，也是一个问题。分形的方式有很多种，这里有一个[WIKI 分形列表](https://en.wikipedia.org/wiki/List_of_fractals_by_Hausdorff_dimension)，可以查看如何分形，以及每个分形的分形维数，即豪斯多夫分形维(Hausdorff fractals dimension)和拓扑维数。
+
+    -   **Google S2 采用了正方形分形，如下图**
+
+        ![Square-S2](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChatdb1c80b9b20990f096d7e86490b0b646.png)
+
+-   **Google S2 Cell 精度**
+
+    | Level |  Min Area   |  Max Area   | Average Area |     Units      | Random cell 1 (UK) min edge length | Random cell 1 (UK) max edge length | Random cell 2 (US) min edge length | Random cell 2 (US) max edge length | Number of cells |
+    | :---: | :---------: | :---------: | :----------: | :------------: | :--------------------------------: | :--------------------------------: | :--------------------------------: | :--------------------------------: | :-------------: |
+    |  00   | 85011012.19 | 85011012.19 | 85011012.19  | km<sup>2</sup> |              7842 km               |              7842 km               |              7842 km               |              7842 km               |        6        |
+    |  01   | 21252753.05 | 21252753.05 | 21252753.05  | km<sup>2</sup> |              3921 km               |              5004 km               |              3921 km               |              5004 km               |       24        |
+    |  02   | 4919708.23  | 6026521.16  |  5313188.26  | km<sup>2</sup> |              1825 km               |              2489 km               |              1825 km               |              2489 km               |       96        |
+    |  03   | 1055377.48  | 1646455.50  |  1328297.07  | km<sup>2</sup> |               840 km               |              1167 km               |              1130 km               |              1310 km               |       384       |
+    |  04   |  231564.06  |  413918.15  |  332074.27   | km<sup>2</sup> |               432 km               |               609 km               |               579 km               |               636 km               |      1536       |
+    |  05   |  53798.67   |  104297.91  |   83018.57   | km<sup>2</sup> |               210 km               |               298 km               |               287 km               |               315 km               |       6k        |
+    |  06   |  12948.81   |  26113.30   |   20754.64   | km<sup>2</sup> |               108 km               |               151 km               |               143 km               |               156 km               |       24k       |
+    |  07   |   3175.44   |   6529.09   |   5188.66    | km<sup>2</sup> |               54 km                |               76 km                |               72 km                |               78 km                |       98k       |
+    |  08   |   786.20    |   1632.45   |   1297.17    | km<sup>2</sup> |               27 km                |               38 km                |               36 km                |               39 km                |      393k       |
+    |  09   |   195.59    |   408.12    |    324.29    | km<sup>2</sup> |               14 km                |               19 km                |               18 km                |               20 km                |      1573k      |
+    |  10   |    48.78    |   102.03    |    81.07     | km<sup>2</sup> |                7 km                |                9 km                |                9 km                |               10 km                |       6M        |
+    |  11   |    12.18    |    25.51    |    20.27     | km<sup>2</sup> |                3 km                |                5 km                |                4 km                |                5 km                |       25M       |
+    |  12   |    3.04     |    6.38     |     5.07     | km<sup>2</sup> |               1699 m               |                2 km                |                2 km                |                2 km                |      100M       |
+    |  13   |    0.76     |    1.59     |     1.27     | km<sup>2</sup> |               850 m                |               1185 m               |               1123 m               |               1225 m               |      402M       |
+    |  14   |    0.19     |    0.40     |     0.32     | km<sup>2</sup> |               425 m                |               593 m                |               562 m                |               613 m                |      1610M      |
+    |  15   |  47520.30   |  99638.93   |   79172.67   | m<sup>2</sup>  |               212 m                |               296 m                |               281 m                |               306 m                |       6B        |
+    |  16   |  11880.08   |  24909.73   |   19793.17   | m<sup>2</sup>  |               106 m                |               148 m                |               140 m                |               153 m                |       25B       |
+    |  17   |   2970.02   |   6227.43   |   4948.29    | m<sup>2</sup>  |                53 m                |                74 m                |                70 m                |                77 m                |      103B       |
+    |  18   |   742.50    |   1556.86   |   1237.07    | m<sup>2</sup>  |                27 m                |                37 m                |                35 m                |                38 m                |      412B       |
+    |  19   |   185.63    |   389.21    |    309.27    | m<sup>2</sup>  |                13 m                |                19 m                |                18 m                |                19 m                |      1649B      |
+    |  20   |    46.41    |    97.30    |    77.32     | m<sup>2</sup>  |                7 m                 |                9 m                 |                9 m                 |                10 m                |       7T        |
+    |  21   |    11.60    |    24.33    |    19.33     | m<sup>2</sup>  |                3 m                 |                5 m                 |                4 m                 |                5 m                 |       26T       |
+    |  22   |    2.90     |    6.08     |     4.83     | m<sup>2</sup>  |               166 cm               |                2 m                 |                2 m                 |                2 m                 |      105T       |
+    |  23   |    0.73     |    1.52     |     1.21     | m<sup>2</sup>  |               83 cm                |               116 cm               |               110 cm               |               120 cm               |      422T       |
+    |  24   |    0.18     |    0.38     |     0.30     | m<sup>2</sup>  |               41 cm                |               58 cm                |               55 cm                |               60 cm                |      1689T      |
+    |  25   |   453.19    |   950.23    |    755.05    | cm<sup>2</sup> |               21 cm                |               29 cm                |               27 cm                |               30 cm                |      7e15       |
+    |  26   |   113.30    |   237.56    |    188.76    | cm<sup>2</sup> |               10 cm                |               14 cm                |               14 cm                |               15 cm                |      27e15      |
+    |  27   |    28.32    |    59.39    |    47.19     | cm<sup>2</sup> |                5 cm                |                7 cm                |                7 cm                |                7 cm                |     108e15      |
+    |  28   |    7.08     |    14.85    |    11.80     |      cm2       |                2 cm                |                4 cm                |                3 cm                |                4 cm                |     432e15      |
+    |  29   |    1.77     |    3.71     |     2.95     |      cm2       |               12 mm                |               18 mm                |               17 mm                |               18 mm                |     1729e15     |
+    |  30   |    0.44     |    0.93     |     0.74     |      cm2       |                6 mm                |                9 mm                |                8 mm                |                9 mm                |      7e18       |
+
+    -   **S2 采用了 31 级精度，从  Level 00 - Level 30 分级范围之间差距比较均匀，不会像  Geohash 一样，层级之间分布不匀**
+    -   **Level 00 将地球分为了 6 个正方形，到 Level 30 将地球分为 7e18 个正方形，比 Geohash 精度更为精准。**
+
+-    **[Google S2 Java Libary](https://github.com/google/s2-geometry-library-java)**
+
+-   **[About S2 Cells](https://s2geometry.io/devguide/s2cell_hierarchy)**
+
+### 8.4 Geohash 存储方式
 
 -   `Redis` 采用了 `Sorted Set` 存储地理位置。每一个 `member` 的 `score` 的大小是一个 **52 为的 Geohash 值（Double 精度为 52），由 26 位经度二进制和 26 位维度二进制交叉组合，最后转为十进制作为 score。 **
 
@@ -1085,7 +1156,7 @@ wx4eqw7tn70
 仔细对比发现前17位是一样的，这是因为 Geohash 精度不一样，Redis 自身采用 11 位，手动验证的时候为了简便取的是 6 位
 ```
 
-### 8.4 Geohash 优缺点
+### 8.5 Geohash 优缺点
 
 -   **优点：**
 
@@ -1097,9 +1168,9 @@ wx4eqw7tn70
 
         ![Z-突变](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/20200628185553.png)
 
-### 8.5 Geohash 常用命令
+### 8.6 Geohash 常用命令
 
-```
+```bash
 # 将指定的地理空间位置（纬度、经度、名称）添加到指定的key中。这些数据将会存储到 sorted set
 GEOADD key longitude latitude member [longitude latitude member ...]
 
@@ -1138,4 +1209,8 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
 ### 8.7 应用场景
 
+-   地理相关应用
 -   附近地理相关的所有应用
+
+## 9. Stream
+
