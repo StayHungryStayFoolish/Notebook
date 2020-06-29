@@ -1312,15 +1312,50 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
     -   **End：**`listpack` 结束标志，占用 **1** 字节，内容为 `0xFF`
 
-### 9.2 Stream 组成部分
+### 9.2 Stream 组成部分（消息、生产者、消费者、消费组）
 
--   消息
+- **消息：** Stream 消息队列中的内容
 
--   生产者
+  -   **消息 ID ：每个消息右唯一的一个消息 ID 并且严格递增**
+      -   **Unix time（millionseconds）+ sequence**
+          -   **格式：1593444536965-0** 
+  -   **消息内容：（多个 k-v 结构）**
+      -   `field string [field string ...]`
 
--   消费组
+- **生产者：** 负责向 Stream 消息队列生产内容
 
--   消费者
+  -   **命令：**`XADD key ID field string [field string ...]`
 
+- **普通消费者：** 获取 Stream 消息队列中的内容，当消费者不归属消费组时，可以消费消息队列中任何消息。
+
+  -   **命令：**`XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] ID [ID ...]`
+      -   **非阻塞模式：（默认获取方式）**
+          -   指定 ID 为 **0** 读取，获取消息队列中所有消息
+          -   指定 ID 为**某一个消息ID**，获取该 ID 之后的所有消息
+      -   **阻塞模式：（BLOCK 参数默认 millionseconds）**
+          -   指定 ID 为 **0** ，并设置 `BLOCK` 时间，阻塞模式会立即获取消息队列中全部消息**（不推荐使用）**
+          -   指定 ID 为 **$** ，并设置 `BLOCK` 时间，阻塞模式会在指定的 `阻塞时间` 内等待消息队列中的**新消息或阻塞时间内没有新消息结束阻塞**。当阻塞时间结束，该次阻塞模式结束，并不会等待第二次或更多次获取消息。
+
+- **消费组：** `Stream` 内一个重要概念。允许消费者将一个 `Stream` 从逻辑上划分为不同的流，并让消费组下的消费者取处理组中`待处理状态（未消费）`消息。
+
+  -   **消费组特点：**
+      -   每个消费组通过组名称唯一标识，**每个消费组都可以消费该消息队列中的全部消息**，多个消费组之间**相互独立**。
+      -   每个消费组可以有**多个消费者**，消费者通过名称唯一标识，消费者之间的关系是**竞争关系**，也就是说一个消息只能由该组的一个成员消费。
+      -   组内成员消费消息后**需要确认**，每个消息组都有一个**待确认消息队列**（pending entry list, pel），用以维护该消费组**已经消费但没有确认**的消息。
+      -   消费组中的每个成员也有一个**待确认消息队列**，维护着该消费者**已经消费尚未确认**的消息。
+  -   **命令：**`XGROUP [CREATE key groupname id-or-$] [SETID key id-or-$] [DESTROY key groupname] [DELCONSUMER key groupname consumername]`
+      -   指定 ID 为 **0**，则获取消费组内**所有待处理消息**。
+      -   指定 ID 为**某一个消息ID**，则获取该消息 ID 之后的**所有待处理消息**。
+      -   指定 ID 为 **$**，则获取该组建立之后的**新消息**。
+
+-   **组内消费者：**
+
+    -   **命令：**`XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] ID [ID ...]`
+        -   指定 ID 为 **0**，则获取消费组建立后的**所有待处理消息**。
+        -   指定 ID 为 **>**，则获取消费组内**未被消费起始的消息**。**注意 ID 特殊符号是 >，不同于普通消费者的 $**
+        -   **不支持指定消息 ID**
+    
     ![Stream-msq](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-msg.svg)
+
+### 9.3 Stream 常用命令及内部原理
 
