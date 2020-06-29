@@ -1218,16 +1218,109 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 >
 > 示例：https://redis.io/commands#stream
 
-**每一个 Steam 本质是一个 Rax Tree（基数树，也称前缀树） 和 Listpack（链表） 组成的数据结构，Rax Tree 用来存储 Stream 的 key，List 才存储 key 对应的消息内容（k-v）**
+**Stream 是 Redis 5.0 新增特性，和上述 8 中数据类型相比，也是数据结构最为复杂的一个。**
 
-- Stream 简单结构如下
+**每个消息流都包含一个 Rax 结构。以消息ID为 key，listpack 结构为 value 存储在 Rax 结构中。每个消息的具体信息存储在这个 listpack 中。**
 
-  ```
-  
-  				 |--- Rax Tree 存储 StreamID（StremID 由 Unix + Sequence 组成）
-  Stream --|
-  		     |--- 每个 StreamId 对应一个 Listpack 组成 （Listpack 内包含多个 Entry 结构，每个 Entry 包含消息内容的键值对）
-  ```
+![StreamStructure](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/StreamStructure.svg)
 
-  
+### 9.1 Stream 数据结构
+
+-   **了解 Stream 首先需要了解其内部数据结构**
+
+-   **Rax Tree（前缀树也成基数树）**
+
+    -    [Wiki 关于 Radix Tree的图示](https://en.wikipedia.org/wiki/Radix_tree) 是字符串查找时，经常使用的一种数据结构，能够在一个字符串集合中快速查找到某个字符串。
+
+        ![Radix-Tree](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChat0e701d81d2e7013595cff8d2b959f319.png)
+
+    -   **Redis Rax 结构由  3 部分组成**
+
+        -   ```c
+            typedef struct rax {
+            	raxNode *head;
+            	uint64_t numele;
+            	uint64_t numnodes;
+            }
+            
+            typedef struct raxNode {
+            	uint32_t iskey:1;
+            	uint32_t isnull:1;
+            	uint32_t iscompr:1;
+            	uint32_t size:29;    
+            	unsigned char data[];    
+            }
+            
+            raxNode 结构：
+            +-------+--------+---------+------+------+
+            | isKey | isNull | iscompr | size | data |
+            +-------+--------+---------+------+------+
+                
+            raxNode 分为两类：
+            1. 压缩节点：iscompr = 1 
+               iskey = 1 和 isnull = 0 时，value-ptr 存在，否则 value-ptr 不存在
+            
+            以存储压缩节点 ABC 为例：
+            
+            +-------+--------+---------+------+---+---+---+-----+-------+----------+
+            |isKey=1|isNull=0|iscompr=1|size=3| A | B | C | pad | C-ptr |value-ptr?|
+            +-------+--------+---------+------+---+---+---+-----+-------+----------+
+            
+            2. 非压缩节点：iscompr = 0，Redis 中，只有不大于 2 个字符时才是非压缩节点
+            
+            +-------+--------+---------+------+---+---+-----+-------+-------+----------+
+            |isKey=1|isNull=0|iscompr=0|size=2| X | Y | pad | X-ptr | Y-ptr |value-ptr?|
+            +-------+--------+---------+------+---+---+-----+-------+-------+----------+
+            
+            ```
+
+        -   **Header：** 指向头节点指针
+
+            -   **iskey：** 表明当前节点是否包含一个 key，占用 **1** bit
+            -   **isnull：** 表明当前 key 对应的 value 是否为空，占用 **1** bit
+            -   **iscompr：**表明当前节点是否为压缩节点，占用 **1** bit
+            -   **size：**为压缩节点压缩的字符串长度或者非压缩节点的子节点个数，占用 **29** bit
+            -   **data：**包含填充字段，同时**存储了当前节点包含的字符串以及子节点的指针、key 对应的 value指针（Stream 具体消息内容）**
+
+        -   **Numele：** 元素个数
+
+        -   **Numnodes：** 节点个数
+
+-   **Listpack（紧凑列表）由 4 部分组成**
+
+    -   ```c
+        +-----------+--------+----------+----------+------+----------+-----+
+        |Total Bytes|Num Elem|  Entry1  |  Entry2  |  ... |  EntryN  | End |
+        +-----------+--------+----------+----------+------+----------+-----+
+                                /    \
+                               /      \
+                              /        \
+                    +----------+---------+---------+
+                    |  Encode  | Content | Backlen |
+                    +----------+---------+---------+
+        ```
+
+    -   **Total Bytes：** 整个 `listpack` 空间大小，占用 **4** 个字节，每个 `listpack` 最多占用 **4294967295 Bytes**
+
+    -   **Num Elem：** `listpack` 中元素个数，即 `Entry` 个数。占用  **2** 个字节（1个字符），即最大表示 **65535**，当超出时，仍然可以继续存储。
+
+    -   **Entry：**每个具体元素，由 **3** 部分组成
+
+        -   **Encode：** 元素的编码方式，占用 **1** 字节。
+        -   **Content：**元素内容
+        -   **Backlen：**记录 Entry 长度（Encode + Content 长度，不包含自身）
+
+    -   **End：**`listpack` 结束标志，占用 **1** 字节，内容为 `0xFF`
+
+### 9.2 Stream 组成部分
+
+-   消息
+
+-   生产者
+
+-   消费组
+
+-   消费者
+
+    ![Stream-msq](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-msg.svg)
 
