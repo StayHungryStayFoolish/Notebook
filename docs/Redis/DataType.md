@@ -77,26 +77,26 @@
 #### 1.3.1 String 常用命令
 
 ```bash
-    # 设置 key 和 value 并可以设置过期时间的原子操作
-    SET key value [expiration EX seconds|PX milliseconds] [NX|XX]
-    
-    # 获取 key 的 value
-    GET key
-    
-    # 追加 value 到原来 value 的最后（如果 key 不存在会创建空字符串并追加）
-    APPEND key value
-    
-    # 设置一个带过期时间的 key 和 value ，单位：秒
-    SETEX key seconds value
-    
-    # 设置一个带过期时间的 key 和 value ，单位：毫秒
-    PSETEX key milliseconds value
-    
-    # 获取指定索引范围内的字符串值
-    GETRANGE key start end
-    
-    # 获取字符串值的字节的长度
-    STRLEN key
+# 设置 key 和 value 并可以设置过期时间的原子操作
+SET key value [expiration EX seconds|PX milliseconds] [NX|XX]
+
+# 获取 key 的 value
+GET key
+
+# 追加 value 到原来 value 的最后（如果 key 不存在会创建空字符串并追加）
+APPEND key value
+
+# 设置一个带过期时间的 key 和 value ，单位：秒
+SETEX key seconds value
+
+# 设置一个带过期时间的 key 和 value ，单位：毫秒
+PSETEX key milliseconds value
+
+# 获取指定索引范围内的字符串值
+GETRANGE key start end
+
+# 获取字符串值的字节的长度
+STRLEN key
 ```
 
 -   **SET 命令会强制覆盖 key 所持有的 value，无视 value  任何数据类型都会被强制覆盖**
@@ -106,19 +106,19 @@
 -   **STRLEN** 的字节长度有编码集有关，具体参考**二进制安全**
   
     ```bash
-        127.0.0.1:6379> set key1 a
-        OK
-        127.0.0.1:6379> get key1
-        "a"
-        127.0.0.1:6379> STRLEN key1
-        (integer) 1
-        127.0.0.1:6379> APPEND key1 中    # 汉字在 UTF-8 为3个字节
-        (integer) 4
-        127.0.0.1:6379> STRLEN key1
-        (integer) 4
-        127.0.0.1:6379> get key1 # “中”的十六进制表示: \xe4\xb8\xad
-        "a\xe4\xb8\xad"
-        127.0.0.1:6379>	
+    127.0.0.1:6379> set key1 a
+    OK
+    127.0.0.1:6379> get key1
+    "a"
+    127.0.0.1:6379> STRLEN key1
+    (integer) 1
+    127.0.0.1:6379> APPEND key1 中    # 汉字在 UTF-8 为3个字节
+    (integer) 4
+    127.0.0.1:6379> STRLEN key1
+    (integer) 4
+    127.0.0.1:6379> get key1 # “中”的十六进制表示: \xe4\xb8\xad
+    "a\xe4\xb8\xad"
+    127.0.0.1:6379>	
     ```
 
 ### 1.4 String 字符串形式应用场景
@@ -134,22 +134,22 @@
 #### 1.5.1 数值常用命令
 
 ```bash
-    # 操作整型数值
-    # 设置 key 对应的数值增加一个指定的 increment，如果 key 不存在，操作前会设置一个0值
-    INCRBY key increment
-    
-    # 设置 key 对应的值执行原子的 +1 操作
-    INCR key
-    
-    # 设置 key 对应的数值减去一个指定的 decrement，如果 key 不存在，操作前会设置一个0值
-    DECRBY key decrement
-    
-    # 设置 key 对应的值执行原子的 -1 操作
-    DECR key
-    
-    # 操作浮点数值，浮点操作与整型操作不一样，没有加减方向，根据 increment 符号确定
-    # 设置 key 对应的数值增加一个指定的 increment，如果 key 不存在，操作前会设置一个0.0值
-    INCRBYFLOAT key increment
+# 操作整型数值
+# 设置 key 对应的数值增加一个指定的 increment，如果 key 不存在，操作前会设置一个0值
+INCRBY key increment
+
+# 设置 key 对应的值执行原子的 +1 操作
+INCR key
+
+# 设置 key 对应的数值减去一个指定的 decrement，如果 key 不存在，操作前会设置一个0值
+DECRBY key decrement
+
+# 设置 key 对应的值执行原子的 -1 操作
+DECR key
+
+# 操作浮点数值，浮点操作与整型操作不一样，没有加减方向，根据 increment 符号确定
+# 设置 key 对应的数值增加一个指定的 increment，如果 key 不存在，操作前会设置一个0.0值
+INCRBYFLOAT key increment
 ```
 
 ### 1.6 String 数值形式应用场景
@@ -182,28 +182,39 @@
 ### 2.1 Hash 常用命令
 
 ```bash
-    # 设置 Hash 里面一个或多个字段的值
-    HSET key field value
-    # 获取 Hash 里面 key 指定字段的值
-    HGET key field
-    # 获取 Hash 所有字段
-    HKEYS key
-    # 获取 Hash 所有值
-    HVALS key
-    # 获取 Hash 所有的 filed 和 value
-    HGETALL key
-    # 删除一个或多个 Hash 的 filed
-    HDEL key field [field ...]
-    # 判断 filed 是否存在该 key 中
-    HEXISTS key field
-    # 将 Hash 中 key 指定的 filed 增加给定的整型数值，前提该 filed 的值可以被 Redis 作为数值解释
-    HINCRBY key field increment
-    # 将 Hash 中 key 指定的 filed 增加给定的浮点数值，前提该 filed 的值可以被 Redis 作为数值解释
-    HINCRBYFLOAT key field increment
-    # 获取指定 key 的字段数量
-    HLEN key
-    # 获取 Hash 里面 key 指定 filed 的字节长度
-    HSTRLEN key filed
+# 设置 Hash 里面一个或多个字段的值
+HSET key field value
+
+# 获取 Hash 里面 key 指定字段的值
+HGET key field
+
+# 获取 Hash 所有字段
+HKEYS key
+
+# 获取 Hash 所有值
+HVALS key
+
+# 获取 Hash 所有的 filed 和 value
+HGETALL key
+
+# 删除一个或多个 Hash 的 filed
+HDEL key field [field ...]
+
+# 判断 filed 是否存在该 key 中
+HEXISTS key field
+
+# 将 Hash 中 key 指定的 filed 增加给定的整型数值，前提该 filed 的值可以被 Redis 作为数值解释
+HINCRBY key field increment
+
+# 将 Hash 中 key 指定的 filed 增加给定的浮点数值，前提该 filed 的值可以被 Redis 作为数值解释
+HINCRBYFLOAT key field increment
+
+# 获取指定 key 的字段数量
+HLEN key
+
+# 获取 Hash 里面 key 指定 filed 的字节长度
+HSTRLEN key filed
+
 ```
 
 ### 2.2 Hash 应用场景
@@ -257,43 +268,55 @@
             } quicklistLZF;
             ```
 
-            
 
 ### 3.1 常用命令
 
 ```bash
-    # 从队列右边入队一个元素
-    RPUSH key value [value ...]
-    # 从队列左边入队一个元素
-    LPUSH key value [value ...]
-    # 以队里从左到有发现的第一个元素为轴心，在其指定方向插入一个元素
-    # 如果一个List 是 a a b c d，在执行 LINSERT k1 after a 1 之后，会变成 a 1 a b c d
-    LINSERT key BEFORE|AFTER pivot value
-    # 根据索引设置队列里边一个值
-    LSET key index value
-    # 根据 count 移除指定的元素
-    # count = 0，移除列表所有指定元素
-    # count > 0，从左到右移除 count 个指定元素
-    # count < 0，从右到左移除 count 个指定元素
-    LREM key count value
-    # 根据指定索引获取一个元素
-    LINDEX key index
-    # 根据指定范围获取元素(0,-1 获取所有)
-    LRANGE key start stop
-    # 从队列左侧出队一个元素
-    LPOP key
-    # 从队列右侧出队一个元素
-    RPOP key
-    # 在指定的时间内，一直出于阻塞状态，从左侧出队一个元素
-    # 如果阻塞状态时，列表元素已经为空，当另外一个执行了 PUSH 命令，则出于阻塞状态的命令会将 PUSH 的元素进行出队操作
-    BLPOP key [key ...] timeout
-    # 在指定的时间内，一直出于阻塞状态，从右侧出队一个元素
-    # 原理同 BLPOP
-    BRPOP key [key ...] timeout
-    # 将 源列表的最右端元素（source） 弹出并推入 目标列表的最左端（destination）
-    RPOPPUSH source destination
-    # 阻塞状态的 RPOPPUSH，当 source 没有元素时，可以参考 BLPOP
-    BRPOPLPUSH source destination timeout
+# 从队列右边入队一个元素
+RPUSH key value [value ...]
+
+# 从队列左边入队一个元素
+LPUSH key value [value ...]
+
+# 以队里从左到有发现的第一个元素为轴心，在其指定方向插入一个元素
+# 如果一个List 是 a a b c d，在执行 LINSERT k1 after a 1 之后，会变成 a 1 a b c d
+LINSERT key BEFORE|AFTER pivot value
+
+# 根据索引设置队列里边一个值
+LSET key index value
+
+# 根据 count 移除指定的元素
+# count = 0，移除列表所有指定元素
+# count > 0，从左到右移除 count 个指定元素
+# count < 0，从右到左移除 count 个指定元素
+LREM key count value
+
+# 根据指定索引获取一个元素
+LINDEX key index
+
+# 根据指定范围获取元素(0,-1 获取所有)
+LRANGE key start stop
+
+# 从队列左侧出队一个元素
+LPOP key
+
+# 从队列右侧出队一个元素
+RPOP key
+
+# 在指定的时间内，一直出于阻塞状态，从左侧出队一个元素
+# 如果阻塞状态时，列表元素已经为空，当另外一个执行了 PUSH 命令，则出于阻塞状态的命令会将 PUSH 的元素进行出队操作
+BLPOP key [key ...] timeout
+
+# 在指定的时间内，一直出于阻塞状态，从右侧出队一个元素
+# 原理同 BLPOP
+BRPOP key [key ...] timeout
+
+# 将 源列表的最右端元素（source） 弹出并推入 目标列表的最左端（destination）
+RPOPPUSH source destination
+
+# 阻塞状态的 RPOPPUSH，当 source 没有元素时，可以参考 BLPOP
+BRPOPLPUSH source destination timeout
+
 ```
 
 ### 3.2 List 应用场景
@@ -320,35 +343,49 @@
 ### 4.1 Set 常用命令
 
 ```bash
-    # 添加一个或多个元素到集合（set）内
-    SADD key member [member ...]
-    # 获取集合内所有元素
-    SMEMBERS key
-    # 判断给定的元素是否属于集合成员，是返回1，否返回0
-    SISMEMBER key member
-    # 获取集合元素数量
-    SCARD key
-    # 移动 源集合（source）的指定元素（member）到目标集合（destination）
-    SMOVE source destination member
-    # 移除一个或多个元素
-    SREM key member [member ...]
-    # 随机返回一个或 count 个数的元素（不同于 POP 命令，只是返回元素，不会移除）
-    SRANDMEMBER key [count]
-    # 随机返回 count 个数元素，并从集合内移除
-    SPOP key [count]
-    # 集合交集
-    SINTER key [key ...]
-    # 集合并集
-    SUNION key [key ...]
-    # 集合差集，按照给定顺序，从左到右计算
-    # k1(a,b,c)		k2(b,c,d)		SDIFF k1 k2 ==> a
-    SDIFF key [key ...]
-    # 计算交集。按照给定的集合，并将结果存储到 destination 中
-    SINTERSTORE destination key [key ...]
-    # 计算并集。按照给定的集合，并将结果存储到 destination 中
-    SUNIONSTORE destination key [key ...]
-    # 计算差集集。按照给定的集合顺序，从左到右计算，并将结果存储到 destination 中 
-    SDIFFSTORE destination key [key ...]
+# 添加一个或多个元素到集合（set）内
+SADD key member [member ...]
+
+# 获取集合内所有元素
+SMEMBERS key
+
+# 判断给定的元素是否属于集合成员，是返回1，否返回0
+SISMEMBER key member
+
+# 获取集合元素数量
+SCARD key
+
+# 移动 源集合（source）的指定元素（member）到目标集合（destination）
+SMOVE source destination member
+
+# 移除一个或多个元素
+SREM key member [member ...]
+
+# 随机返回一个或 count 个数的元素（不同于 POP 命令，只是返回元素，不会移除）
+SRANDMEMBER key [count]
+
+# 随机返回 count 个数元素，并从集合内移除
+SPOP key [count]
+
+# 集合交集
+SINTER key [key ...]
+
+# 集合并集
+SUNION key [key ...]
+
+# 集合差集，按照给定顺序，从左到右计算
+# k1(a,b,c)		k2(b,c,d)		SDIFF k1 k2 ==> a
+SDIFF key [key ...]
+
+# 计算交集。按照给定的集合，并将结果存储到 destination 中
+SINTERSTORE destination key [key ...]
+
+# 计算并集。按照给定的集合，并将结果存储到 destination 中
+SUNIONSTORE destination key [key ...]
+
+# 计算差集集。按照给定的集合顺序，从左到右计算，并将结果存储到 destination 中 
+SDIFFSTORE destination key [key ...]
+
 ```
 
 ### 4.2 Set 应用场景
@@ -400,47 +437,61 @@
 ### 5.1 ZSet 常用命令
 
 ```bash
-    # 添加一个或多个成员，或更新成员的分数（如果已经存在则更新，不存在添加）
-    ZADD key [NX|XX] [CH] [INCR] score member [score member ...]
-    # 对给定成员进行指定的增量（increment）
-    ZINCRBY key increment member
-    # 获取成员数量
-    ZCARD key
-    # 获取成员分数
-    ZSCORE key member
-    # 计算成员之间的成员数量（包含该成员本身，正数后查，负数前查）
-    ZLEXCOUNT key min max
-    # 获取分数范围内的成员数量
-    ZCOUNT key min max
-    # 按成员位置从低到高排列
-    ZRANGE key start stop [WITHSCORES]
-    # 按成员位置从高到底排列
-    ZREVRANGE key start stop [WITHSCORES]
-    # 移除指定的成员
-    ZREM key member [member ...]
-    # 按成员范围移除
-    # min 和 max 如果使用 (min (max 则不包含该元素，只移除元素范围内的元素
-    # min 和 max 如果使用 [min [max 则包含该元素，移除元素和其范围内的元素
-    ZREMRANGEBYLEX key min max
-    # 按成员下边索引移除
-    ZREMRANGEBYRANK key start stop
-    # 按成员分数移除
-    ZREMRANGEBYSCORE key min max
-    # 获取分数范围内的成员（如果使用 WITHSCORES 则会显示分数）
-    ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]
-    # 计算并集，给定 key 的数量由 numkeys 决定，并将结果保存在 destination 中。
-    # 如果使用 WEIGHTS 参数，后边的参数因子跟 key 的顺序是对应的。
-    # ZUNIONSTORE result 2 k1 k2 WEIGHTS 1 2 （k1的成员分数×1，k2的成员分数×2）
-    ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MIN|MAX]
-    # 计算交集，参考上边并集
-    ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MIN|MAX]
+# 添加一个或多个成员，或更新成员的分数（如果已经存在则更新，不存在添加）
+ZADD key [NX|XX] [CH] [INCR] score member [score member ...]
+
+# 对给定成员进行指定的增量（increment）
+ZINCRBY key increment member
+
+# 获取成员数量
+ZCARD key
+
+# 获取成员分数
+ZSCORE key member
+
+# 计算成员之间的成员数量（包含该成员本身，正数后查，负数前查）
+ZLEXCOUNT key min max
+
+# 获取分数范围内的成员数量
+ZCOUNT key min max
+
+# 按成员位置从低到高排列
+ZRANGE key start stop [WITHSCORES]
+
+# 按成员位置从高到底排列
+ZREVRANGE key start stop [WITHSCORES]
+
+# 移除指定的成员
+ZREM key member [member ...]
+
+# 按成员范围移除
+# min 和 max 如果使用 (min (max 则不包含该元素，只移除元素范围内的元素
+# min 和 max 如果使用 [min [max 则包含该元素，移除元素和其范围内的元素
+ZREMRANGEBYLEX key min max
+
+# 按成员下边索引移除
+ZREMRANGEBYRANK key start stop
+
+# 按成员分数移除
+ZREMRANGEBYSCORE key min max
+
+# 获取分数范围内的成员（如果使用 WITHSCORES 则会显示分数）
+ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]
+
+# 计算并集，给定 key 的数量由 numkeys 决定，并将结果保存在 destination 中。
+# 如果使用 WEIGHTS 参数，后边的参数因子跟 key 的顺序是对应的。
+# ZUNIONSTORE result 2 k1 k2 WEIGHTS 1 2 （k1的成员分数×1，k2的成员分数×2）
+ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MIN|MAX]
+
+# 计算交集，参考上边并集
+ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MIN|MAX]
 ```
 
 ### 5.2 ZSet 应用场景
 
 -   ZRANGE 命令集合实现排行榜、权重排名
 
-## 6. BitMap    
+## 6. Bitmap    
 
 **Bitmap(二进制位)属于 String 内的一种数据结构，因其应用场景较多，故单独拿出来。**
 
@@ -448,61 +499,55 @@
 >
 >   示例：https://redis.io/commands#string
 
-### 6.1 Bitmap 图解 (Bitmap 正规书写，图中 BitMap 书写错误)
+### 6.1 Bitmap 图解
 
 -   **使用一个 `bit` 标记一个元素对应的`value`，`Key`即是该元素。**
+-   存储一个数组`[2,4,7]`
+  -   1.  计算机分配一个`byte`，初始化为8个为`0`的`bit`。
+  -   2.  根据数组给定的值，在对应的`offset`将`bit`的值修改为`1`标记该元素。
+
+![Bitmap-1](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChat6b19a88bb391b20c5e83a940fe8a1366.png)
+
+-   增加一个元素`5`，使数组变为`[2,4,5,7]`
   
-  -   存储一个数组`[2,4,7]`
-    
-  	-   1.  计算机分配一个`byte`，初始化为8个为`0`的`bit`。
-		-   2.  根据数组给定的值，在对应的`offset`将`bit`的值修改为`1`标记该元素。
-        
+	![Bitmap-add-5](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChat024dd7db382d59765da9fcdb8f686a04.png)
 
-  ![BitMap-Array](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap.jpg)
+-   删除一个元素`4`，使数组变为`[2，7]`
 
-  -   增加一个元素`5`，使数组变为`[2,4,5,7]`
-	
-
-  ![BitMap-5](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-add.jpg)
-      
-
-  -   删除一个元素`4`，使数组变为`[2，7]`
-	
-  	-   **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
-
-
-  ![BitMap-4](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-del.jpg)
+  -   **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
+  
+	![Bitmap-del-4](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChat6dd72906063050e25089960011af57d2.png)
 
 
   - 增加一个元素`20`,使数据变为`[2,4,7,20]`。
     
       - 如果现有数组要增加元素，并且元素大于7，则再分配字节，并且`offset`仍然`从右向左`依次标记。例如增加20，则分配三个字节，分别是`buf[0]`、`buf[1]`、`buf[2]`，在`buf[2]`的`offset`对应元素标记为`1`。其中`buf[1]`的所有元素肯定为`0`。
 
-![BitMap-add](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/bitmap-capacity.jpg)
+![Bitmap-add](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChat3386d4b0c2c7bfe6ffe00d8059c13d03.png)
 
 ### 6.1 Bitmap 常用命令
 
 ```bash
-    # 对 key 所存储的字符串值（bit）按照指定的 offset 进行标记（标记为0或1）
-    # 实际操作的是每个字节对应的二进制值
-    SETBIT key offset value
-    
-    # 获取该 key 对应的 offset 的 bit 值
-    GETBIT key offset
-    
-    # 返回二进制 bit 值为 1 的数量
-    BITCOUNT key [start end]
-    
-    # 返回指定范围二进制第一个 bit 值的位置
-    BITPOS key bit [start] [end]
-    
-    # 对 一个或多个 key 进行位运算，并将结果保存在 destkey 上
-    # operation 支持以下四种操作任意一种：
-    #	AND，与（&）  ：对应位都为1，结果为1
-    #	OR，或（|）   ：对应位有一个为1，结果为1
-    #	XOR，异或（^） ：对应位不同时，结果为1
-    #	NOT，非（~）   ：一元操作，取反值(只能对一个 key 操作，不同于上述三种)
-    BITOP operation destkey key [key ...]
+# 对 key 所存储的字符串值（bit）按照指定的 offset 进行标记（标记为0或1）
+# 实际操作的是每个字节对应的二进制值
+SETBIT key offset value
+
+# 获取该 key 对应的 offset 的 bit 值
+GETBIT key offset
+
+# 返回二进制 bit 值为 1 的数量
+BITCOUNT key [start end]
+
+# 返回指定范围二进制第一个 bit 值的位置
+BITPOS key bit [start] [end]
+
+# 对 一个或多个 key 进行位运算，并将结果保存在 destkey 上
+# operation 支持以下四种操作任意一种：
+#	AND，与（&）  ：对应位都为1，结果为1
+#	OR，或（|）   ：对应位有一个为1，结果为1
+#	XOR，异或（^） ：对应位不同时，结果为1
+#	NOT，非（~）   ：一元操作，取反值(只能对一个 key 操作，不同于上述三种)
+BITOP operation destkey key [key ...]
 ```
 
 -   **演示**
@@ -518,70 +563,70 @@
 -   操作 `Bitmap` 设置一个字符串
   
     ```bash
-        # 操作 Bitmap 使其值为十进制的 1
-        127.0.0.1:6379> SETBIT k1 7 1  # 0000 0001 
-        (integer) 0
-        127.0.0.1:6379> get k1
-        "\x01"
-        
-        # 操作 Bitmap 使其值为 a，在 ascii 对应的十进制为 97，用二进制表示为：01100001
-        127.0.0.1:6379> SETBIT k2 0 0
-        (integer) 0
-        127.0.0.1:6379> SETBIT k2 1 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT k2 2 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT k2 3 0
-        (integer) 0
-        127.0.0.1:6379> SETBIT k2 4 0
-        (integer) 0
-        127.0.0.1:6379> SETBIT k2 5 0
-        (integer) 0
-        127.0.0.1:6379> SETBIT k2 6 0
-        (integer) 0
-        127.0.0.1:6379> SETBIT k2 7 1
-        (integer) 0
-        127.0.0.1:6379> get k2
-        "a"
-        
-        # 操作 Bitmap 的 k2 的值，使 a 更改为 b，
-        # 在 ascii 对应的 a 十进制为 97，用二进制表示为：01100001
-        # 在 ascii 对应的 b 十进制为 98，用二进制表示为：01100010
-        127.0.0.1:6379> SETBIT k2 7 0
-        (integer) 1
-        127.0.0.1:6379> SETBIT k2 6 1
-        (integer) 0
-        127.0.0.1:6379> get k2
-        "b"
-        
-        # 统计用户登录登录次数，id 为 1000，1001 的两个用户在 20200515、20200516 时间内登录
-        127.0.0.1:6379> SETBIT 1000 20200515 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT 1001 20200515 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT 1000 20200516 1
-        (integer) 0
-        127.0.0.1:6379> BITCOUNT 1000
-        (integer) 2
-        
-        # 统计任意时间范围内用户活跃情况，id 为 1000，1001，1002 的三个用户分别在 20200514、20200514 登录，最后统计两天内活跃人数为 3
-        127.0.0.1:6379> SETBIT 20200514 1000 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT 20200514 1001 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT 20200514 1002 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT 20200515 1000 1
-        (integer) 0
-        127.0.0.1:6379> SETBIT 20200515 1001 1
-        (integer) 0
-        127.0.0.1:6379> BITOP or result 20200514 20200515
-        (integer) 126
-        127.0.0.1:6379> BITCOUNT result
-        (integer) 3
-        127.0.0.1:6379>
-    ```
+    # 操作 Bitmap 使其值为十进制的 1
+    127.0.0.1:6379> SETBIT k1 7 1  # 0000 0001 
+    (integer) 0
+    127.0.0.1:6379> get k1
+    "\x01"
     
+    # 操作 Bitmap 使其值为 a，在 ascii 对应的十进制为 97，用二进制表示为：01100001
+    127.0.0.1:6379> SETBIT k2 0 0
+    (integer) 0
+    127.0.0.1:6379> SETBIT k2 1 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT k2 2 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT k2 3 0
+    (integer) 0
+    127.0.0.1:6379> SETBIT k2 4 0
+    (integer) 0
+    127.0.0.1:6379> SETBIT k2 5 0
+    (integer) 0
+    127.0.0.1:6379> SETBIT k2 6 0
+    (integer) 0
+    127.0.0.1:6379> SETBIT k2 7 1
+    (integer) 0
+    127.0.0.1:6379> get k2
+    "a"
+    
+    # 操作 Bitmap 的 k2 的值，使 a 更改为 b，
+    # 在 ascii 对应的 a 十进制为 97，用二进制表示为：01100001
+    # 在 ascii 对应的 b 十进制为 98，用二进制表示为：01100010
+    127.0.0.1:6379> SETBIT k2 7 0
+    (integer) 1
+    127.0.0.1:6379> SETBIT k2 6 1
+    (integer) 0
+    127.0.0.1:6379> get k2
+    "b"
+        
+    # 统计用户登录登录次数，id 为 1000，1001 的两个用户在 20200515、20200516 时间内登录
+    127.0.0.1:6379> SETBIT 1000 20200515 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT 1001 20200515 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT 1000 20200516 1
+    (integer) 0
+    127.0.0.1:6379> BITCOUNT 1000
+    (integer) 2
+        
+    # 统计任意时间范围内用户活跃情况，id 为 1000，1001，1002 的三个用户分别在 20200514、20200514 登录，最后统计两天内活跃人数为 3
+    
+    127.0.0.1:6379> SETBIT 20200514 1000 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT 20200514 1001 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT 20200514 1002 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT 20200515 1000 1
+    (integer) 0
+    127.0.0.1:6379> SETBIT 20200515 1001 1
+    (integer) 0
+    127.0.0.1:6379> BITOP or result 20200514 20200515
+    (integer) 126
+    127.0.0.1:6379> BITCOUNT result
+    (integer) 3
+    127.0.0.1:6379>
+    ```
     
 
 ### 6.2 Bitmap 使用场景（用户 id 只能是数字类型）
@@ -684,18 +729,18 @@
         -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
 
             ```c
-                /* GET current values*/
-                // 将指针定位到要设置的为所在的字节上
-                byteva1 = ((uint8_t*)o->ptr)[byte];
-                // 定位到要设置的位上面
-                // 此处是逆序存储的关键步骤，将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0
-                bit = 7 - (bitoffset & 0x7)
-                // 记录位现在的值
-                bitva1 = byteva1 & (1 << bit);
-                // 更新字节中的位，设置它的值为 on 参数的值
-                byteva1 &= ~(1 << bit);
-                byteva1 |= ((on & 0x1) << bit);
-                ((uint8_t*)o->prt)[byte] = byteva1 
+            /* GET current values*/
+            // 将指针定位到要设置的为所在的字节上
+            byteva1 = ((uint8_t*)o->ptr)[byte];
+            // 定位到要设置的位上面
+            // 此处是逆序存储的关键步骤，将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0
+            bit = 7 - (bitoffset & 0x7)
+            // 记录位现在的值
+            bitva1 = byteva1 & (1 << bit);
+            // 更新字节中的位，设置它的值为 on 参数的值
+            byteva1 &= ~(1 << bit);
+            byteva1 |= ((on & 0x1) << bit);
+            ((uint8_t*)o->prt)[byte] = byteva1 
             ```
 
             -   **Question-1**
