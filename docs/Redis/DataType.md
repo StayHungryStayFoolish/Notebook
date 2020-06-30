@@ -915,7 +915,7 @@ switch (p) {
             -  **offset_bytes = ( regnum * 6 ) / 8** 	求商，计算字节偏移
             -  **offset_bits = ( regnum * 6 ) % 8**      求余，计算桶内从第几位开始计数的。offset_bits 大于 2 则跨越了字节边界，需要拼接两个字节的位片段。如果小于 2 ，这 `6bit` 在一个字节内部。
             -  例如：**桶编号为 2** ，则 ( 2 * 6 ) / 8 = 1，表示**第 2 个字节**，( 2 * 6 ) % 8 = 4，表示第 2 个字节**第 5 个位**是计数值。
--  **稀疏结构转换为秘籍存储结构条件：**
+-  **稀疏结构转换为密集存储结构条件：**
     -  1. 任意一个计数值从 **32** 变成 **33**，因为 `VAL` 指令已经无法容纳，它能表示的计数值最大为 **32**
     -  2. 稀疏存储占用的总字节数超过 **3000** 字节，这个阈值可以通过 `hll_sparse_max_bytes` 参数进行调整。
 -  此处内容较为抽象，如有描述不清楚，请根据参考文章详细阅读或者自行查阅相关资料。
@@ -1401,5 +1401,34 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
     
     ![Stream-msq](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-msg.svg)
 
-### 9.3 Stream 常用命令及内部原理
+### 9.3 Stream 命令
 
+-   `Stream 读写命令`
+    -   **追加新元素到流的末尾**
+        -   `XADD key ID field string [field string ...]`
+    -   **获取流内的元素数量**
+        -   `XLEN key`
+    -   **访问流中元素**
+        -   正序访问（从小到大）`XRANGE key start end [COUNT count]`
+        -   倒序访问（从大到小）`XREVRANGE key end start [COUNT count]`
+    -   **以阻塞或非阻塞方式获取流元素**
+        -   `XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] ID [ID ...]`
+    -   **对流进行修剪**
+        -   `XTRIM key MAXLEN [~] count`
+    -   **移除指定元素**
+        -   `XDEL key ID [ID ...]`
+-   `Stream 组概念相关命令`
+    -   **创建 / 销毁 消费者组（组内消费者）**
+        -   `XGROUP [CREATE key groupname id-or-$] [SETID key id-or-$] [DESTROY key groupname] [DELCONSUMER key groupname consumername]`
+    -   **读取消费者组中的消息**
+        -   `XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] ID [ID ...]`
+    -   **查看组内（组内消费者）待处理（已读取未确认）状态消息的相关信息**
+        -   `XPENDING key group [start end count] [consumer]`
+    -   **转移待处理（已读取未确认）状态消息的归属权**
+        -   `XCLAIM key group consumer min-idle-time ID [ID ...] [IDLE ms] [TIME ms-unix-time] [RETRYCOUNT count] [force] [justid]`
+    -   **将消息标记为已处理状态（确认消息）**
+        -   ` XACK key group ID [ID ...]`
+-   `Stream 查看消费组、消费者、流 命令`
+    -   `XINFO [CONSUMERS key groupname] [GROUPS key] [STREAM key] [HELP]`
+
+### 9.4 Stream 命令原理
