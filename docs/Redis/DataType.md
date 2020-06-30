@@ -1408,11 +1408,15 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
         -   `XADD key ID field string [field string ...]`
     -   **获取流内的元素数量**
         -   `XLEN key`
-    -   **访问流中元素**
-        -   正序访问（从小到大）`XRANGE key start end [COUNT count]`
-        -   倒序访问（从大到小）`XREVRANGE key end start [COUNT count]`
-    -   **以阻塞或非阻塞方式获取流元素**
+    -   **访问流中元素，双向迭代**
+        -   `start` 和 `end` 可以是 `特殊值减号 -(最小ID) 和加号 +(最大ID)` 也可以使指定 ID，获取范围是`左右开区间`。
+        -   `COUNT count` 通过对流的迭代获取 `前N 个元素`。Stream 内部实现的是双向迭代器。
+            -   正序访问（从小到大）`XRANGE key start end [COUNT count]`
+            -   倒序访问（从大到小）`XREVRANGE key end start [COUNT count]`
+    -   **以阻塞或非阻塞方式获取流元素，只能按照流开始的方向迭代，但是可以同时从多个流中迭代，每次迭代都需要获取上一次迭代返回的最后元素的 ID**
         -   `XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] ID [ID ...]`
+            -   `COUNT count` 选项在 `XREAD` 后边是因为 `STREAMS` 选项是可变参数选项
+            -   `key [key ...]` 和 `ID [ID ...]` 流和流内的ID必须按照顺序对应
     -   **对流进行修剪**
         -   `XTRIM key MAXLEN [~] count`
     -   **移除指定元素**
@@ -1431,4 +1435,72 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 -   `Stream 查看消费组、消费者、流 命令`
     -   `XINFO [CONSUMERS key groupname] [GROUPS key] [STREAM key] [HELP]`
 
-### 9.4 Stream 命令原理
+### 9.4 Stream 命令详解
+
+-   执行 `XADD` 命令
+
+    -   `XADD mq * name boni` 
+
+    -   `XADD mq * name lily age 18`
+
+    -   `XADD mq * gender female married false address China`
+
+    -   **原理**
+
+        -   `Stream` 通过执行 `XADD` 命令，将一个带有 **指定ID（通常使用 * 采用 Unix time + Seq 方式）** 以及包含指定键值对的元素追加到流的末尾。如果**流不存在**，`Redis` 会先创建一个空白的流，然后将给定元素追加到流中。
+        -   同一个流中的每个元素都可以包含一个或任意多个键值对。**元素内的键值对存储顺序是以用户创建顺序方式进行存储的。**
+        -   流元素的 ID，从小到大依次存储在 `Rax Tree` 上。通常使用 `Redis` 自动生成的方式**（*）**,如果手动指定 ID，则该 ID 必须大于流内末尾的 ID。
+            -   当指定 ID 为 **1000**，自动补全 `sequence` 并返回 **1000-1**。
+            -   只能将新元素添加到末尾而不允许在数据结构的 `中间` 添加新元素，这也是**流与列表以及有序集合之间的一个显著区别**。
+
+    -   **图示**
+
+        ![Stream-ADD](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-ADD命令.svg)
+
+
+
+-   执行 `XADD MAXLEN [~] count` 命令，该命令效果同 `XTRIM`
+
+    -   `XADD mq MAXLEN 3 * name lucy age 19`
+
+    -   `XADD mq MAXLEN 3 * name Tom age 21`
+
+    -   **原理**
+
+        -   `MAXLEN` 限制流的长度，当添加的新元素超过指定的 `count` 时，会按照`先进先出` 的规则移除超过长度限制的元素。
+        -   `[~]`  中括号是 `Redis` 命令的可选参数，如果使用  `~` 则会按照 `count` 的概数限制元素个数。比如 `MAXLEN ~ 100000`，则最后流内元素个数可能比 100000 多一些，也或许会少一些。**该参数不建议使用，实验添加了 20 个元素，使用 MAXLEN ~ 10 并未起到效果，可能跟数据量太小有关。**
+        -   `count` 指定限制流的长度。
+
+    -   **图示，最后保留了 3、4、5 三个元素，1 和 2 被移除**
+
+        ![Stream-ADD-MAXLEN](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-ADD-MAXLEN命令.svg)
+
+-   执行 `XREAD` 命令
+
+    -   `XADD mq * name boni` 和 `XADD mq * name lily` 并返回消息ID `1593515337049-0` 和 `1593515499000-0`
+    -   `XREAD STREAMS mq 1593515337049-0`  可以获取该 ID 后的消息
+    -   `XREAD STREAMS mq 0`  可以获取 `0-0` 起始以后的所有消息，`0 是 0-0 的简写`
+    -   `XREAD STREAMS mq $` 不会获取任何消息，因为 `$` 配合的是 `BLOCK` 阻塞模式，非阻塞模式无意义。
+
+-   执行 `XREAD BLOCK milliseconds` 命令
+
+    -   **Client 1**
+
+        -   `XREAD BLOCK 0 STREAMS mq $`
+
+    -   **Client 2**
+
+        -   `XREAD BLOCK 0 STREAMS mq $`
+
+    -   **Client 3**
+
+        -   `XADD mq * name boni`
+
+    -   **结果：**
+
+        -   `Client 1 和 2` 将进入阻塞状态。在此之后，如果在给定的时限内，有 `Client 3` 向 `流 mq` 推入新元素，那么 `Client 1 和 2` 的阻塞状态就会被解除，并返回被推入的元素。
+        -   `$` 代表最新消息 ID，配合阻塞模式使用。
+
+    -   **图示**
+
+        ![Stream-READ-BLOCK](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-READ-BLOCK.svg)
