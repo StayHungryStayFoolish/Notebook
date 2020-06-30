@@ -516,6 +516,7 @@ ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MI
 
   -   **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
   
+
 	![Bitmap-del-4](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/WeChat6dd72906063050e25089960011af57d2.png)
 
 
@@ -860,13 +861,12 @@ BITOP operation destkey key [key ...]
         -   `value` 在存入时，会被 `hash` 成 **64 个 bit** 。前 **14** 位 `bit` 用来计算 `value` 的 `bit` 数组（**从右到左**）第一个 **1** 出现的下标位置，然后利用下标的索引数值用来计算存入哪个桶中。
             -   例如：设第一个 **1** 出现位置的数值为 `index` 。当 `index=2` 时，`hash` 后的 `bit 数组`简单表示为: `...000010 [01 0000 0000 0000...]`，**从右到左看**，则前 **14** 位的二进制可以换算成**十进制的 2**，那么 `index` 会被转化后放入编号为 **2** 的桶。
                 -   选择 `hash` 后的 **前 14 位** 来标记桶号，因为 **2<sup>14</sup> = 16384** ，最大值正好可以将桶利用完，不浪费空间。
-      -   **2. index 转化，并在桶内存入值**
-
+     -   **2. index 转化，并在桶内存入值**
         -   `value` 被 `hash` 后的 **64 位减去 14 位后，剩余 50 位从右到左** ，第一个出现 **1** 的位置再换算成**二进制**。然后将二进制设置到桶中。
         -   每个桶有 **6 个bit**，每个桶可以表达的最大二进制：**111 111**，对应的十进制：**2<sup>5</sup> + 2<sup>4</sup> + 2<sup>3</sup> + 2<sup>2</sup> + 2<sup>1</sup> = 63**。所以极端情况第 **50** 位出现第一个 **1** 也不会越界。
         -   例如：极端情况下，第一个出现 **1** 的位置在第 **50** 位，即 `index = 50`，**转换为二进制为**：`110010`
 
-      -   **3. 原桶内已存储值的情况（保留 index 值最大）**
+     -   **3. 原桶内已存储值的情况（保留 index 值最大）**
         -   如果前 14 位一样，则比较 `新 index 值` 是否大于 `原来的 index 值`。只有大于已有值时进行设置。
 -   **统计基数**
   -   最终地，一个 `key` 所对应的 **16384** 个桶都设置了很多的 `value` 了，每个桶有一个`k_max`。此时调用 `PFCOUNT` 时，按照前面介绍的估算方式，可以计算出 `key` 的设置了多少次 `value`，也就是统计值。
@@ -1437,6 +1437,8 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
 ### 9.4 Stream 命令详解
 
+#### 9.4.1 生产者与消费者模式
+
 -   执行 `XADD` 命令
 
     -   `XADD mq * name boni` 
@@ -1504,3 +1506,151 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
     -   **图示**
 
         ![Stream-READ-BLOCK](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-READ-BLOCK.svg)
+
+#### 9.4.2 生产者与消费者组模式
+
+- 执行 `XGROUP CREATE` 命令，三种 ID 方式读取流消息**（Client 2、3、4互相之间使独立的，只和  Clinet 1 交互）**
+
+  - **Clinet 1**
+
+    - `XADD mq * name lily `
+    - `XADD mq * name boni`
+
+  - **Client 2，指定 ID 为 0 从流的开始读取消息**
+
+    - `XCREATE GROUP mq mqGroup1 0`
+
+  - **Client 3，指定 ID 为固定流 ID 读取该 ID 以后的消息**
+
+    - `XCREATE GROUP mq mqGroup2 20000-0`
+
+  - **Clinet 4，指定 ID 为 $ 以组创建时流内的最后 ID 为起始读取消息**
+
+    - `XCREATE GROUP mq mqGroup3 $`
+
+  - **图示**
+
+    ![Stream-Create-Group](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-GROUP-CREATE命令.svg)
+
+  - **命令演示**
+
+    - **Client 1 和 Clinet 2 交互**
+
+      - ```bash
+        # 1. Clinet 1 生产消息
+        Redis-1> XADD mq * name lily
+        "1593533700757-0"
+        Redis-1> XADD mq * name boni
+        "1593533709161-0"
+        
+        # 2. Client 2 在流 mq 中建立消费组 mqGroup1 读取以流起始 ID 的所有消息
+        Redis-2> XGROUP CREATE mq mqGroup1 0
+        OK
+        
+        # 3. Client 2 在流 mq 中的消费组 mqGroup1 的消费者 consumerA 读取消息，读取了流起始到目前的所有消息
+        Redis-2> XREADGROUP GROUP mqGroup1 consumerA STREAMS mq >
+        1) 1) "mq" 
+           2) 1) 1) "1593534016678-0"
+                 2) 1) "name"
+                    2) "lily"
+              2) 1) "1593534017725-0"
+                 2) 1) "name"
+                    2) "boni"
+                    
+        # 此时如果 Clinet 1 再生产 3 条信息，Client 2 执行命令2，则会再次读取 3 条消息   
+        ```
+
+    - **Client 1 和 Client 3 交互**
+
+      - ```bash
+        # 1. Clinet 1 生产消息
+        Redis-1> XADD mq * name lily
+        "1593533700757-0"
+        Redis-1> XADD mq * name boni
+        "1593533709161-0"
+        
+        # 2. Client 3 在流 mq 中建立消费组 mqGroup1 以指定的 ID 为起始读取指定 ID 以后的新消息
+        Redis-3> XGROUP CREATE mq mqGroup1 1593533709161-0
+        OK
+        
+        # 3. Client 3 在流 mq 中的消费组 mqGroup2 的消费者 consumerA 读取消息，读取指定流ID 1593533709161-0 起始到目前的所有消息
+        Redis-3> XREADGROUP GROUP mqGroup2 consumerA STREAMS mq >
+        (nil) # 返回 nil，此时流 mq 内没有比 ID 1593533709161-0 大的消息，即没有新消息
+        
+        # 4. Clinet 1 生产 3 条新的消息
+        Redis-1> XADD mq * name lucy
+        "1593535028464-0"
+        Redis-1> XADD mq * name Tom
+        "1593535041603-0"
+        Redis-1> XADD mq * name Jerry
+        "1593535047183-0"
+        
+        # 5. Client 3 在流 mq 中的消费组 mqGroup2 的消费者 consumerA 读取消息，读取指定流ID 1593534017725-0 起始到目前的所有消息
+        Redis-3> XREADGROUP GROUP mqGroup2 consumerA STREAMS mq >
+        1) 1) "mq"
+           2) 1) 1) "1593535028464-0"
+                 2) 1) "name"
+                    2) "lucy"
+              2) 1) "1593535041603-0"
+                 2) 1) "name"
+                    2) "Tom"
+              3) 1) "1593535047183-0"
+                 2) 1) "name"
+                    2) "Jerry"
+        ```
+
+    - **Client 1 和 Client 4 交互**
+
+      - ```bash
+        # 1. Clinet 1 生产消息
+        Redis-1> XADD mq * name lily
+        "1593533700757-0"
+        Redis-1> XADD mq * name boni
+        "1593533709161-0"
+        
+        # 2. Client 4 在流 mq 中建立消费组 mqGroup3 以组创建时流内最后 ID 为起始读取以后的新消息
+        Redis-4> XGROUP CREATE mq mqGroup3 $
+        OK
+        
+        # 3. Client 4 在流 mq 中的消费组 mqGroup3 的消费者 consumerA 读取消息，读取组创建时流内最后 ID 为起始的新消息
+        Redis-3> XREADGROUP GROUP mqGroup2 consumerA STREAMS mq >
+        (nil) # 返回 nil，此时流 mq 内没有新消息
+        
+        # 4. Clinet 1 生产 3 条新的消息
+        Redis-1> XADD mq * name lucy
+        "1593535028464-0"
+        Redis-1> XADD mq * name Tom
+        "1593535041603-0"
+        Redis-1> XADD mq * name Jerry
+        "1593535047183-0"
+        
+        # 5. Client 4 在流 mq 中的消费组 mqGroup3 的消费者 consumerA 读取消息，读取组创建时流内最后 ID 为起始的新消息，并获取 3 条信息
+        Redis-3> XREADGROUP GROUP mqGroup2 consumerA STREAMS mq >
+        1) 1) "mq"
+           2) 1) 1) "1593535028464-0"
+                 2) 1) "name"
+                    2) "lucy"
+              2) 1) "1593535041603-0"
+                 2) 1) "name"
+                    2) "Tom"
+              3) 1) "1593535047183-0"
+                 2) 1) "name"
+                    2) "Jerry"
+        ```
+
+        
+
+- 执行 `XGROUP DESTROY` 命令**（该命令慎用）**
+
+  - `XGROUP DESTROY mq mqGroup`
+    - 删除消费组，级联删除组内消费者及消费者的待处理消息（**即 XPENDING 命令内涉及到该消费组内的消费者待处理的消息会被删除）**。
+
+- 执行 `XGROUP DELCONSUMER` 命令**（该命令慎用）**
+
+  - `XGROUP DELCONSUMER mq mqGroup1 consumerA`
+    - 删除消费者，会同时删除消费者的待处理消息（**即 XPENDING 命令会删除该消费者待处理的消息）**。
+
+- 执行 `XGROUP SETID` 命令
+
+  - `XGROUP SETID mq mqGroup3 30000-0`
+    - 如果消费组 mqGroup3 已经消费到 50000-0 使用该命令，则当再次使用 `XREADGROUP` 命令时，会读取 30000-0 以后的消息，并且使一次性获取。
