@@ -1509,7 +1509,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
 #### 9.4.2 生产者与消费者组模式
 
-- 执行 `XGROUP CREATE` 命令，三种 ID 方式读取流消息**（Client 2、3、4互相之间使独立的，只和  Clinet 1 交互）**
+- 执行 `XGROUP CREATE` 命令，三种 ID 方式读取流消息**（Client 2、3、4互相之间是独立的，只和  Clinet 1 交互）**
 
   - **Clinet 1**
 
@@ -1643,7 +1643,59 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 - 执行 `XGROUP DESTROY` 命令**（该命令慎用）**
 
   - `XGROUP DESTROY mq mqGroup`
+    
     - 删除消费组，级联删除组内消费者及消费者的待处理消息（**即 XPENDING 命令内涉及到该消费组内的消费者待处理的消息会被删除）**。
+    
+  - **命令演示**
+
+      - ```bash
+          # 1. Clinet 2 创建消费组 mq
+          Redis-2> XGROUP CREATE mq mqGroup $
+          OK
+          
+          # 2. Client 1 向流 mq 生产消息
+          Redis-1> XADD mq * name boni
+          "1593581940746-0"
+          
+          # 2. Client 2 创建组后，执行该命令进入阻塞状态，当 Client 1 生产消息后，Client 2 接触阻塞
+          Redis-2> XREADGROUP GROUP mqGroup consumerA BLOCK 0 STREAMS mq >
+          1) 1) "mq"
+             2) 1) 1) "1593581940746-0"
+                   2) 1) "name"
+                      2) "boni"
+          (4.35s)
+          
+          # 3. 使用 PENDING 命令，查看 流 mq 的消费组 mqGroup 情况
+          Redis-2> XPENDING mq mqGroup
+          1) (integer) 1				# 1 个已读取但未处理的消息
+          2) "1593581940746-0"		# 起始 ID
+          3) "1593581940746-0"		# 结束 ID
+          4) 1) 1) "consumerA"		# 消费者 A 有 1 个待处理消息
+                2) "1"
+          
+          # 3. 使用 XINFO 命令，查看 流 mq 的消费组情况
+          Redis-2> XINFO GROUPS mq
+          1) 1) "name"			
+             2) "mqGroup"
+             3) "consumers"
+             4) (integer) 1			# 1 个消费者
+             5) "pending"				
+             6) (integer) 1			# 1 个待处理消息
+             7) "last-delivered-id"  
+             8) "1593581940746-0"     
+          
+          # 4. 使用 DESTROY 删除消费组 mqGroup，该命令会级联删除消费组内 consumerA 的待处理消息
+          Redis-2> XGROUP DESTROY mq mqGroup
+          (integer) 1
+          
+          # 5. 再次使用 XINFO 命令，查看 流 mq 的消费组情况
+          Redis-2> XINFO GROUPS mq
+          (empty list or set)         # 没有数据
+          
+          # 5. 再次使用 PENDING 命令，查看 流 mq 的消费组 mqGroup 情况
+          Redis-2> XPENDING mq mqGroup
+          (error) NOGROUP No such key 'mq' or consumer group 'mqGroup'    # 消费组已经不存在
+          ```
 
 - 执行 `XGROUP DELCONSUMER` 命令**（该命令慎用）**
 
@@ -1653,4 +1705,54 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 - 执行 `XGROUP SETID` 命令
 
   - `XGROUP SETID mq mqGroup3 30000-0`
+    
     - 如果消费组 mqGroup3 已经消费到 50000-0 使用该命令，则当再次使用 `XREADGROUP` 命令时，会读取 30000-0 以后的消息，并且使一次性获取。
+    
+  - **命令演示**
+  
+      - ```bash
+          # 1. Clinet 1 向流 mq 生产消息
+          Redis-1> XADD mq * name lily
+          "1593585640284-0"
+          Redis-1> XADD mq * name boni
+          "1593585643751-0"
+          Redis-1> XADD mq * name lucy
+          "1593585702814-0"
+          Redis-1> XADD mq * name Tom
+          "1593585720628-0"
+          
+          # 2. Clinet 2 创建消费组 mqGroup
+          Redis-2> XGROUP CREATE mq mqGroup $
+          OK
+          
+          # 3. Clinet 1 在 Client 2 阻塞时，生产消息
+          Redis-1> XADD mq * name Jerrry
+          "1593585727079-0"
+          
+          # 3. Client 2 在流 mq 中的消费组 mqGroup 的消费者 consumerA 使用阻塞状态读取消息
+          Redis-2> XREADGROUP GROUP mqGroup consumerA BLOCK 0 STREAMS mq >
+          1) 1) "mq"
+             2) 1) 1) "1593585727079-0"
+                   2) 1) "name"
+                      2) "Jerry"
+          
+          # 4. Clinet 2 执行 SETID 命令，是消费组 mqGroup 下次读取消息从指定 ID 读取消息
+          Redis-2> XGROUP SETID mq mqGroup 1593585702814-0
+          OK
+          
+          # 5. Clinet 2 再次执行第三个步骤，获取 ID 为 1593585702814-0 后边的 2 条消息
+          Redis-2> XREADGROUP GROUP mqGroup consumerA BLOCK 0 STREAMS mq >
+          1) 1) "mq"
+             2) 1) 1) "1593585720628-0"
+                   2) 1) "name"
+                      2) "Tom"
+                2) 1) "1593585727079-0"
+                   2) 1) "name"
+                      2) "Jerrry"
+          ```
+  
+  - **图示**
+  
+      ![Stream-Group-SETID](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-命令SETID.svg)
+  
+- X
