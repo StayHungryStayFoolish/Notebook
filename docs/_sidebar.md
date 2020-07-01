@@ -1,5 +1,9 @@
 - **计算机基本原理**
     - [ComputerTheory](ComputerTheory/)
+- **Data Structure**
+    - [DataStructure](DataStructure/)
+- **Algorithm**
+    - [Algorithm](Algorithm/)       
 - **Java**
     - [Java](Java/)
 - **Spring**
@@ -11,7 +15,7 @@
     - [Redis的9种数据类型](Redis/DataType.md)
     - [Redis的底层数据机构](Redis/DataStructure.md)
     - [Redis 持久化](Redis/AOF&RDB.md)
-    - [Redis 应用（订阅模式、布隆过滤器）](Redis/Application.md)
+    - [Redis 应用（布隆过滤器、订阅模式、锁）](Redis/Application.md)
     - [Redis 架构选型](Redis/Framework.md)
     - [Redis参考文章](Redis/Refereneces.md)
 - **MySQL**
@@ -20,5 +24,7 @@
     - [MessageQueue](MessageQueue/)
 - **Istio**
     - [Istio](Istio/)                    
-- **设计模式**
-    - [设计模式](设计模式/)
+- **Design Pattern**
+    - [DesignPattern](DesignPattern/)
+- **BlockChain**
+    - [BlockChain](BlockChain/)    
