@@ -1704,12 +1704,14 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
 - 执行 `XGROUP SETID` 命令**（修改消费组的最后传递消息 ID）**
 
+  - **设置比流最后 ID 小会导致重复消息，设置比流最后 ID 大会导致漏掉之间的消息。**
+
   - `XGROUP SETID mq mqGroup3 30000-0`
-    
+
     - 如果消费组 mqGroup3 已经消费到 50000-0 使用该命令，则当再次使用 `XREADGROUP` 命令时，会读取 30000-0 以后的消息，并且使一次性获取。
-    
+
   - **命令演示**
-  
+
       - ```bash
           # 1. Clinet 1 向流 mq 生产消息
           Redis-1> XADD mq * name lily
@@ -1750,9 +1752,9 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
                    2) 1) "name"
                       2) "Jerrry"
           ```
-  
+
   - **图示**
-  
+
       ![Stream-Group-SETID](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-命令SETID.svg)
 
 ##### 9.4.2.2 管理消费者
@@ -1843,7 +1845,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
            4) (integer) 1
         ```
 
-##### 9.4.2.5 转移消息
+##### 9.4.2.5 转移消息（原消费者处理该消息的时间并未超过给定的时限，或者该消息已经被原消费者确认，那么归属权转移操作将放弃执行）
 
 -   执行 `XCLAIM` 命令
 
@@ -2033,9 +2035,14 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
     - **Pub / Sub**
         -  发布与订阅虽然拥有将消息传递给多个客户端的能力，并且也拥有相应的阻塞弹出原语，但发布与订阅的“发送即忘（fire and forget）”策略会导致离线的客户端丢失消息，所以它是无法实现可靠的消息队列的。
     - 无论是`列表`、`有序集合`还是`发布与订阅`，它们的元素都只能是`单个值`。换句话说，如果用户想要用这些数据结构实现的消息队列传递多项信息，那么必须使用 `JSON` 之类的序列化格式来将多项信息打包存储到单个元素中，然后再在取出元素之后进行相应的反序列化操作。
-- **Stream**
+- **Stream**（实现消息队列的最佳选择）
     - `Redis Stream` 的出现解决了上述提到的所有问题，它是上述 **3** 种数据结构的综合体，具备它们各自的所有优点以及特点，是使用 `Redis` 实现消息队列应用的最佳选择。流是一个包含零个或任意多个流元素的`有序队列`，队列中的每个元素都包含一个 ID 和任意多个键值对，这些元素会根据 ID 的大小在流中有序地进行排列。
     - `Stream` 基于 `Pull` 模式，消费者需要主动拉取消息，根据消费能力进行消费。
+    - 一条消费者组消息从出现到处理完毕，需要经历以下阶段：
+      - 1.不存在
+      - 2.未递送
+      - 3.待处理
+      - 4.已确认
 
 ### 9.6 Stream 应用场景
 
