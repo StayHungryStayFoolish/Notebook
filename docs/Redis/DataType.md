@@ -1509,6 +1509,8 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
 #### 9.4.2 生产者与消费者组模式
 
+##### 9.4.2.1 管理消费组
+
 - 执行 `XGROUP CREATE` 命令，三种 ID 方式读取流消息**（Client 2、3、4互相之间是独立的，只和  Clinet 1 交互）**
 
   - **Clinet 1**
@@ -1638,9 +1640,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
                     2) "Jerry"
         ```
 
-        
-
-- 执行 `XGROUP DESTROY` 命令**（该命令慎用）**
+- 执行 `XGROUP DESTROY` 命令**（删除消费组，该命令慎用）**
 
   - `XGROUP DESTROY mq mqGroup`
     
@@ -1697,12 +1697,12 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
           (error) NOGROUP No such key 'mq' or consumer group 'mqGroup'    # 消费组已经不存在
           ```
 
-- 执行 `XGROUP DELCONSUMER` 命令**（该命令慎用）**
+- 执行 `XGROUP DELCONSUMER` 命令**（删除组内消费者，该命令慎用）**
 
   - `XGROUP DELCONSUMER mq mqGroup1 consumerA`
     - 删除消费者，会同时删除消费者的待处理消息（**即 XPENDING 命令会删除该消费者待处理的消息）**。
 
-- 执行 `XGROUP SETID` 命令
+- 执行 `XGROUP SETID` 命令**（修改消费组的最后传递消息 ID）**
 
   - `XGROUP SETID mq mqGroup3 30000-0`
     
@@ -1754,5 +1754,263 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
   - **图示**
   
       ![Stream-Group-SETID](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Stream-命令SETID.svg)
-  
-- X
+
+##### 9.4.2.2 管理消费者
+
+-   执行 `XREADGROUP GROUP`
+    -   `Redis` 没有创建组内消费者的命令，执行该命令时，组内消费者会自动创建。
+    -   `XREADGROUP GROUP` 指定流最后传递 ID 不同于 `XREAD` 的 `$`，此处使用  `>` 符号。
+
+##### 9.4.2.3 显示待处理消息的相关信息（Stream 使用 Pending 列表记录读取但未处理完毕的消息）
+
+-   执行 `XPENDING` 命令
+
+    -   `XPENDING key group` 查看消费组内的消息 
+    -   `XPENDING key group [start end count]` 查看消费组内消息，并指定起始、结束、数量
+    -   `XPENDING key group [start end count] [consumer]` 查看消费组内消费者消息，并指定起始、结束、数量**（当使用  consumer 参数时， start end count 参数必须有）**
+
+-   **命令演示**
+
+    -   ```bash
+        # 1. Client 1 生产消息
+        Redis-1> XADD mq * name lily
+        "1593588988257-0"
+        Redis-1> XADD mq * name boni
+        "1593588996656-0"
+        
+        # 2. Clinet 2 创建消费组，以流起始 ID 读取消息
+        Redis-2> XGROUP CREATE mq mqGroup 0
+        OK
+        
+        # 3. Clinet 2 消费组 mqGroup 内消费者 consumerA 读取流 mq 消息
+        127.0.0.1:6379> XREADGROUP GROUP mqGroup consumerA STREAMS mq >
+        1) 1) "mq"
+           2) 1) 1) "1593588988257-0"
+                 2) 1) "name"
+                    2) "lily"
+              2) 1) "1593588996656-0"
+                 2) 1) "name"
+                    2) "boni
+                    
+        # 4. Client 2 查询消费组 mqGroup 的 PENDING 情况
+        Redis-2> XPENDING mq mqGroup
+        1) (integer) 2				# 2条已读取但未处理的消息
+        2) "1593588988257-0"		# 起始 ID
+        3) "1593588996656-0"		# 结束 ID
+        4) 1) 1) "consumerA"		# 消费者 consumerA 有 2 条未处理消息
+              2) "2"
+              
+        # 5. Clinet 2 查询一定数量的消费组 mqGroup 的 PENDING 情况      
+        Redis-2> XPENDING mq mqGroup - + 10
+        1) 1) "1593588988257-0"		# 消息 ID
+           2) "consumerA"			# 消费者 consumerA
+           3) (integer) 2166070		# 从读取到现在经理了 2166070 ms
+           4) (integer) 1			# 该消息被消费了 1 次		
+        2) 1) "1593588996656-0"
+           2) "consumerA"
+           3) (integer) 2166070
+           4) (integer) 1
+           
+        # 6. Client 2 查询一定数量的消费组 mqGroup 消费者 consumer A的 PENDING 情况      
+        Redis-2> XPENDING mq mqGroup - + 10 consumerA
+        1) 1) "1593588988257-0"		# 消息 ID
+           2) "consumerA"			# 消费者 consumerA
+           3) (integer) 2495859		# 从读取到现在经理了 2166070 ms	
+           4) (integer) 1			# 该消息被消费了 1 次		
+        2) 1) "1593588996656-0"
+           2) "consumerA"
+           3) (integer) 2495859
+           4) (integer) 1   
+        ```
+
+##### 9.4.2.4 确认消息（并未在 Pending 列表删除，只是做了标记处理）
+
+-   执行 `XACK` 命令，该命令会从消费者的 `PENDING` 队列标记该消息为`已处理`。之后执行 `XREADGROUP` 也不会在读取该消息。
+
+-   **命令演示**
+
+    -   ```bash
+        # 使用 9.4.2.3 已有数据，直接执行 XACK 命令
+        # 7. Client 2 确认 ID 1593588988257-0 消息
+        Redis-2> XACK mq mqGroup 1593588988257-0
+        (integer) 1   				# 处理的数量
+        
+        # 8. Client 2 再次查询消费者 consumerA 的待处理消息已经只有一条信息了。
+        Redis-2> XPENDING mq mqGroup - + 10 consumerA
+        1) 1) "1593588996656-0"
+           2) "consumerA"
+           3) (integer) 3086006
+           4) (integer) 1
+        ```
+
+##### 9.4.2.5 转移消息
+
+-   执行 `XCLAIM` 命令
+
+-   **命令演示** 
+
+    -   ```bash
+        # 9. Clinet 2 查询消费者 consumerA 的 Pending 列表
+        Redis-2> XPENDING mq mqGroup - + 10 consumerA
+        1) 1) "1593588996656-0"
+           2) "consumerA"
+           3) (integer) 5341384
+           4) (integer) 1
+           
+        # 10. Client 2 将消息 ID 为 1593588996656-0 并且读取时长超过 3000 ms 的消息转移给消费者 consumerB
+        Redis-2> XCLAIM mq mqGroup consumerB 300000 1593588996656-0
+        1) 1) "1593588996656-0"
+           2) 1) "name"
+              2) "boni"
+        
+        # 11. Clinet 2 再次查询消费者 consumerA 的待处理消息为空
+        Redis-2> XPENDING mq mqGroup - + 10 consumerA
+        (empty list or set)
+        
+        # 12. Clinet 2 再次查询消费者 consumerB 的待处理消息，返回了转移过来的消息
+        Redis-2> XPENDING mq mqGroup - + 10 consumerB
+        1) 1) "1593588996656-0"
+           2) "consumerB"
+           3) (integer) 7283
+           4) (integer) 1
+        ```
+
+##### 9.4.2.6 删除消息（只删除 Stream 的消息列表，不会级联删除 Pending 相关数据，但是可以执行 XACK 清除）
+
+-   执行 `XDEL` 命令，删除的 Stream 队列内的消息。
+
+-   **命令演示**
+
+    -   ```bash
+        # 13. Clinet 1 再次添加 2 条信息
+        Redis-1> XADD mq * name lucy
+        "1593597231088-0"
+        Redis-1> XADD mq * name Tom
+        "1593597353678-0"
+        
+        # 14. Clinet 2 消费组 mqGroup 的消费者 consumerA 消费 2 条新的消息
+        Redis-2> XREADGROUP GROUP mqGroup consumerA STREAMS mq >
+        1) 1) "mq"
+           2) 1) 1) "1593597231088-0"
+                 2) 1) "name"
+                    2) "lucy"
+        Redis-2> XREADGROUP GROUP mqGroup consumerA STREAMS mq >
+        1) 1) "mq"
+           2) 1) 1) "1593597353678-0"
+                 2) 1) "name"
+                    2) "Tom"
+        
+        # 15. Client 2 查询流 mq  的所有消息内容，共 4 条
+        Redis-2> XRANGE mq - +
+        1) 1) "1593588988257-0"
+           2) 1) "name"
+              2) "lily"
+        2) 1) "1593588996656-0"
+           2) 1) "name"
+              2) "boni"
+        3) 1) "1593597231088-0"
+           2) 1) "name"
+              2) "lucy"
+        4) 1) "1593597353678-0"
+           2) 1) "name"
+              2) "Tom"
+        
+        # 16. Clinet 2 查询 consumerA 的待处理消息（此时 conmserA 已经读取了 3、4 两条消息）
+        Redis-2> XPENDING mq mqGroup - + 10 consumerA
+        1) 1) "1593597231088-0"
+           2) "consumerA"
+           3) (integer) 787325
+           4) (integer) 1
+        2) 1) "1593597353678-0"
+           2) "consumerA"
+           3) (integer) 772945
+           4) (integer) 1
+        
+        # 17. Clinet 2 删除 ID 为 1593597353678-0  的消息      
+        Redis-2> XDEL mq 1593597353678-0
+        (integer) 1
+        
+        # 18. Clinet 2 再次查询流 mq 的消息内容，变成了 3 条
+        Redis-2> XRANGE mq - +
+        1) 1) "1593588988257-0"
+           2) 1) "name"
+              2) "lily"
+        2) 1) "1593588996656-0"
+           2) 1) "name"
+              2) "boni"
+        3) 1) "1593597231088-0"
+           2) 1) "name"
+              2) "lucy"
+              
+        # 19. Clinet 2 当删除了流内的消息，再次查询 consuerA 的 Pending 列表，发现已删除的 1593597353678-0 还在，证明 XDEL 命令并不会级联删除 Pending 列表数据
+        Redis-2> XPENDING mq mqGroup - + 10 consumerA
+        1) 1) "1593597231088-0"
+           2) "consumerA"
+           3) (integer) 787325
+           4) (integer) 1
+        2) 1) "1593597353678-0"				# Pending 列表还存在已经删除的消息 ID
+           2) "consumerA"
+           3) (integer) 772945
+           4) (integer) 1
+        ```
+
+##### 9.4.2.7 信息监控
+
+-   执行 `XINFO` 命令
+
+    -   `XINFO STREAM key`
+    -   `XINFO GROUPS key`
+    -   `XINFO CONSUMERS key groupName`
+
+-   **命令演示**
+
+    -   ```bash
+        # Client 1 查询流队列消息
+        Redis-1> XINFO STREAM mq
+         1) "length"
+         2) (integer) 2
+         3) "radix-tree-keys"
+         4) (integer) 1
+         5) "radix-tree-nodes"
+         6) (integer) 2
+         7) "groups"
+         8) (integer) 1
+         9) "last-generated-id"
+        10) "1593597353678-0"
+        11) "first-entry"
+        12) 1) "1593588988257-0"
+            2) 1) "name"
+               2) "lily"
+        13) "last-entry"
+        14) 1) "1593597231088-0"
+            2) 1) "name"
+               2) "lucy"
+               
+        # Clinet 1 查询消费组消息
+        Redis-1> XINFO GROUPS mq
+        1) 1) "name"
+           2) "mqGroup"
+           3) "consumers"
+           4) (integer) 2
+           5) "pending"
+           6) (integer) 2
+           7) "last-delivered-id"
+           8) "1593597353678-0"
+           
+        # Client 1 查看消费组内的消费者消息
+        Redis-1> XINFO CONSUMERS mq mqGroup
+        1) 1) "name"
+           2) "consumerA"
+           3) "pending"
+           4) (integer) 2
+           5) "idle"
+           6) (integer) 1119879
+        2) 1) "name"
+           2) "consumerB"
+           3) "pending"
+           4) (integer) 0
+           5) "idle"
+           6) (integer) 1578715
+        ```
+
+        
