@@ -3,7 +3,9 @@
 - **Java**
     - [Java](Java/)
 - **Spring**
-    - [Spring](Spring/)    
+    - [Spring](Spring/)  
+- **JHipster**
+    - [JHipster](JHipster/)       
 - **Redis**
     - [Redis](Redis/)
     - [Redis的9种数据类型](Redis/DataType.md)
@@ -12,5 +14,11 @@
     - [Redis 应用（订阅模式、布隆过滤器）](Redis/Application.md)
     - [Redis 架构选型](Redis/Framework.md)
     - [Redis参考文章](Redis/Refereneces.md)
+- **MySQL**
+    - [MySQL](MySQL/)    
+- **MessageQueue**
+    - [MessageQueue](MessageQueue/)
+- **Istio**
+    - [Istio](Istio/)                    
 - **设计模式**
     - [设计模式](设计模式/)
