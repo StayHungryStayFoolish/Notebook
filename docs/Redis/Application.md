@@ -1,29 +1,27 @@
 # Redis 应用
 
-## BloomFilter（布隆过滤器）
+## 1. BloomFilter（布隆过滤器）
+
+### 1.1 过滤器场景
 
 - **问题**
-
-  - `如果在亿级数据过滤一条数据？`
+- `如果在亿级数据过滤一条数据？`
     - 垃圾邮件识别
     - 拦截器
     - 防止缓存击穿
     - 去重（推荐不重复的商品、好友等）
-
 - **方案**
 
     - **不推荐方案**
         - Set、Hashtable、HashMap 等占用空间大，效率低
     - **推荐方案**
         - BloomFilter**（概率型方案）**
-
 - **简介**
   
   - [WIKI](https://en.wikipedia.org/wiki/Bloom_filter) ：A **Bloom filter** is a space-efficient [probabilistic](https://en.wikipedia.org/wiki/Probabilistic) [data structure](https://en.wikipedia.org/wiki/Data_structure), conceived by [Burton Howard Bloom](https://en.wikipedia.org/w/index.php?title=Burton_Howard_Bloom&action=edit&redlink=1) in 1970, that is used to test whether an [element](https://en.wikipedia.org/wiki/Element_(mathematics)) is a member of a [set](https://en.wikipedia.org/wiki/Set_(computer_science)). [False positive](https://en.wikipedia.org/wiki/Type_I_and_type_II_errors) matches are possible, but [false negatives](https://en.wikipedia.org/wiki/Type_I_and_type_II_errors) are not – in other words, a query returns either "possibly in set" or "definitely not in set." Elements can be added to the set, but not removed (though this can be addressed with the [counting Bloom filter](https://en.wikipedia.org/wiki/Bloom_filter#Counting_Bloom_filters) variant); the more items added, the larger the probability of false positives.
   - **特点**
     - 一种空间效率高的 `概率型` 数据结构，用来检查一个元素是否在一个集合中
     - 对于一个元素检测是否存在的调用，BloomFilter 会返回两个结果之一：`False positive（可能存在）`或者`False negatives（一定不存在）`
-  
 - **原理**
   
   - `Bloom Filter` 有两个要素：长度为 **n** 的 `bit array` 和 **m** 个独立的 `hash function`，当要写入元素 `x` 的时候，用所有的 `hash function`  对 `x`  进行 `hash 后 mod n ` 得到 **m** 个位置，在 `bit array`  对应位置的 `bit` 设为 **1**，就完成了一次写入，验证元素是否存在，则只需要查看 `bit array` 上对应的 **m** 上的 `bit` 是否全部为 **1** 即可。 
@@ -38,7 +36,7 @@
           - **删除困难**
               - 如上图所示，当一个 `bit array` 写入了元素后，很难进行删除，因为元素增多时，会有几率出现`不同元素之间的映射一致`。
   
-### Cuckoo Filter（布谷鸟过滤器）
+### 1.1 Cuckoo Filter（升级版 - 布谷鸟过滤器）
 
 -   [Cuckoo Filter](https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf) 论文
     -   RedisBloom Modules 实现了 Cuckoo 论文，增加了计数、删除等功能
@@ -95,7 +93,7 @@
                 - 查询 key 内元素 value 出现的次数
             - `CF.DEL key vaule`
 
-### Google Guava
+### 1.3 Google Guava
 
 -   [Google Guava - Github](https://github.com/google/guava) 实现了 `BloomFilter`
 
@@ -108,9 +106,9 @@
         ```
 
 
-## Redis 实现 MQ 方案
+## 2. Redis 实现 MQ 方案
 
-### 基于 List 的 LPUSH + BRPOP
+### 2.1 基于 List 的 LPUSH + BRPOP
 
 -   `LPUSH key value` 生产（向队列左侧压入）消息**（顺序消费）**
 -   `RPUSH key value` 生产（向队列右侧压入）消息**（优先消费）**
@@ -122,7 +120,7 @@
         -   无法重复消费**（栈弹出模式）**
         -   不支持分组**（可以业务逻辑解决）**
 
-### 基于 Sorted Set 使用 score（时间戳 + 序号） 保序
+### 2.2 基于 Sorted Set 使用 score（时间戳 + 序号） 保序
 
 -   `ZADD key score member` **生产消息（使用 socre 进行排序）**
 -   **消费消息**
@@ -137,7 +135,7 @@
         -   消息不能重复
         -   ID 必须保序性，不然漏读消息
 
-### 基于 PUB / SUB 模式
+### 2.3 基于 PUB / SUB 模式（PUSH 模式）
 
 #### 订阅与发布模式基本命令
 
@@ -147,8 +145,20 @@
     -   `PUBLISH channel message`
 -   取消订阅
     -   `UNSUBSCRIBE channel [channel ...]`
+-   查看信息
+    -   查看被订阅频道
+        -   `PUBSUB CHANNELS `
+    -   查看频道订阅数量
+        -   `PUBSUB NUMSUB`
+    -   查看被订阅模式总数量
+        -   `PUBSUB NUMPAT`
 
 #### 订阅与发布模式图示
+
+-   `Redis` 的**发布与订阅**功能可以让客户端通过`广播方式`，将`消息（message）`同时发送给可能存在的多个客户端，并且发送消息的客户端不需要知道接收消息的客户端的具体信息,发布消息的客户端与接收消息的客户端两者之间没有直接联系。
+-   `频道（Channel）` 消息广播的通道 
+-   `发送者（Publisher）` 向通道发送消息的客户端
+-   `订阅者（Subscriber）` 订阅频道的客户端
 
 ![PUB/SUB](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/PUB_SUB.svg)
 
