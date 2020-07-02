@@ -1,6 +1,6 @@
 
 
-# Redis 应用
+# Redis 应用
 
 ## BloomFilter（布隆过滤器）
 
@@ -40,7 +40,7 @@
           - **删除困难**
               - 如上图所示，当一个 `bit array` 写入了元素后，很难进行删除，因为元素增多时，会有几率出现`不同元素之间的映射一致`。
   
-## Cuckoo Filter（布谷鸟过滤器）
+### Cuckoo Filter（布谷鸟过滤器）
 
 -   [Cuckoo Filter](https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf) 论文
     -   RedisBloom Modules 实现了 Cuckoo 论文，增加了计数、删除等功能
@@ -50,9 +50,9 @@
 -   [RedisBloom - Github](https://github.com/RedisBloom/RedisBloom)
 
 -   [JRedisBloom](https://github.com/RedisBloom/JRedisBloom) Redis Labs - Java Library
-    
+  
 -   （未实现布谷鸟命令，代码不多，感兴趣可以自己实现下）
-    
+  
 - `Redis Bloom` 安装（实现了 Cuckoo Filter）
 
     - 本地安装
@@ -110,3 +110,4 @@
         ```
 
         
+
