@@ -1,5 +1,3 @@
-
-
 # Redis 应用
 
 ## BloomFilter（布隆过滤器）
@@ -109,5 +107,50 @@
         boolean exist = bf.mightContain("element");  // true
         ```
 
-        
+
+## Redis 实现 MQ 方案
+
+### 基于 List 的 LPUSH + BRPOP
+
+-   `LPUSH key value` 生产（向队列左侧压入）消息**（顺序消费）**
+-   `RPUSH key value` 生产（向队列右侧压入）消息**（优先消费）**
+-   `BRPOP key timeout` 消费（阻塞状态队列右侧弹出）消息
+    -   **优点**
+        -   实现简单
+        -   消息可以持久化、保证顺序性
+    -   **缺点**
+        -   无法重复消费**（栈弹出模式）**
+        -   不支持分组**（可以业务逻辑解决）**
+
+### 基于 Sorted Set 使用 score（时间戳 + 序号） 保序
+
+-   `ZADD key score member` **生产消息（使用 socre 进行排序）**
+-   **消费消息**
+    -   `ZRANGEBYSOCRE key min max WITHSCORES` **指定 score 最小范围（上次消费消息 ID 值）消费消息**
+        -   `ZRANGEBYSCORE k1 -inf +inf WITHSCORES` 消费所有消息`（-inf 最小，+inf 最大）`，`-inf`在正常业务逻辑需要指定
+    -   `ZRANGEBYSOCRE key min max WITHSCORES LIMIT offset count` 在消息最小、最大范围内，根据消息已有消息数量，`指定 offset` 读取一定数量的消息
+        -   1.  `ZCARD key` 先获取数量（即 offset ）,假设是 **1000**
+        -   2.  `ZRANGEBYSCORE k1 -inf +inf WITHSCORES LIMIT 1000 1`  根据偏移量 1000 消费新消息
+    -   **优点**
+        -   消息具有 ID 保序性
+    -   **缺点**
+        -   消息不能重复
+        -   ID 必须保序性，不然漏读消息
+
+### 基于 PUB / SUB 模式
+
+#### 订阅与发布模式基本命令
+
+-   订阅频道
+    -   `SUBSCRIBE channel [channel ...]`
+-   向频道广播消息
+    -   `PUBLISH channel message`
+-   取消订阅
+    -   `UNSUBSCRIBE channel [channel ...]`
+
+#### 订阅与发布模式图示
+
+![PUB/SUB](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/PUB_SUB.svg)
+
+
 
