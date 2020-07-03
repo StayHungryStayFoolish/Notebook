@@ -1,5 +1,3 @@
-![logo](_media/icon.svg)
-
 > Bonismo`s Notebook
 
 # Entry to Abandonment <small>1.0.0</small> 
@@ -8,7 +6,9 @@
 - Do one thing with ten years.
 
 [Blog](http://bonismo.ink/)
+
 [GitHub](https://github.com/StayHungryStayFoolish/Notebook/tree/master/docs)
+
 [Get Started](README.md)
 
 <span id="busuanzi_container_site_pv">
