@@ -237,14 +237,16 @@
 
 ### 3.1 单 JVM 内的锁
 
-[Oracle 关于 Locks的解释](https://docs.oracle.com/cd/E13150_01/jrockit_jvm/jrockit/geninfo/diagnos/thread_basics.html)：When threads in a process share and update the same data, their activities must be synchronized to avoid errors. In Java, this is done with the `synchronized` keyword, or with `wait` and `notify`. Synchronization is achieved by the use of locks, each of which is associated with an object by the JVM. For a thread to work on an object, it must have control over the lock associated with it, it must “hold” the lock. Only one thread can hold a lock at a time. If a thread tries to take a lock that is already held by another thread, then it must wait until the lock is released. When this happens, there is so called “contention” for the lock.
+[Oracle 关于 Locks 的解释](https://docs.oracle.com/cd/E13150_01/jrockit_jvm/jrockit/geninfo/diagnos/thread_basics.html)：When threads in a process share and update the same data, their activities must be synchronized to avoid errors. In Java, this is done with the `synchronized` keyword, or with `wait` and `notify`. Synchronization is achieved by the use of locks, each of which is associated with an object by the JVM. For a thread to work on an object, it must have control over the lock associated with it, it must “hold” the lock. Only one thread can hold a lock at a time. If a thread tries to take a lock that is already held by another thread, then it must wait until the lock is released. When this happens, there is so called “contention” for the lock.
 
--   关于 Locks 大意如下：
+-   关于 `Locks` 大意如下：
     -   锁是避免多个线程同时操作一个资源发生错误，通过锁由 `JVM` 与一个对象（资源）关联，保证在一个时间节点上，只有一个线程在该对象上工作，从而保证数据的一致性。如果另外一个线程视图获取该线程已持有的锁，则必须等到该线程释放，同一把锁在 **同一个 JVM 内** 具有`互斥性`。
 -   根据以上定义可以确定，当一个对象在一个时间节点上只有一个 `JVM` 的线程执行时，可以使用 `JVM 内部的 synchronized` 或者 `java.util.concurrent.locks.Lock`，使用场景只能是 `单体应用单机部署`，随着业务的扩展，单体应用并发访问量上不去的时候，需要水平扩展改为 `单体应用集群部署`，这种场景下，上述两种锁就会失效，因为已经 `跨 JVM` 了，架构演变到现在的 `微服务`和 `Serverless` 也同样不适用。
 
 ### 3.2 分布式锁
 
 分布式锁解决的是单机部署的锁控制策略失效问题。解决该问题则需要一种 `跨 JVM 的互斥机制` 控制一个时间节点上对一个对象的访问。
+
+![Redis-Lock](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/架构.svg)
 
 
