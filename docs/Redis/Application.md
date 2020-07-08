@@ -240,13 +240,46 @@
 [Oracle 关于 Locks 的解释](https://docs.oracle.com/cd/E13150_01/jrockit_jvm/jrockit/geninfo/diagnos/thread_basics.html)：When threads in a process share and update the same data, their activities must be synchronized to avoid errors. In Java, this is done with the `synchronized` keyword, or with `wait` and `notify`. Synchronization is achieved by the use of locks, each of which is associated with an object by the JVM. For a thread to work on an object, it must have control over the lock associated with it, it must “hold” the lock. Only one thread can hold a lock at a time. If a thread tries to take a lock that is already held by another thread, then it must wait until the lock is released. When this happens, there is so called “contention” for the lock.
 
 -   关于 `Locks` 大意如下：
+  
     -   锁是避免多个线程同时操作一个资源发生错误，通过锁由 `JVM` 与一个对象（资源）关联，保证在一个时间节点上，只有一个线程在该对象上工作，从而保证数据的一致性。如果另外一个线程视图获取该线程已持有的锁，则必须等到该线程释放，同一把锁在 **同一个 JVM 内** 具有`互斥性`。
+    
 -   根据以上定义可以确定，当一个对象在一个时间节点上只有一个 `JVM` 的线程执行时，可以使用 `JVM 内部的 synchronized` 或者 `java.util.concurrent.locks.Lock`，使用场景只能是 `单体应用单机部署`，随着业务的扩展，单体应用并发访问量上不去的时候，需要水平扩展改为 `单体应用集群部署`，这种场景下，上述两种锁就会失效，因为已经 `跨 JVM` 了，架构演变到现在的 `微服务`和 `Serverless` 也同样不适用。
 
-### 3.2 分布式锁
+    -   基于 `Redis` 分布式锁的基本架构（省略数据库层面）：
 
-分布式锁解决的是单机部署的锁控制策略失效问题。解决该问题则需要一种 `跨 JVM 的互斥机制` 控制一个时间节点上对一个对象的访问。
+    ![Redis-Lock](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/架构.svg)
 
-![Redis-Lock](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/架构.svg)
+### 3.2 Distributed Locks（分布式锁）
+
+-   分布式锁解决的是单机部署的锁控制策略失效问题。解决该问题则需要一种 `跨 JVM 的互斥机制` 控制一个时间节点上对一个对象的访问。
+-   分布式锁特点：
+    1.  `互斥性`（不同节点的不同线程互斥，同一时间点只能有一个节点的一个线程持有该锁）
+2.  `可重入`（同一节点上同一个线程获取该锁之后，在该锁有效期内，可再次持有锁，并且数量递增）
+        1.  可重入一般是内部调用，具有可重入特性的锁不会出现 `死锁` 情况，可重入锁也叫递归锁。
+    3.  `超时时间`（防止出现死锁、解锁失败后无法再次获取锁）
+    4.  `高可用与高性能`（高可用保证锁的安全性，高性能保证锁的稳定性）
+    5.  `阻塞与非阻塞双模式`（同 ReentrantLock 一样支持 lock 与 tryLock）
+6.  `公平锁与非公平锁`（按顺序获得锁或者自由竞争获取锁）
+-   常见三种实现方式：
+    1.  基于 `Database`**（不推荐使用）**
+
+        1.  没有失效时间，一旦解锁失败，其他线程无法获得该锁。（定时任务清理解决）
+        2.  非阻塞操作，插入数据失败后，无法进入排队队列再次申请锁，只能从新操作。（while 循环解决）
+        3.  非重入。（增加字段，记录当前获取锁的一些标识）
+        4.  以上 3 点可以解决，但是没有 `Redis` 与 `Zookeeper` 效率高。
+2.  基于 `Redis 缓存` 
+    3.  基于 `Zookeeper 临时节点`
+-   非常规方式**（不推荐使用）**：
+    1.  Google 未开源 `Chubby`（没得使用🤢）
+    2.  基于 `Memcached` 缓存（因为 Memcached 已经逐步被 Redis 取代）
+    3.  基于 `Hazelcast` 缓存（文档混乱，有些配置可能需要看源码）
+
+### 3.3 基于 `Redis` 的分布式锁
+
+-   Jedis 
+-   Lettuce
+-   Redisson
+
+
 
 
