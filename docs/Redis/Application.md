@@ -5,11 +5,11 @@
 ### 1.1 过滤器场景
 
 - **问题**
-- `如果在亿级数据过滤一条数据？`
-    - 垃圾邮件识别
-    - 拦截器
-    - 防止缓存击穿
-    - 去重（推荐不重复的商品、好友等）
+    - `如果在亿级数据过滤一条数据？`
+        - 垃圾邮件识别
+        - 拦截器
+        - 防止缓存击穿
+        - 去重（推荐不重复的商品、好友等）
 - **方案**
 
     - **不推荐方案**
@@ -310,10 +310,12 @@
         -   **非阻塞**
           -   lockAsync()、tryLockAsync()
     
--   `Redisson` **配置**
+-   `Redisson` **示例** 
+
+    [GitHub 地址](https://github.com/StayHungryStayFoolish/RedisDocument/tree/master/redisson)
 
     1.  Maven Dependencies
-
+    
         ```xml
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -335,13 +337,13 @@
             <groupId>de.ruedigermoeller</groupId>
             <artifactId>fst</artifactId>
             <version>2.47</version>
-        </dependency>
+    </dependency>
         ```
 
     2.  Yaml Config
 
         -   application.yml
-
+    
             ```yaml
             spring:
               redis: # Spring 的 redis 是 spring-boot-starter-data-redis 的配置
@@ -349,11 +351,11 @@
                 port: 6379
                 password:
                 redisson:
-                  config: classpath:redisson.yml # Redisson 会读取该路径的配置文件
+              config: classpath:redisson.yml # Redisson 会读取该路径的配置文件
             ```
 
         -   redisson.yml
-
+    
             -   [Redisson 配置方法](https://github.com/redisson/redisson/wiki/2.-%E9%85%8D%E7%BD%AE%E6%96%B9%E6%B3%95)
             
             ```yaml
@@ -409,10 +411,3 @@
             }
         ```
     
-        
-
-​    
-
-
-
-
