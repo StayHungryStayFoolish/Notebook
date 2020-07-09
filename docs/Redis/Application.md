@@ -276,7 +276,7 @@
 
 ### 3.3 基于 `Redis` 的分布式锁 
 
-[Redisson Github Wike](https://github.com/redisson/redisson/wiki/Redisson%E9%A1%B9%E7%9B%AE%E4%BB%8B%E7%BB%8D)
+[Redisson Github Wiki](https://github.com/redisson/redisson/wiki/Redisson%E9%A1%B9%E7%9B%AE%E4%BB%8B%E7%BB%8D)
 
 -   `Jedis、Lettuce`
 
@@ -285,17 +285,17 @@
 -   `Redisson` **分布式锁特点**
 
     -   **节点内互斥或实例间互斥**
--   **节点内互斥，支持单节点、哨兵、集群三种模式**
-        -   在 `单实例` 的哨兵、集群模式下，可以保证只有`一个节点（一个实例内的一个节点）`获取锁。
-            -   例如：`RedissonLock、RedissonFairLock、RedissonReadLock、RedissonWriteLock`
+        -   **节点内互斥，支持单节点、哨兵、集群三种模式**
+            -   在 `单实例` 的哨兵、集群模式下，可以保证只有`一个节点（一个实例内的一个节点）`获取锁。
+                -   例如：`RedissonLock、RedissonFairLock、RedissonReadLock、RedissonWriteLock`
             
         -   **实例间互斥，支持单节点、哨兵、集群三种模式**
-        -   在 `多实例` 的单节点、哨兵、集群模式下，可以保证`全部实例或半数以上实例`获取锁才算成功。
+            -   在 `多实例` 的单节点、哨兵、集群模式下，可以保证`全部实例或半数以上实例`获取锁才算成功。
                 -   例如：`RedissonMultiLock、RedissonRedLock（已优化 getLock 方法获取）` 都需要在构造参数中指定多个实例
         
     -   **内置监控锁（异步执行）的看门狗 🐶 ，租约自动续订并避免死锁 ** `Watch Dog` 
-    -   **租约自动续订**
-            -   在当前 `实例存续期间`，  `Watch Dog` 会异步判断锁的 `key` 是否存在，如果存在延长锁的租约时间
+        -   **租约自动续订**
+            -   在当前 `实例存续期间`，`Watch Dog` 会异步判断锁的 `key` 是否存在，如果存在延长锁的租约时间
         -   **避免死锁**
             -   当持有该锁的`节点宕机后`，由于设置了锁默认租约时间  **30** 秒，也可以在 `tryLock(waitTime, leaseTime, unit)` 自定义，所以锁会自动释放。
         
