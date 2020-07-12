@@ -411,3 +411,89 @@
             }
         ```
     
+
+## 4. SecheduleTask（分布式任务）
+
+[RedissonExamples](https://github.com/redisson/redisson-examples)
+
+- 基于 `Redis` 的任务模式：
+  - 远程服务
+    - 通过共享接口执行存在于另一个 `Redisson` 实例里的对象方法。即通过 `Redis` 实现了 `Java` 的远程过程调用**（RPC）**。分布式远程服务基于可以用 `POJO对象`，方法的参数和返回类不受限制，可以是任何类型。
+  - 标准任务
+    - `Redisson` 的分布式执行服务实现了 `java.util.concurrent.ExecutorService` 接口，支持在不同的独立节点里执行基于 `java.util.concurrent.Callable` 接口或 `java.lang.Runnable` 接口或 `Lambda` 的任务。这样的任务也可以通过使用 `Redisson` 实例，实现对储存在 `Redis` 里的数据进行操作。`Redisson` 分布式执行服务是最快速和有效执行分布式运算的方法。
+  - 调度任务
+    - `Redisson` 的分布式调度任务服务实现了 `java.util.concurrent.ScheduledExecutorService` 接口，支持在不同的独立节点里执行基于 `java.util.concurrent.Callable` 接口或 `java.lang.Runnable` 接口的任务。`Redisson` 独立节点按顺序运行 `Redis` 列队里的任务。调度任务是一种需要在未来某个指定时间运行一次或多次的特殊任务。
+
+- **代码示例**
+
+  [Redisson 标准任务与调度任务](https://github.com/StayHungryStayFoolish/RedisDocument/blob/master/redisson/src/main/java/io/stayhungrystayfoolish/redisson/resource/ScheduleTaskResource.java)
+
+  - 标准任务
+
+    - ```java
+      	  @GetMapping("/publish-standard-task")
+          public void publishTask() throws ExecutionException, InterruptedException {
+              logger.info("PUBLISH-STANDARD-TASK > ");
+              ExecutorOptions option = ExecutorOptions.defaults();
+              option.taskRetryInterval(10, TimeUnit.SECONDS);
+              RExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY, option);
+              // 异步执行
+              RExecutorFuture<?> callableFuture = executorService.submit(new CallableTask());
+              String taskd = callableFuture.getTaskId();
+              taskIdMap.put(STANDARD_TASK_KEY, taskd);
+              // 同步执行
+              executorService.execute(new RunnableTask());
+              logger.info("CallableTask Finished Result : " + callableFuture.get());
+          }
+      
+          @GetMapping("/finish-standard-task")
+          public void finishStandardTask() {
+              nodeConfig.getExecutorServiceWorkers().put(STANDARD_TASK_KEY, 10);
+              RedissonNode node = RedissonNode.create(nodeConfig);
+              node.start();
+          }
+      
+          @GetMapping("/cancel-standard-task")
+          public Boolean cancelStandardTask() {
+              RScheduledExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY);
+              String taskId = taskIdMap.get(STANDARD_TASK_KEY);
+              logger.info("Task ID : " + taskId);
+              return executorService.cancelTask(taskId);
+          }
+      ```
+
+      
+
+  - 调度任务
+
+    - ```java
+          @GetMapping("/publish-schedule-task")
+          public void publishScheduleTask() {
+              logger.info("PUBLISH-SCHEDULE-TASK > ");
+              RScheduledExecutorService executorService = client.getExecutorService(SCHEDULE_TASK_KEY);
+              // 延迟 5 秒执行，15 秒后循环执行
+      //        RScheduledFuture<?> future = executorService.scheduleAtFixedRate(new RunnableTask(), 5, 15, TimeUnit.SECONDS);
+              // 不会再次执行
+              RScheduledFuture<?> future1 = executorService.schedule(new CallableTask(), 5, TimeUnit.SECONDS);
+              String taskId = future1.getTaskId();
+              logger.info("Task ID : " + taskId);
+              taskIdMap.put(SCHEDULE_TASK_KEY, taskId);
+          }
+      
+          @GetMapping("/finish-schedule-task")
+          public void finishScheduleTask() {
+              nodeConfig.getExecutorServiceWorkers().put(SCHEDULE_TASK_KEY, 10);
+              RedissonNode node = RedissonNode.create(nodeConfig);
+              node.start();
+          }
+      
+          @GetMapping("/cancel-schedule-task")
+          public Boolean cancelScheduleTask() {
+              RScheduledExecutorService executorService = client.getExecutorService(SCHEDULE_TASK_KEY);
+              String taskId = taskIdMap.get(SCHEDULE_TASK_KEY);
+              logger.info("Task ID : " + taskId);
+              return executorService.cancelTask(taskId);
+          }
+      ```
+
+      
