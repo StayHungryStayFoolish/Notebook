@@ -412,7 +412,7 @@
         ```
     
 
-## 4. SecheduleTask（分布式任务）
+## 4. ScheduleTask（分布式任务）
 
 [RedissonExamples](https://github.com/redisson/redisson-examples)
 
@@ -431,43 +431,41 @@
   - 标准任务
 
     - ```java
-      	  @GetMapping("/publish-standard-task")
-          public void publishTask() throws ExecutionException, InterruptedException {
-              logger.info("PUBLISH-STANDARD-TASK > ");
-              ExecutorOptions option = ExecutorOptions.defaults();
-              option.taskRetryInterval(10, TimeUnit.SECONDS);
-              RExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY, option);
-              // 异步执行
-              RExecutorFuture<?> callableFuture = executorService.submit(new CallableTask());
-              String taskd = callableFuture.getTaskId();
-              taskIdMap.put(STANDARD_TASK_KEY, taskd);
-              // 同步执行
-              executorService.execute(new RunnableTask());
-              logger.info("CallableTask Finished Result : " + callableFuture.get());
-          }
+      	      @GetMapping("/publish-standard-task")
+             public void publishTask() throws ExecutionException, InterruptedException {
+                 logger.info("PUBLISH-STANDARD-TASK > ");
+                 ExecutorOptions option = ExecutorOptions.defaults();
+                 option.taskRetryInterval(10, TimeUnit.SECONDS);
+                 RExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY, option);
+                 // 异步执行
+                 RExecutorFuture<?> callableFuture = executorService.submit(new CallableTask());
+                 String taskd = callableFuture.getTaskId();
+                 taskIdMap.put(STANDARD_TASK_KEY, taskd);
+                 // 同步执行
+                 executorService.execute(new RunnableTask());
+                 logger.info("CallableTask Finished Result : " + callableFuture.get());
+             }
       
-          @GetMapping("/finish-standard-task")
-          public void finishStandardTask() {
-              nodeConfig.getExecutorServiceWorkers().put(STANDARD_TASK_KEY, 10);
-              RedissonNode node = RedissonNode.create(nodeConfig);
-              node.start();
-          }
+             @GetMapping("/finish-standard-task")
+             public void finishStandardTask() {
+                 nodeConfig.getExecutorServiceWorkers().put(STANDARD_TASK_KEY, 10);
+                 RedissonNode node = RedissonNode.create(nodeConfig);
+                 node.start();
+             }
       
-          @GetMapping("/cancel-standard-task")
-          public Boolean cancelStandardTask() {
-              RScheduledExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY);
-              String taskId = taskIdMap.get(STANDARD_TASK_KEY);
-              logger.info("Task ID : " + taskId);
-              return executorService.cancelTask(taskId);
-          }
+             @GetMapping("/cancel-standard-task")
+             public Boolean cancelStandardTask() {
+                 RScheduledExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY);
+                 String taskId = taskIdMap.get(STANDARD_TASK_KEY);
+                 logger.info("Task ID : " + taskId);
+                 return executorService.cancelTask(taskId);
+             }
       ```
-
-      
 
   - 调度任务
 
     - ```java
-          @GetMapping("/publish-schedule-task")
+        @GetMapping("/publish-schedule-task")
           public void publishScheduleTask() {
               logger.info("PUBLISH-SCHEDULE-TASK > ");
               RScheduledExecutorService executorService = client.getExecutorService(SCHEDULE_TASK_KEY);
@@ -496,4 +494,3 @@
           }
       ```
 
-      
