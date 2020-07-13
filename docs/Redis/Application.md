@@ -465,32 +465,32 @@
   - 调度任务
 
     - ```java
-        @GetMapping("/publish-schedule-task")
-          public void publishScheduleTask() {
-              logger.info("PUBLISH-SCHEDULE-TASK > ");
-              RScheduledExecutorService executorService = client.getExecutorService(SCHEDULE_TASK_KEY);
-              // 延迟 5 秒执行，15 秒后循环执行
-      //        RScheduledFuture<?> future = executorService.scheduleAtFixedRate(new RunnableTask(), 5, 15, TimeUnit.SECONDS);
-              // 不会再次执行
-              RScheduledFuture<?> future1 = executorService.schedule(new CallableTask(), 5, TimeUnit.SECONDS);
-              String taskId = future1.getTaskId();
-              logger.info("Task ID : " + taskId);
-              taskIdMap.put(SCHEDULE_TASK_KEY, taskId);
-          }
-      
-          @GetMapping("/finish-schedule-task")
-          public void finishScheduleTask() {
-              nodeConfig.getExecutorServiceWorkers().put(SCHEDULE_TASK_KEY, 10);
-              RedissonNode node = RedissonNode.create(nodeConfig);
-              node.start();
-          }
-      
-          @GetMapping("/cancel-schedule-task")
-          public Boolean cancelScheduleTask() {
-              RScheduledExecutorService executorService = client.getExecutorService(SCHEDULE_TASK_KEY);
-              String taskId = taskIdMap.get(SCHEDULE_TASK_KEY);
-              logger.info("Task ID : " + taskId);
-              return executorService.cancelTask(taskId);
-          }
+              @GetMapping("/publish-schedule-task")
+                public void publishScheduleTask() {
+                    logger.info("PUBLISH-SCHEDULE-TASK > ");
+                    RScheduledExecutorService executorService = client.getExecutorService(SCHEDULE_TASK_KEY);
+                    // 延迟 5 秒执行，15 秒后循环执行
+            //        RScheduledFuture<?> future = executorService.scheduleAtFixedRate(new RunnableTask(), 5, 15, TimeUnit.SECONDS);
+                    // 不会再次执行
+                    RScheduledFuture<?> future1 = executorService.schedule(new CallableTask(), 5, TimeUnit.SECONDS);
+                    String taskId = future1.getTaskId();
+                    logger.info("Task ID : " + taskId);
+                    taskIdMap.put(SCHEDULE_TASK_KEY, taskId);
+                }
+            
+                @GetMapping("/finish-schedule-task")
+                public void finishScheduleTask() {
+                    nodeConfig.getExecutorServiceWorkers().put(SCHEDULE_TASK_KEY, 10);
+                    RedissonNode node = RedissonNode.create(nodeConfig);
+                    node.start();
+                }
+            
+                @GetMapping("/cancel-schedule-task")
+                public Boolean cancelScheduleTask() {
+                    RScheduledExecutorService executorService = client.getExecutorService(SCHEDULE_TASK_KEY);
+                    String taskId = taskIdMap.get(SCHEDULE_TASK_KEY);
+                    logger.info("Task ID : " + taskId);
+                    return executorService.cancelTask(taskId);
+                }
       ```
 
