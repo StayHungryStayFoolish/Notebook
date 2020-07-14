@@ -70,27 +70,33 @@
 
 #### 1. Blocking IO
 
--   用户进程调用 `recvfrom()` 函数，进入**I/O 阶段 1 准备数据**
+> 用户进程从始至终处于 Blocking 状态
 
-    -   请求到达时，一般情况下，数据没准备完成，`用户进程` 原地等待将数据拷贝 kernel 缓冲区。
-    
--   `kernel` 数据准备完成，进入 **I/O 阶段 2 拷贝进用户进程缓冲区，并返回**
+- 用户进程发起 `recvfrom()` 函数调用，请求到达时，一般情况下，数据没准备完成，`用户进程` 一直等待直到 `kernel` 准备好数据。
+
+-   `kernel` 数据准备完成，由 `kernel` 向`用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
     ![Block-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Blocking-IO-Page.svg)
 
 #### 2. NonBlocking IO
 
-- da 
+> 用户进程在 kernel 数据准备完成前处于 NonBlocking 状态，在 kernel 数据准备完成后发起 system call 处于 Blocking 状态
 
-- da 
+- 用户进程发起 `recvfrom()` 函数调用，请求到达时，数据未准备完成，直接返回 `EWOULDBLOCK`。然后用户不断轮询直到 `kernel` 数据准备完成。
+
+- 用户进程再次发起 `recvfrom()` 函数调用，由 `kernel` 向 `用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
   ![NonBlocking-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/NonBlocking-IO-.svg)
 
 #### 3. IO Multiplexing 
 
-- da 
+> 用户进程在执行 `select / poll / epoll` 函数时处于 Blocking 状态，此时用户进程内  `select / poll / epoll`  监听的 socket 处于 `NonBlocking` 状态，让其中一个 Socket 套接字可读（数据准备完成）发起 `recvfrom()` 调用，再次处于 Blocking 状态。
 
-- 0da
+> IO Multiplexing 与 Blocking IO 不同之处在于前者根据 CPU 处理速度比 Network IO 速度快的特点，将多个 IO 请求集中处理，而后者一次只能处理一次 IO 请求。
+
+- 用户进程使用 `select / poll / epoll` 其中一个函数将 `多个 IO 请求(多个客户端连接)` 发起系统调用。然后  `select / poll / epoll` 轮询 `多个 IO 产生的 Socket`，直到其中一个 `Socket 套接字可读` 后返回可读条件。
+
+- 用户进程发起 `recvfrom()` 调用，等待由 `kernel` 向 `用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
   ![IO-Multiplexing](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/IO-Multiplexing.svg)
 
