@@ -112,10 +112,10 @@
 
   ![IO-SignalDriven](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/IO-SignalDriven.svg)
 
-#### 5. Asynchonous IO
+#### 5. Asynchronous IO
 
 - da 
 
 - da 
 
-  ![Asynchonous-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Asynchonous-IO.svg)
+  ![Asynchronous-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Asynchronous-IO.svg)
