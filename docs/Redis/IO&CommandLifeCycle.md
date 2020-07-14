@@ -1,4 +1,4 @@
-# Redis 多路复用及命令处理生命周期
+# Redis 单线程及命令处理生命周期
 
 ## UNIX Network I/O Model
 

@@ -12,8 +12,9 @@
     - [JHipster](JHipster/)       
 - **Redis**
     - [Redis](Redis/)
-    - [Redis的9种数据类型](Redis/DataType.md)
-    - [Redis的底层数据机构](Redis/DataStructure.md)
+    - [Redis 9种数据类型](Redis/DataType.md)
+    - [Redis 底层数据机构](Redis/DataStructure.md)
+    - [Redis 单线程及命令处理生命周期](Redis/IO&CommandLifeCycle.md)
     - [Redis 持久化](Redis/AOF&RDB.md)
     - [Redis 应用（布隆过滤器、订阅模式、锁、任务）](Redis/Application.md)
     - [Redis 架构选型](Redis/Framework.md)
