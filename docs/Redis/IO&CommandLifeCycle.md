@@ -76,9 +76,46 @@
     
 -   `kernel` 数据准备完成，进入 **I/O 阶段 2 拷贝进用户进程缓冲区，并返回**
 
-    ![Blocking-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Blocking-IO-Page-1.svg)
+    ![Block-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Blocking-IO-Page.svg)
 
-    #### 2. NonBlocking IO
+#### 2. NonBlocking IO
 
-    
+- da 
 
+- da 
+
+  ![NonBlocking-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/NonBlocking-IO-.svg)
+
+#### 3. IO Multiplexing 
+
+- da 
+
+- 0da
+
+  ![IO-Multiplexing](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/IO-Multiplexing.svg)
+
+##### 3.1 select & poll & epoll & Reactor 
+
+- da 
+
+- da 
+
+- da
+
+  ![epoll](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/epoll.svg)
+
+#### 4. Signal Driven IO
+
+- da 
+
+- da
+
+  ![IO-SignalDriven](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/IO-SignalDriven.svg)
+
+#### 5. Asynchonous IO
+
+- da 
+
+- da 
+
+  ![Asynchonous-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Asynchonous-IO.svg)
