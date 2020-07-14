@@ -36,12 +36,12 @@
           - **删除困难**
               - 如上图所示，当一个 `bit array` 写入了元素后，很难进行删除，因为元素增多时，会有几率出现`不同元素之间的映射一致`。
   
-### 1.1 Cuckoo Filter（升级版 - 布谷鸟过滤器）
+### 1.2 Cuckoo Filter（升级版 - 布谷鸟过滤器）
 
 -   [Cuckoo Filter](https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf) 论文
     -   RedisBloom Modules 实现了 Cuckoo 论文，增加了计数、删除等功能
 
-### RedisBloom Modules
+### 1.3 RedisBloom Modules
 
 -   [RedisBloom - Github](https://github.com/RedisBloom/RedisBloom)
 
@@ -93,7 +93,7 @@
                 - 查询 key 内元素 value 出现的次数
             - `CF.DEL key vaule`
 
-### 1.3 Redisson 实现 RBloomFilter
+### 1.4 Redisson 实现 RBloomFilter
 
 -   **Redisson 实现的 RBloomFilter 不需要 Redis 安装 RedisBloom Model，可以直接使用**
 
@@ -112,7 +112,7 @@
     fiter.delete();
     ```
 
-### 1.4 Google Guava
+### 1.5 Google Guava
 
 -   [Google Guava - Github](https://github.com/google/guava) 实现了 `BloomFilter`
 
