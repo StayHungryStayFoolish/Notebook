@@ -93,7 +93,26 @@
                 - 查询 key 内元素 value 出现的次数
             - `CF.DEL key vaule`
 
-### 1.3 Google Guava
+### 1.3 Redisson 实现 RBloomFilter
+
+-   **Redisson 实现的 RBloomFilter 不需要 Redis 安装 RedisBloom Model，可以直接使用**
+
+    ```java
+    // 使用 Redisson 官方配置文件，可以直接注入，不需要单独配置
+    private final RedissonClient client;
+    
+    RBloomFilter<String> filter = client.getBloomFilter("key");
+    // expectedInsertions 预期容量
+    // falseProbability 误差概率
+    filter.tryInit(expectedInsertions,falseProbability);
+    filter.add("value");
+    filter.contains("key");
+    filter.count();
+    // 只能全部删除，不能删除指定元素     
+    fiter.delete();
+    ```
+
+### 1.4 Google Guava
 
 -   [Google Guava - Github](https://github.com/google/guava) 实现了 `BloomFilter`
 
@@ -445,14 +464,14 @@
                  executorService.execute(new RunnableTask());
                  logger.info("CallableTask Finished Result : " + callableFuture.get());
              }
-      
+        
              @GetMapping("/finish-standard-task")
              public void finishStandardTask() {
                  nodeConfig.getExecutorServiceWorkers().put(STANDARD_TASK_KEY, 10);
                  RedissonNode node = RedissonNode.create(nodeConfig);
                  node.start();
              }
-      
+        
              @GetMapping("/cancel-standard-task")
              public Boolean cancelStandardTask() {
                  RScheduledExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY);
