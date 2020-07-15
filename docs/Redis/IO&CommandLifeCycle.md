@@ -102,26 +102,41 @@
 
 ##### 3.1 select & poll & epoll & Reactor 
 
-- da 
+- **select / poll 存在的问题**
 
-- da 
+    1.  `select` 监控的 `FD Set` 为 **1024**，`poll` 没有数量限制（但同样存在 2、3 问题）。
+    2.  在请求 `kernel` 准备数据前，`select` 和 `poll` 需要先将 `FD Set` 从 `用户空间` 拷贝到 `kernel`。
+    3.  当被监控的 `FD Set` 有数据可读时，用户进程需要遍历整个 `FD Set` 来获取已经准备就绪的 `FD`，所以当并发量大时，性能呈线性下降。
 
-- da
+- **epoll 解决了上述三个问题**
 
-  ![epoll](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/epoll.svg)
+    - `epoll` 引入了**事件驱动机制，并使用了 Reactor 设计模式**。
+      - 通过 `epoll_create` 向内核申请事件队列**（事件队列每个元素由 FD 和事件绑定组成）**
+      - 调用低频的 `epoll_ctl` 操作（EPOLL_CTL_ADD、EPOLL_CTL_MOD、EPOLL_CTL_DEL）**任务队列（Task Queue）**最终添加需要监控的 `FD 及绑定的 Event`。
+      - 因为**任务队列**中有不同的事件类型，所以任务队列中的事件最终由**事件分发器（Event Dispatcher）分发到事件处理器（Event Handle），通过事件处理器的不同函数来执行不同的事件。**
+      - **当事件完成就绪后**，将可读就绪的 `Event` 递交给高频调用的 `epoll_wait` 队列中。
+      - 最终由 `kernel` 向 `用户空间` 拷贝数据。
+
+    ![epoll](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/epoll.svg)
 
 #### 4. Signal Driven IO
 
-- da 
+>   用户进程在执行 `SIGIO` 函数时处于 Asynchronous 状态，此时用户进程可以执行其他操作，当 `kernel` 递交 `SIGIO` 信号时，用户进程发起系统调用，在此期间出于 Blocking 状态。
 
-- da
+- 用户进程简历 `SIGIO`  信号处理程序，通知 `kernel` 需要的数据并直接返回。
+
+- `kernel` 准备数据完成后，向 `用户进程` 递交 `SIGIO` 信号，用户进程收到该信号后发起 `recvfrom()` 系统调用，等待 `kernel` 向 `用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
   ![IO-SignalDriven](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/IO-SignalDriven.svg)
 
 #### 5. Asynchronous IO
 
-- da 
+>   用户进程发起系统调用后处于 Asynchronous 状态，当 `kernel` 递交执行信号时，用户进程处理 `kernel` 拷贝数据到用户空间阶段处于  Blocking 状态**（因为此时是 Write 状态）**。
 
-- da 
+- 用户进程发起 `aio_read` 通知 `kernel` 需要的数据，然后用户进程可以执行其他操作。
+
+- `kernel` 准备好数据后，通知 `用户空间` 数据准备完成，在 `aio_read` 中递交指定的信号
+
+-  `用户进程` 处理 `kernel` 拷贝数据到 `用户空间`。**此阶段 Blocking 状态**
 
   ![Asynchronous-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Asynchronous-IO.svg)
