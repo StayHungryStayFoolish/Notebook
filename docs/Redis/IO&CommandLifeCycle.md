@@ -116,8 +116,33 @@
       - 因为**任务队列**中有不同的事件类型，所以任务队列中的事件最终由**事件分发器（Event Dispatcher）分发到事件处理器（Event Handle），通过事件处理器的不同函数来执行不同的事件。**
       - **当事件完成就绪后**，将可读就绪的 `Event` 递交给高频调用的 `epoll_wait` 队列中。
       - 最终由 `kernel` 向 `用户空间` 拷贝数据。
+    - `epoll` 高频的 `epoll_wait` 可读就绪后返回的 `FD Set` 数据拷贝
+        - `epoll` 通过 `kernel`与 `用户空间 mmap(内存映射)` 共用同一块内存来解决。`mmap` 将用户空间的一块地址和  `kernel` 空间的一块地址同时映射到相同的一块物理内存地址（不管是用户空间还是内核空间都是虚拟地址，最终要通过地址映射映射到物理地址），使得这块物理内存对内核和对用户均可见，减少用户态和内核态之间的数据交换。
 
-    ![epoll](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/epoll.svg)
+-    **Socket 事件**的 `wakeup callback` 机制
+
+  - **Linux(2.6+ kernel)** 事件 `wakeup callback` 机制，这是 **I/O 多路复用机制存在的本质**。
+  - **Linux** 通过 `Socket` 睡眠队列来管理所有等待 `Socket` 的某个事件的 `用户进程`，同时通过 `wakeup` 机制来 `异步唤醒` 整个睡眠队列上等待事件的 `用户进程`，通知 `用户进程` 相关事件发生。通常情况，`Socket` 的事件发生的时候，会**顺序遍历 Socket 睡眠队列上的每个用户进程节点**，调用每个用户进程节点挂载的 `callback` 函数。在遍历的过程中，如果遇到某个节点是排他的，那么就终止遍历，总体上会涉及两大逻辑：
+    1.  睡眠等待逻辑
+      1.  `select / poll / epoll_wait` 进入内核，判断监控的 `Socket` 是否有关心的事件发生了，如果没，则为当前 `用户进程` 构建一个 `wait_entry` 节点，然后插入到 `监控 Socket 的 sleep_list`。
+      2.  进入循环的 `schedule` 直到关心的时间发生了
+      3.  关心的时间发生后，将当前 `用户进程` 的 `wait_entry` 节点从 `Scoket` 的 `sleep_list` 中删除
+    2.  唤醒逻辑
+      1.  `Socket` 的事件发生了，然后 `Socket` 顺序遍历其睡眠队列，依次调用每个`wait_entry` 节点的 `callback函数`。
+      2.  直到完成队列的遍历或遇到某个 `wait_entry` 节点是排他的才停止。
+      3.  一般情况下 `callback` 包含两个逻辑：1. wait_entry 自定义的私有逻辑、2.唤醒的公共逻辑。主要用于将该 `wait_entry` 的 `用户进程` 放入 `CPU` 的就绪队列，让 `CPU` 随后可以调度其执行。
+  
+- **epoll 三个重要函数**
+
+- ```c
+  int epoll_create(int size)
+  int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
+    int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
+    ```
+    
+    
+  
+  ![epoll](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/epoll.svg)
 
 #### 4. Signal Driven IO
 
@@ -140,3 +165,16 @@
 -  `用户进程` 处理 `kernel` 拷贝数据到 `用户空间`。**此阶段 Blocking 状态**
 
   ![Asynchronous-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Asynchronous-IO.svg)
+
+## Redis 命令周期
+
+>   服务器处理客户端命令的流程为：1.服务器启动监听；2. 接收命令请求并解析；3. 执行命令请求；4. 返回命令回复 
+
+## Redis 事件
+
+>   Redis 服务器是典型的事件驱动程序，Redis 将事件分为两大类：文件事件和时间事件（Redis 内只有一种时间事件）。
+
+-   **文件事件**
+    -   Socket 的读写时间
+-   **时间事件**
+    -   处理一些周期性执行的定时任务
