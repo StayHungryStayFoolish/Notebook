@@ -138,8 +138,8 @@
   int epoll_create(int size)
   int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
     int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
-    ```
-    
+  ```
+  
     
   
   ![epoll](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/epoll.svg)
@@ -169,6 +169,133 @@
 ## Redis 命令周期
 
 >   服务器处理客户端命令的流程为：1.服务器启动监听；2. 接收命令请求并解析；3. 执行命令请求；4. 返回命令回复 
+
+介绍 `Redis` 命令生命周期前，首先要了解 `Redis` 的几个组件类型。
+
+[Redis Github 5.0源码](https://github.com/redis/redis/blob/5.0/src/server.h)
+
+### Redis 对象结构体 robj
+
+`Redis` 是 `key-value` 型数据库，`key` 只能是字符串，`value` 可以是字符串、列表、集合、有序集合、散列表。以上 **5** 种数据类型采用 `robj结构体` 表示。`value` 的编码类型可以使用 `OBJECT encoding key` 查询。
+
+```c
+typedef struct redisObject {
+    unsigned type:4;       /* TYPE key 查看数据类型，返回 9 种类型之一 */
+    unsigned encoding:4;   /* OBJECT encoding key 查看编码类型 */
+    unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
+                            * LFU data (least significant 8 bits frequency
+                            * and most significant 16 bits access time). 
+                            缓存淘汰策略（LRU、LFU）使用
+                            */
+    int refcount; /* 记录引用次数，LFU 策略使用 */
+    void *ptr;	  /* 指针指向存储的数据结构 */
+} robj;
+```
+
+#### encoding 编码类型对应表
+
+|        encoding         |                         底层数据结构                         |      存储对象类型      |
+| :---------------------: | :----------------------------------------------------------: | :--------------------: |
+|    OBJ_ENCODING_RAW     | 简单动态字符串`（sds，value 大于 44 字节，分配2次内存，robj 和 sds）` |         字符串         |
+|    OBJ_ENCODING_INT     |                             整数                             |         字符串         |
+|     OBJ_ENCODING_HT     |                         字典（dict）                         | 集合、散列表、有序集合 |
+|  OBJ_ENCODING_ZIPLIST   |                     压缩列表（ziplist）                      |    散列表、有序集合    |
+|   OBJ_ENCODING_INTSET   |                      整数集合（intset）                      |          集合          |
+|  OBJ_ENCODING_SKIPLIST  |                      跳跃表（skiplist）                      |        有序集合        |
+|   OBJ_ENCODING_EMBSTR   | 简单动态字符串`（sds，value 小于 44 字节，分配一次内存，robj 和 sds 连续内存）` |         字符串         |
+| OBJ_ENCODING_QUICKLIST  |                    快速链表（quicklist）                     |          列表          |
+|   OBJ_ENCODING_STREAM   |                            stream                            |         stream         |
+|   OBJ_ENCODING_ZIPMAP   |                            未使用                            |         未使用         |
+| OBJ_ENCODING_LINKEDLIST |                           不再使用                           |        不再使用        |
+
+-   存储对象的编码类型不是一成不变的，之前在 [Redis 9 种数据类型](http://notebook.bonismo.ink/#/Redis/DataType) 中有提及到，当达到一定边界值，编码类型会转变。
+
+    -   如 `Hash` 数据类型，在键值对的字符串长度都小于 **64** 字节并且键值对数量小于 **512** 时会采用 `ziplist` 数据结构，即 `OBJ_ENCODING_ZIPLIST` 编码类型，使用命令返回的是 `ziplist`，如果超过该边界值，则会变化为 `OBJ_ENCODING_HT` 编码类型，使用命令返回的是 `hashtable`。
+
+    -   如 `String` 数据类型，当 `value` 小于 44 字节，使用 `OBJ_ENCODING_EMBSTR` 编码类型，当大于 44 字节时，使用 `OBJ_ENCODING_RAW` 编码类型。
+
+#### lru 缓存淘汰策略
+
+>   CONFIG GET maxmemory-policy 查看缓存淘汰策略
+
+-   `Redis` 缓存淘汰策略为：`LRU` 和 `LFU`，可以在**配置文件（redis.conf）**通过 `maxmemory-policy` 参数配置，具体使用哪一种策略需要根据实际情况选择。
+
+    -   `LRU` 策略核心思想：如果数据最近被访问过，那么将来访问的几率也更高，此时 **lru 字段**存储的是 **对象的访问时间**，
+
+        -   LRU 支持的策略
+
+            ```bash
+            noeviction(默认策略)：对于写请求不再提供服务，直接返回错误（DEL 请求和部分特殊请求除外）
+            allkeys-lru：从所有 key 中使用 LRU 算法进行淘汰
+            volatile-lru：从设置了过期时间的 key 中使用 LRU 算法进行淘汰
+            allkeys-random：从所有 key 中随机淘汰数据
+            volatile-random：从设置了过期时间的 key 中随机淘汰
+            volatile-ttl：在设置了过期时间的 key 中，根据 key 的过期时间进行淘汰，越早过期的越优先被淘汰
+            ```
+
+    -   `LFU` 策略核心思想：如果数据过去被访问多次，那么将来访问的记录也更高，相比 `LRU` 更科学一点，此时 **lru 字段** 存储的是 **对象的上次访问时间和访问次数**
+
+        -   LFU 支持的策略
+
+            ``` bash
+            volatile-lfu：在设置了过期时间的 key 中使用 LFU 算法淘汰 key
+            allkeys-lfu：在所有的 key 中使用 LFU 算法淘汰数据
+            ```
+
+#### refcount 引用次数
+
+-   `refcount` 存储当前对象的引用次数，用于实现对象的共享。
+    -   共享对象时，`refcount` 加 **1**
+    -   删除对象时，`refcount` 减 **1**
+    -   当 `refcount` 值为 **0** 时**释放对象空间**
+
+### Redis 客户端结构体 client
+
+`Redis` 是典型的**客户端服务器结构**，客户端通过 `socket` 与 **服务端** 建立网络连接并发送命令请求，服务端处理命令请求并回复。Redis使用 `结构体 client` 存储客户端连接的所有信息，**包括但不限于**客户端的名称、客户端连接的套接字描述符、客户端当前选择的数据库ID、客户端的输入缓冲区与输出缓冲区等。
+
+```c
+typedef struct client {
+    unit64_t id;						 /* 当前客户端连接唯一 ID */
+    int fd;								 /* 客户端 socket 的文件描述符 */
+    redisDB *db;					 	 /* 客户端连接的 DB  */
+    robj *name;							 /* 客户端名称 */
+    sds querybuf; 						 /* 客户端查询存储的缓冲区 */
+    time_t lastinteraction;				 /* 最近一次连接时间，用于超时关闭 */
+    int argc;              				 /* 当前命令的参数个数 */
+    robj **argv;               			 /* 当前命令参数 */
+    struct redisCommand *cmd, *lastcmd;  /* 最后执行的命令 */
+    list *reply;               		     /* 待返回给客户端的数据，即客户端执行命令后的内容输出链表 */
+    unsigned long long reply_bytes; 	 /* 输入链表的存储空间总和 */
+    size_t sentlen;						 /* 缓冲区或被发送的对象当前已发送的字节数。 */	
+    int bufpos;							 /* 缓冲区最大字节位置 */
+    char buf[PROTO_REPLY_CHUNK_BYTES];   /* 待返回给客户端数据的命令缓冲区 */
+    ... ...
+} client;
+```
+
+### Redis 服务端结构体 redisServer
+
+`Redis` 的结构体 `redisServer` 存储服务器的所有信息，**包括但不限于**数据库、配置参数、命令表、监听端口与地址、客户端列表、若干统计信息、RDB 与 AOF 持久化相关信息、主从复制相关信息、集群相关信息等。
+
+```c
+struct redisServer {
+	char *configfile;          			  /* 配置文件的绝对路径 */
+    int dbnum;							  /* 数据库总数 */
+    redisDb *db;						  /* 数据库编号 */
+    dict *command;					      /* Redis 的命令字典，所有命令都存储在这个字典中 */
+    aeEvenetLoop *el;					  /* Redis 的事件驱动，el 代表事件循环，类型为 aeEvenetLoop */
+    int port;							  /* 服务器监听的端口号，默认 6379 */
+    char *bindaddr[CONFIG_BINDADDR_MAX];  /* 绑定的 IP 地址 */
+    int bindaddr_count;                   /* 绑定的 IP 个数 */
+    int ipfd[CONFIG_BINDADDR_MAX];        /* IP 地址创建的 socket 文件描述符 */
+    int ipfd_count;						  /* 文件描述符个数 */
+    list *clients;						  /* 当前连接到服务器的所有客户端 */    
+    int maxidletime;					  /* 最大空闲事件，如果交互事件超过该设定会认为超时并断开连接 */
+} 
+```
+
+-   **aeEvenetLoop** 事件驱动结构体内部采用了 `I/O 多路复用模型`，`Redis` 针对不同计算机操作系统做了封装。
+    -   例如 Solaries 10 中的 `evport`、Linux 中的 `epoll` 和 macOS/FreeBSD 中的 `kqueue`，如果当前操作系统没有以上函数，选择 `select` 作为备选方案。多路复用可以参考上边 `UNIX I/O` 介绍。
 
 ## Redis 事件
 
