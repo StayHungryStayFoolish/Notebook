@@ -283,7 +283,7 @@ struct redisServer {
     int dbnum;							  /* 数据库总数 */
     redisDb *db;						  /* 数据库编号 */
     dict *command;					      /* Redis 的命令字典，所有命令都存储在这个字典中 */
-    aeEvenetLoop *el;					  /* Redis 的事件驱动，el 代表事件循环，类型为 aeEvenetLoop */
+    aeEventLoop *el;					  /* Redis 的事件驱动，el 代表事件循环，类型为 aeEvenetLoop */
     int port;							  /* 服务器监听的端口号，默认 6379 */
     char *bindaddr[CONFIG_BINDADDR_MAX];  /* 绑定的 IP 地址 */
     int bindaddr_count;                   /* 绑定的 IP 个数 */
@@ -294,7 +294,7 @@ struct redisServer {
 } 
 ```
 
--   **aeEvenetLoop** 事件驱动结构体内部采用了 `I/O 多路复用模型`，`Redis` 针对不同计算机操作系统做了封装。
+-   **aeEventLoop** 事件驱动结构体内部采用了 `I/O 多路复用模型`，`Redis` 针对不同计算机操作系统做了封装。
     -   例如 Solaries 10 中的 `evport`、Linux 中的 `epoll` 和 macOS/FreeBSD 中的 `kqueue`，如果当前操作系统没有以上函数，选择 `select` 作为备选方案。多路复用可以参考上边 `UNIX I/O` 介绍。
 
 ## Redis 事件
