@@ -137,7 +137,7 @@
 - ```c
   int epoll_create(int size)
   int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
-    int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
+  int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
   ```
   
     
@@ -170,17 +170,25 @@
 
 >   服务器处理客户端命令的流程为：1.服务器启动监听；2. 接收命令请求并解析；3. 执行命令请求；4. 返回命令回复 
 
-介绍 `Redis` 命令生命周期前，首先要了解 `Redis` 的几个组件类型。
+**介绍 `Redis` 命令生命周期前，首先要了解 `Redis` 的几个组件类型。**
+
+1.  **对象结构体 robj**
+
+2.  **客户端结构体 client**
+
+3.  **服务器结构体 redisServer**
+
+4.  **事件驱动结构体 aeEventLoop**
 
 [Redis Github 5.0源码](https://github.com/redis/redis/blob/5.0/src/server.h)
 
-### Redis 对象结构体 robj
+### 1. Redis 对象结构体 robj
 
-`Redis` 是 `key-value` 型数据库，`key` 只能是字符串，`value` 可以是字符串、列表、集合、有序集合、散列表。以上 **5** 种数据类型采用 `robj结构体` 表示。`value` 的编码类型可以使用 `OBJECT encoding key` 查询。
+`Redis` 是 `key-value` 型数据库，`key` 只能是字符串，`value` 可以是 **string（字符串）、list（列表）、set（集合）、zset（有序集合）、hash（散列表）**。以上 **5** 种数据类型采用 `robj结构体` 表示。`value` 的对象类型使用 `type` 存储，可以使用 `TYPE key` 查询；`value` 的编码类型使用 `encoding` 存储，可以使用 `OBJECT encoding key` 查询。
 
 ```c
 typedef struct redisObject {
-    unsigned type:4;       /* TYPE key 查看数据类型，返回 9 种类型之一 */
+    unsigned type:4;       /* TYPE key 查看数据类型，返回 5 种类型之一 */
     unsigned encoding:4;   /* OBJECT encoding key 查看编码类型 */
     unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
                             * LFU data (least significant 8 bits frequency
@@ -192,7 +200,7 @@ typedef struct redisObject {
 } robj;
 ```
 
-#### encoding 编码类型对应表
+#### 1.1 encoding 编码类型对应表
 
 |        encoding         |                         底层数据结构                         |      存储对象类型      |
 | :---------------------: | :----------------------------------------------------------: | :--------------------: |
@@ -214,7 +222,7 @@ typedef struct redisObject {
 
     -   如 `String` 数据类型，当 `value` 小于 44 字节，使用 `OBJ_ENCODING_EMBSTR` 编码类型，当大于 44 字节时，使用 `OBJ_ENCODING_RAW` 编码类型。
 
-#### lru 缓存淘汰策略
+#### 1.2 lru 缓存淘汰策略
 
 >   CONFIG GET maxmemory-policy 查看缓存淘汰策略
 
@@ -242,14 +250,14 @@ typedef struct redisObject {
             allkeys-lfu：在所有的 key 中使用 LFU 算法淘汰数据
             ```
 
-#### refcount 引用次数
+#### 1.3 refcount 引用次数
 
 -   `refcount` 存储当前对象的引用次数，用于实现对象的共享。
     -   共享对象时，`refcount` 加 **1**
     -   删除对象时，`refcount` 减 **1**
     -   当 `refcount` 值为 **0** 时**释放对象空间**
 
-### Redis 客户端结构体 client
+### 2. Redis 客户端结构体 client
 
 `Redis` 是典型的**客户端服务器结构**，客户端通过 `socket` 与 **服务端** 建立网络连接并发送命令请求，服务端处理命令请求并回复。Redis使用 `结构体 client` 存储客户端连接的所有信息，**包括但不限于**客户端的名称、客户端连接的套接字描述符、客户端当前选择的数据库ID、客户端的输入缓冲区与输出缓冲区等。
 
@@ -273,7 +281,7 @@ typedef struct client {
 } client;
 ```
 
-### Redis 服务端结构体 redisServer
+### 3. Redis 服务端结构体 redisServer
 
 `Redis` 的结构体 `redisServer` 存储服务器的所有信息，**包括但不限于**数据库、配置参数、命令表、监听端口与地址、客户端列表、若干统计信息、RDB 与 AOF 持久化相关信息、主从复制相关信息、集群相关信息等。
 
@@ -294,14 +302,82 @@ struct redisServer {
 } 
 ```
 
--   **aeEventLoop** 事件驱动结构体内部采用了 `I/O 多路复用模型`，`Redis` 针对不同计算机操作系统做了封装。
-    -   例如 Solaries 10 中的 `evport`、Linux 中的 `epoll` 和 macOS/FreeBSD 中的 `kqueue`，如果当前操作系统没有以上函数，选择 `select` 作为备选方案。多路复用可以参考上边 `UNIX I/O` 介绍。
+#### 3.1 服务端启动过程
 
-## Redis 事件
+###4. aeEventLoop 事件驱动结构体
 
 >   Redis 服务器是典型的事件驱动程序，Redis 将事件分为两大类：文件事件和时间事件（Redis 内只有一种时间事件）。
 
--   **文件事件**
-    -   Socket 的读写时间
--   **时间事件**
-    -   处理一些周期性执行的定时任务
+[Redis Github 5.0 源码](https://github.com/redis/redis/blob/5.0/src/ae.h)
+
+```c
+typedef struct aeEventLoop {
+    int maxfd;   						/* highest file descriptor currently registered */
+    int setsize;					    /* max number of file descriptors tracked */
+    long long timeEventNextId;
+    time_t lastTime;     				/* 检测系统时钟偏移 */
+    aeFileEvent *events;				/* 文件事件数组，存储已注册的文件事件 */
+    aeFiredEvent *fired; 				/* 存储被触发的文件事件 */
+    aeTimeEvent *timeEventHead;			/* 时间事件链表头节点 */
+    int stop;							/* 事件循环是否结束 */
+    void *apidata; 						/* IO 多路复用的封装 */
+    aeBeforeSleepProc *beforesleep;		/* 服务器需要阻塞等待文件事件，进程阻塞前调用该函数 */
+    aeBeforeSleepProc *aftersleep;		/* 进程被某种原因唤醒后，调用该函数 */
+} aeEventLoop;
+
+/* 事件驱动的 while 无限循环 */
+void aeMain(aeEventLoop *eventLoop) {
+    eventLoop->stop = 0;
+    while (!eventLoop->stop) {
+        if (eventLoop->beforesleep != NULL)
+            eventLoop->beforesleep(eventLoop);
+        aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP);
+    }
+}
+```
+
+-   **apidata** 内部采用了 `I/O 多路复用模型`，`Redis` 针对不同计算机操作系统做了封装。
+    -   例如 Solaries 10 中的 `evport`、Linux 中的 `epoll` 和 macOS/FreeBSD 中的 `kqueue`，如果当前操作系统没有以上函数，选择 `select` 作为备选方案。多路复用可以参考上边 `UNIX I/O` 介绍。
+        -   `Redis` 对应的 `ae_evport.c`、`ae_epoll.c`、`ae_kqueue.c` 和 `ae_select.c` 源码文件。
+
+-   **aeMain** 无限循环执行事件驱动程序，最终由 **aeProcessEvents** 函数执行。
+    -   **AE_ALL_EVENTS：** 待处理的文件事件和时间事件
+    -   **AE_CALL_AFTER_SLEEP：** 阻塞等待文件事件之后执行 **aftersleep 函数**
+
+#### 4.1 文件事件
+
+>   `文件事件指的是 socket 的读写事件，Redis 服务器当读写事件同时就绪时，优先处理读事件，当服务器有命令结果返回客户端时，此时如果有新命令请求，优先处理新命令请求。`
+
+`Redis 客户端` 通过 **TCP socket** 与 `Redis 服务端` 进行交互。`socket` 读写操作分为**阻塞与非阻塞**（此处阻塞与非阻塞指的是 socket 状态）。
+
+-   阻塞读写
+    -   一个进程只能处理一个网络连接 socket 的读写事件，为了处理多个网络网络连接 socket，通常采用多线程或多进程。`Redis 6.0` 采用了多线程处理。
+-   非阻塞读写
+    -   使用 `Redis 封装的 IO 多路复用器`
+        -   如 `Linux` 的 `epoll` 通过 `epoll_create`、`epoll_ctl`、`epoll_wait` 三个函数完成。
+
+#### 4.2 时间事件
+
+>   `时间事件是由 Redis 内部很多定时任务的执行时间点所组成的一个链表，如：定时清除超时客户端连接、定时删除过期建等等。所以说 Redis 只有一个时间事件。`
+
+-   **执行过程**
+    -   时间事件由 **processTimeEvents** 函数执行。具体处理逻辑是遍历时间事件链表，判断当前时间事件是否到期，如果到期则执行时间处理函数 **timeProc**，并返回下次执行触发时间（毫秒）。
+-   **文件事件阻塞时，时间事件的处理方式**
+    -   当文件事件由于执行 `epoll_wait` 阻塞时（阻塞情况参考  IO Multiplexing 的 epoll 图示），此时遇到要处理时间事件怎么办呢？
+        1.  查询 `时间事件链表` 内最近要触发的时间事件，计算超时时间（毫秒）
+        2.  阻塞等待 `文件事件产生`
+        3.  以**步骤 1** 的时间为循环数量，循环处理产生的 `文件事件` 
+        4.  处理 `时间事件`
+    -   **由以上可以看出来，`时间事件` 的执行时间比预定的时间要晚，具体取决于 `文件事件` 的耗时。**
+
+#### 4.3 客户端与服务器端的读写过程
+
+>   文件时间的读事件和写事件并不是指的 Redis 客户端的类似 GET/SET 命令，而是 IO 多路复用监听的 socket 套接字 的 `AE_READABLE（可读事件）`和` AE_WRITEABLE（可写事件） `
+
+-   **文件事件的可读事件**
+    1.  `客户端` 向 `服务端` 发送 `命令`
+    2.  `客户端` 读事件状态为 `就绪`，命令发送状态为 `已发送,已到达`
+-   **文件事件的可写事件**
+    1.  `服务端` 执行交给 `IO 多路复用器` 处理创建文件事件，最终 `命令执行器` 处理 `文件事件` 并将 `命令回复` 暂存在 `服务端 client 结构体` 的 `buf 缓冲区（参考 client 代码字段 buf）`。
+    2.  当 `服务端` 的 `socket` 写就绪时（内容准备完毕，可参考 **UNIX 的 5 中 I/O 模型的 Kernel 准备数据阶段** ），此时写事件状态为 `就绪`
+    3.  `服务端` 的可写事件发生，将 `命令回复` 发送到 `客户端`，可读事件与客户端取消关联，只保留可读事件（**客户端断开连接，可读时间被移除）**
