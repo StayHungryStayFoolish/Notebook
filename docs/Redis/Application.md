@@ -266,7 +266,7 @@
 
     -   基于 `Redis` 分布式锁的基本架构（省略数据库层面）：
 
-    ![Redis-Lock](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/架构.svg)
+    ![Redis-Lock](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/架构.png)
 
 ### 3.2 Distributed Locks（分布式锁）
 
@@ -464,14 +464,14 @@
                  executorService.execute(new RunnableTask());
                  logger.info("CallableTask Finished Result : " + callableFuture.get());
              }
-        
+            
              @GetMapping("/finish-standard-task")
              public void finishStandardTask() {
                  nodeConfig.getExecutorServiceWorkers().put(STANDARD_TASK_KEY, 10);
                  RedissonNode node = RedissonNode.create(nodeConfig);
                  node.start();
              }
-        
+            
              @GetMapping("/cancel-standard-task")
              public Boolean cancelStandardTask() {
                  RScheduledExecutorService executorService = client.getExecutorService(STANDARD_TASK_KEY);
