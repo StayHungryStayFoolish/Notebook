@@ -222,7 +222,7 @@ typedef struct redisObject {
 
     -   如 `String` 数据类型，当 `value` 小于 44 字节，使用 `OBJ_ENCODING_EMBSTR` 编码类型，当大于 44 字节时，使用 `OBJ_ENCODING_RAW` 编码类型。
 
-#### 1.2 lru 缓存淘汰策略
+#### 1.2 lru 缓存淘汰策略（基本 Memory 超过设定值，策略生效）
 
 >   CONFIG GET maxmemory-policy 查看缓存淘汰策略
 
@@ -295,7 +295,7 @@ struct redisServer {
     int port;							  /* 服务器监听的端口号，默认 6379 */
     char *bindaddr[CONFIG_BINDADDR_MAX];  /* 绑定的 IP 地址 */
     int bindaddr_count;                   /* 绑定的 IP 个数 */
-    int ipfd[CONFIG_BINDADDR_MAX];        /* IP 地址创建的 socket 文件描述符 */
+    int ipfd[CONFIG_BINDADDR_MAX];        /* IP 地址创建的 socket 文件描述符，迭代创建文件事件 */
     int ipfd_count;						  /* 文件描述符个数 */
     list *clients;						  /* 当前连接到服务器的所有客户端 */    
     int maxidletime;					  /* 最大空闲事件，如果交互事件超过该设定会认为超时并断开连接 */
@@ -303,6 +303,46 @@ struct redisServer {
 ```
 
 #### 3.1 服务端启动过程
+
+1.  **初始化服务端配置参数**
+    1.  定时任务（时间事件） `server.hz = 10` **serverCron** 的执行频率
+    2.  默认监听端口 `port = 6379`
+    3.  最大客户端连接数 `maxclients = 1000`
+    4.  客户端超时时间 `maxideletime = 0（0 代表永不超时）`
+    5.  数据库数量 `dbnum = 16`
+    6.  命令字典 `polulataCommandTable()`，该函数会初始化一个 `redisCommand` 的数组结构存入 `redisCommandTable`
+2.  **加载并解析配置文件**
+    1.  `loadServerConfig()` 加载并解析 `redis.conf` 文件
+3.  **初始化服务器内部变量**
+    1.  初始化客户端链表
+    2.  创建数据库字典等
+4.  **创建事件循环 `eventLoop`**
+    1.  `epoll` 此时通过 `epoll_create` 创建
+5.  **创建  `socket` 启动监听**
+    1.  创建 `socket`，通过系统调用 `fcntl` 设置为 `非阻塞（因为 IO 多路复用要求所有 socket 必须是非阻塞）`
+    2.  读取 `redisServer 结构体的 bindaddr` 绑定的 **IP 地址** 和 `port（端口）` 并监听
+6.  **创建文件事件和时间事件**
+    1.   `redisServer 结构体的 ipfd`  数组遍历创建 `文件事件`
+    2.  `serverCron` 函数创建 `时间事件`，并在创建后 **1毫秒** 触发
+7.  **开启事件循环**
+    1.  `aeMain()` 函数创建事件循环，执行 `过期键删除策略 beforeSleep()`，`处理文件事件、时间事件 aeProcessEvents()`
+    2.  **beforeSleep()** 执行集群相关操作、过期键删除**（此处执行周期性删除）**、向客户端返回命令回复（客户端显示命令执行结果）等等
+        1.  **过期键删除分为惰性删除和周期性删除两种，Redis 过期键存放在单独的字典中**
+            1.  **惰性删除：访问数据库键时，检查是否过期，是则删除**
+            2.  **周期性删除：**
+                1.  服务端启动**步骤 1** 初始化了 `server.hz = 10`，**CPU 空闲时每秒执行 10 次**
+                2.  每次 `过期 key` 清理时间不超过 `CPU` 时间的 **25%**，即 `hz = 1` 清理时间为 **250 ms**，`hz = 10` 清理时间为 **25 ms**
+                3.  清理 `key` 时，遍历所有 `db`
+                4.  从遍历的 `db` 中随机获取 **20 个 key**，判断是否过期，是则删除
+                5.  若存在 **5 个以上**，重复**步骤 4**，否则遍历下一个 `db`
+                6.  清理过程中，若时间超过 `CPU` 时间的 **25%**，退出清理过程
+
+#### 3.2 Redis key  删除策略
+
+1.  **基于 Memory 的 LRU 内存缓存删除策略，当超过设置的内存值才会执行**
+    1.  参考 **1.2 章节**
+2.  **基于 `时间时间` 的删除策略**
+    1.  参考 **3.1 章节步骤 7**
 
 ###4. aeEventLoop 事件驱动结构体
 
@@ -330,7 +370,9 @@ void aeMain(aeEventLoop *eventLoop) {
     eventLoop->stop = 0;
     while (!eventLoop->stop) {
         if (eventLoop->beforesleep != NULL)
+            // 执行过期键删除策略
             eventLoop->beforesleep(eventLoop);
+        // 处理文件事件、时间事件
         aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP);
     }
 }
@@ -340,11 +382,11 @@ void aeMain(aeEventLoop *eventLoop) {
     -   例如 Solaries 10 中的 `evport`、Linux 中的 `epoll` 和 macOS/FreeBSD 中的 `kqueue`，如果当前操作系统没有以上函数，选择 `select` 作为备选方案。多路复用可以参考上边 `UNIX I/O` 介绍。
         -   `Redis` 对应的 `ae_evport.c`、`ae_epoll.c`、`ae_kqueue.c` 和 `ae_select.c` 源码文件。
 
--   **aeMain** 无限循环执行事件驱动程序，最终由 **aeProcessEvents** 函数执行。
+-   **aeMain()** 无限循环执行事件驱动程序，最终由 **aeProcessEvents()** 函数执行。
     -   **AE_ALL_EVENTS：** 待处理的文件事件和时间事件
     -   **AE_CALL_AFTER_SLEEP：** 阻塞等待文件事件之后执行 **aftersleep 函数**
 
-#### 4.1 文件事件
+#### 4.1 文件事件（socket 读写事件的抽象化）
 
 >   `文件事件指的是 socket 的读写事件，Redis 服务器当读写事件同时就绪时，优先处理读事件，当服务器有命令结果返回客户端时，此时如果有新命令请求，优先处理新命令请求。`
 
@@ -374,10 +416,12 @@ void aeMain(aeEventLoop *eventLoop) {
 
 >   文件时间的读事件和写事件并不是指的 Redis 客户端的类似 GET/SET 命令，而是 IO 多路复用监听的 socket 套接字 的 `AE_READABLE（可读事件）`和` AE_WRITEABLE（可写事件） `
 
--   **文件事件的可读事件**
+1.  **客户端与服务器端连接后，服务器会给当前客户端绑定读事件，此时读事件出于等待状态**
+2.  **文件事件的可读事件**
     1.  `客户端` 向 `服务端` 发送 `命令`
     2.  `客户端` 读事件状态为 `就绪`，命令发送状态为 `已发送,已到达`
--   **文件事件的可写事件**
+3.  **文件事件的可写事件**
     1.  `服务端` 执行交给 `IO 多路复用器` 处理创建文件事件，最终 `命令执行器` 处理 `文件事件` 并将 `命令回复` 暂存在 `服务端 client 结构体` 的 `buf 缓冲区（参考 client 代码字段 buf）`。
     2.  当 `服务端` 的 `socket` 写就绪时（内容准备完毕，可参考 **UNIX 的 5 中 I/O 模型的 Kernel 准备数据阶段** ），此时写事件状态为 `就绪`
-    3.  `服务端` 的可写事件发生，将 `命令回复` 发送到 `客户端`，可读事件与客户端取消关联，只保留可读事件（**客户端断开连接，可读时间被移除）**
+    3.  `服务端` 的可写事件发生，将 `命令回复` 发送到 `客户端`，可读事件与客户端取消关联，只保留可读事件
+4.  **客户端断开连接，可读事件被移除**
