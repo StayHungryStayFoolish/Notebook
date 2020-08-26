@@ -102,11 +102,13 @@
     private final RedissonClient client;
     
     RBloomFilter<String> filter = client.getBloomFilter("key");
-    // expectedInsertions 预期容量
-    // falseProbability 误差概率
-    filter.tryInit(expectedInsertions,falseProbability);
+    if (!filter.isExists()) {
+        // expectedInsertions 预期容量 55000000L
+    	// falseProbability 误差概率 0.0003D
+    	filter.tryInit(expectedInsertions,falseProbability);
+    }
     filter.add("value");
-    filter.contains("key");
+    Boolean exist = filter.contains("value");
     filter.count();
     // 只能全部删除，不能删除指定元素     
     fiter.delete();
