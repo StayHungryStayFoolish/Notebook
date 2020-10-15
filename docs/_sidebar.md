@@ -21,11 +21,13 @@
     - [Redis参考文章](Redis/Refereneces.md)
 - **MySQL**
     - [MySQL](MySQL/)
-    - [MySQL](MySQL/Structure/Structure.md)    
-    - [MySQL](MySQL/InnoDB/InnoDB.md)    
-    - [MySQL](MySQL/Lock/Lock.md)    
-    - [MySQL](MySQL/Log/Log.md)    
-    - [MySQL](MySQL/Transaction/Transaction.md)    
+    - [MySQL 架构](MySQL/Structure/Structure.md)    
+    - [InnoDB 引擎架构](MySQL/InnoDB/InnoDB.md)    
+    - [Lock 机制](MySQL/Lock/Lock.md)    
+    - [Log 机制](MySQL/Log/Log.md)    
+    - [事务机制](MySQL/Transaction/Transaction.md)    
+    - [性能优化](MySQL/Optimization/Optimization.md)    
+    - [High Availability](MySQL/HA/HighAvailability.md)    
 - **MessageQueue**
     - [MessageQueue](MessageQueue/)
 - **Istio**
