@@ -20,7 +20,12 @@
     - [Redis 架构选型](Redis/Framework.md)
     - [Redis参考文章](Redis/Refereneces.md)
 - **MySQL**
-    - [MySQL](MySQL/)    
+    - [MySQL](MySQL/)
+    - [MySQL](MySQL/Structure/Structure.md)    
+    - [MySQL](MySQL/InnoDB/InnoDB.md)    
+    - [MySQL](MySQL/Lock/Lock.md)    
+    - [MySQL](MySQL/Log/Log.md)    
+    - [MySQL](MySQL/Transaction/Transaction.md)    
 - **MessageQueue**
     - [MessageQueue](MessageQueue/)
 - **Istio**
