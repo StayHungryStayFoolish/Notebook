@@ -4,12 +4,20 @@
     - [DataStructure](DataStructure/)
 - **Algorithm**
     - [Algorithm](Algorithm/)       
+    - [Sort](Algorithm/Sort/Sort.md)       
 - **Java**
     - [Java](Java/)
 - **Spring**
     - [Spring](Spring/)  
+    - [IoC](Spring/IoC/IoC.md)  
+    - [AOP](Spring/AOP/AOP.md)  
+    - [Transaction](Spring/Transaction/Transaction.md)  
+    - [Gateway](Spring/Gateway/Gateway.md)  
+    - [Security](Spring/Security/Security.md)  
 - **JHipster**
     - [JHipster](JHipster/)       
+    - [UAA](JHipster/UAA/UAA.md)       
+    - [Gateway](JHipster/Gateway/Gateway.md)       
 - **Redis**
     - [Redis](Redis/)
     - [Redis 9种数据类型](Redis/DataType.md)
@@ -30,6 +38,7 @@
     - [High Availability](MySQL/HA/HighAvailability.md)    
 - **MessageQueue**
     - [MessageQueue](MessageQueue/)
+    - [RabbitMQ](MessageQueue/RabbitMQ/RabbitMQ.md)
 - **Istio**
     - [Istio](Istio/)                    
 - **Design Pattern**
