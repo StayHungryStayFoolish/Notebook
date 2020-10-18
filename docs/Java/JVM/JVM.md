@@ -1,8 +1,10 @@
-# JVM 类加载机制
+# Java 三大组件
 
 ## 概述
 
 ### Java 三大组件 JDK、JRE、JVM
+
+![JDK](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/20201017185937.png)
 
 - `JDK(Java Development Kit)` 
   - `JDK`是开发 Java 引用程序的软件开发环境。`JDK` 包括 `JRE(Java Runtime Environment)`运行时环境、`Java`启动器(解释器/加载器)、`javac`(编译器)、`jar`(归档器)、`javadoc`(文档生成器)以及开发所需其他工具。
@@ -23,18 +25,24 @@
         - `Interpreter` 实现解释器核心功能。
         - `Code` 管理 `HotSpot VM` 在运行时生成的本地机器指令。
     - **2. JIT(Just-in-time Compiler)即时编译器**
-      - 由于解释器相对低效，所以支持即时编译技术。即时编译目的为了避免函数被解释执行，而是将整个函数编译为本地机器指令。每次函数执行时，只需执行编译后的本地机器指令。
+      - 由于解释器相对低效，所以 JVM 支持即时编译技术。即时编译目的是为了避免函数被解释执行，而是将整个函数编译为本地机器指令。每次函数执行时，只需执行编译后的本地机器指令。
       - **JIT 策略**
         - **热点代码**
           - 一个函数或者函数内的循环体，如果多次被调用，都可以称为 `热点代码`。因此 `JIT` 会编译为本地机器指令。因为这种编译方式发生在函数执行过程，因此被称为 `OSR(On StackReplacement)编译，即栈上替换`。
           - `阈值` 决定函数或循环体调用多少次最终确定为 **热点代码**，从而编译为本地机器指令。
-          - 目前 `HotSpot VM` 采用基于计数器的热点探测。
         - **热点探测**
-          - 方法调用计数器
-            - 统计方法被调用次数，默认阈值 `Client 模式 1500次，Server 模式 10000次`。`热点代码` 经过编译后存缓存为 `Code Cache`，存放在元空间。
-              - `-XX:CompileThreshold=****` 设置
-          - 回边计数器
-    - **3. Garbage Collection 垃圾回收期**
+          - 目前 `HotSpot VM` 采用基于计数器的热点探测，分别为函数创建 **2** 个计数器。
+            - **1. Invocation Counter(调用计数器)**
+              - 统计函数被调用次数，默认阈值 `Client 模式 1500次，Server 模式 10000次`。`热点代码` 经过编译后存缓存为 `Code Cache`，存放在元空间。
+                - `-XX:CompileThreshold=***` 设置
+              - **热度衰减**
+                - 调用计数器统计的不是调用绝对次数，而是一个时间范围内的相对执行频率。当超过一定时间限度，调用次数不足以提交给 `JIT` 编译，调用计数器会减半，该过程称为**热度衰减**，该时间段为统计的**半衰周期(Counter Half Life Time)**。
+                - `-XX:UseCounterDecay` 关闭热度衰减。
+                - `-XX:CounterHalfLifeTime=***` 设置半衰周期，单位秒。**Debug 版本的 JDK 可以使用该参数**
+            - **2. BackEdge Counter(回边计数器)**
+              - 统计函数内循环体代码执行次数，在字节码遇到控制流向后跳转的指令称为 `回边(Back Edge)`。回边计数器就是为了触发 `OSR编译`。
+    - **3. Garbage Collection 垃圾回收器**
+      - 
 
 
 
