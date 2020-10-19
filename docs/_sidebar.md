@@ -7,7 +7,9 @@
     - [Sort](Algorithm/Sort/Sort.md)       
 - **Java**
     - [Java](Java/)
-    - [JVM](Java/JVM/JVM.md)
+    - [JVM](Java/JVM/)
+        - [JDK 三大组件](Java/JVM/JDK.md)
+        - [JVM](Java/JVM/JVM.md)
 - **Spring**
     - [Spring](Spring/)  
     - [IoC](Spring/IoC/IoC.md)  
