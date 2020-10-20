@@ -9,7 +9,7 @@
     - [Java](Java/)
     - [JVM](Java/JVM/)
         - [JDK 三大组件](Java/JVM/JDK.md)
-        - [JVM](Java/JVM/JVM.md)
+        - [JVM 内存模型](Java/JVM/JVM.md)
 - **Spring**
     - [Spring](Spring/)  
     - [IoC](Spring/IoC/IoC.md)  
