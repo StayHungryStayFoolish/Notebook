@@ -56,22 +56,29 @@
 **类的字节码文件将由此组件加载。BootStrap ClassLoader，Extension ClassLoader 和 Application ClassLoader 是有助于实现该目标的三个 ClassLoader。**
 
 -   **BootStrap ClassLoader**
+
     -   负责从引导类路径中加载类，仅用于 `rt.jar`。最高优先级将给予此加载程序。
 
 -   **Extension ClassLoader**
+
     -   负责加载 `ext文件夹(jre\lib)`内的类。
 
 -   **Application ClassLoader**
+
     -   负责加载应用程序级别的类路径、环境变量路径等。
 
 #### 1.2 Linking(链接)
 
 ##### 1.2.1. Verify(验证)
+
 -   字节码验证程序验证生成的字节码是否正确，如果验证失败，将会收到验证错误。
 
 ##### 1.2.2 Prepare(准备)
+
 -  为类的`static(静态变量)`分配内存，并设置默认值。
+
 ##### 1.2.3  Resolve(解析)
+
 -  将所有符号存储引用替换为 `Method Area` 的原始引用。
 
 #### 1.3 Initialization(初始化)
@@ -85,6 +92,7 @@
 >   **运行时数据区分为五个部分。**
 
 #### 2.1 Method Area(方法区域)
+
 -   所有类级别的数据**（包括静态变量）**都将存储在此区域。每个 JVM 实例都只有一个方法区域，JVM 在启动时创建该区域，为线程间共享。该区域的内存不必是连续的，且可以指定方法区域的大小。
 
 -   如果无法提供方法区域的内存来满足分配需求，JVM 会抛出 `OutOfMemoryError`。
