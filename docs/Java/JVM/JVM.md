@@ -69,3 +69,69 @@
 
 ![Heap-Non-Stack](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Stack&Heap.png)
 
+- **注：Non Heap 图中的 Permanent Generation 在 Java 8 中已更换为 Metaspace**
+
+| Parameter | Stack Memory                                                 | Heap Memory                                                  |
+| --------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 应用      | **1. 分次使用**（只在线程执行中使用）**2. 线程安全**（每个线程只在自己的栈中运行，具体可以参考图中的 `Frame`） | **1. 共享资源**（整个应用程序在运行期间共享堆内存空间）**2. 线程不安全**（需要使用同步代码保护资源） |
+| 大小      | 大小取决于操作系统，通常小于堆                               | 用户自定义或默认，没有操作系统的大小限制。                   |
+| 存储      | 仅`局部变量`和在堆中创建的`对象的引用`                       | 所有新创建的`类对象`、`数组`                                 |
+| 访问顺序  | 使用后进先出（LIFO）内存分配技术进行访问                     | 通过复杂的内存分代管理技术进行访问，包括年轻代，老年代、元空间 |
+| 生命周期  | 只要当前方法正在运行，就会存在                               | 只要应用程序运行就会存在                                     |
+| 分配效率  | 与堆相比，分配速度相对快很多。                               | 与栈相比，分配速度较慢                                       |
+| 分配/释放 | 当一个方法被调用和返回时，这个内存会自动分配和重新分配。     | 当新的对象被创建时，堆空间被分配，当它们不再被引用时，Gargabe Collector会回收。 |
+
+#### 简单分析代码在堆栈的存储
+
+```Java
+class Person {
+    int pid;
+    String name;
+    // constructor, setters/getters
+}
+public class Test {
+    public static void main(String[] args) {
+        int id = 23;
+        String pName = "Jon";
+        Person p = null;
+        p = new Person(id, pName);
+    }
+}
+```
+
+![Code-Heap-Stack](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/0_HWkfCG1q4DFsFfoF.jpeg)
+
+- 观察上图可以发现，`int` 类型的 **id = 23** 是在当前 `Stack` 内的 `Frame` 中，**p** 是 `Heap` 内 Person 对象的引用，**pName** 因为是 `String` 类型，所以该引用也指向 `Heap` 内的 `String Pool`。
+
+##### String Pool
+
+- Java 中 String 的定义为 final。所以 JVM 内部采用了 `Flyweight` 的设计模式，为了能在 Java 运行时节省大量空间，通过`引用指向`的方式，采用了字符串池存储。
+
+- 注：上述 `String Pool` 只会存储 `String s = "value"`，如果采用 `new String` 方式则会按照创建对象方式存储到 `Heap` 中。
+
+  - ```java
+    String s1 = "abc"
+    String s2 = "abc"
+    s1 == s2 // True，因为s1,s2 引用都指向 String Pool 中的 value，
+    
+    String s3 = "abc";
+    String s4 = new String("abc");
+    s3 == s4 // False
+    
+    String s5 = new String("abc");
+    String s6 = new String("abc");
+    s5 == s6 // False
+      
+    String s7 = "abc";
+    String s8 = "ab" + "c"; // 该方式属于字符串常量表达式
+    s7 == s8 // True
+      
+    String.intern() 表示首先会去 String Pool 中查找当前字符串，如果没有会将该字符串放入 String Pool
+      
+    String s9 = "abc";
+    String s10 = "ab";
+    String s11 = s9 + "c";
+    s9 == s11 // False
+    s9 == s11.intern() // True  
+    ```
+
