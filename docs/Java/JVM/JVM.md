@@ -4,9 +4,12 @@
 
 > 此文只讨论 JVM 内存模型，如需了解上图全部结构，请查看 [JDK 三大组件](http://notebook.bonismo.ink/#/Java/JVM/JDK)。
 
-- JVM 是使计算机能够运行 Java 程序的抽象计算机。JVM 有三种概念： 
+- JVM 是使计算机能够运行 Java 程序的抽象计算机。JVM 有三种概念：
+ 
   - **规范** （指定 JVM 的工作方式。但是实现由Sun和其他公司提供）
+  
   - **实现** （称为（JRE）Java Runtime Environment）
+  
   - **实例** （在编写 Java 命令之后运行） Java类，将创建 JVM 的实例）。
 
 - Java虚拟机加载代码，验证代码，执行代码，管理内存（这包括从操作系统（OS）分配内存，管理 Java 分配，包括堆压缩和垃圾对象的删除），并最终提供运行时环境。
