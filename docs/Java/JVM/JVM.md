@@ -36,7 +36,7 @@
 
 ##### 1.1 Young Gen(年轻代)
 
->   **Young Gen 分为 3 个区，Eden 占用 80%，两个 Survivor 分别占用 10%。**
+>   **Young Gen 分为 3 个区，Eden 占用 80%，两个 Survivor 分别占用 10%。两个 Survivor 简称 S0, S1，在有些地方也称 From，To (JVM 打印日志会以该名称显示)。**
 
 - **Java 对象在年轻代的生命周期（复制算法实现步骤）**
 
@@ -211,7 +211,7 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 ![GC-Roots](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/GC-Roots.png)
 
 -   **Java 中有四种 GC根**
-    -   **局部变量**
+    -   **Stack 内当前方法的局部变量和参数**
         -   通过线程栈保持活跃状态。这不是一个真正的对象虚拟引用，因此不可见。就意图和目的而言，局部变量是 GC 的根。
     -   **活跃线程**
         -   活动的 Java 线程总是被认为是活的对象，因此是 GC 根。这一点对于线程局部变量尤为重要。
@@ -220,9 +220,135 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
     -   **JNI 引用**
         -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象代表了 GC 根的一种非常特殊的形式。
 
+### Stop-The-World(STW) pause in JVM
+
+**不同的事件会导致 JVM 暂停所有的应用线程。这样的暂停称为：`Stop-The-World(STW) Pause`。**
+
+#### SafePoint(安全点)
+
+- **Oracle 官方解释：**A point during program execution at which all GC roots are known and all heap object contents are consistent. From a global point of view, all threads must block at a safepoint before the GC can run.
+- **STW 暂停机制被称为 Safepoint(安全点)，安全点是程序执行中的一个点，在这个点上，程序的状态是已知的，可以检查。比如寄存器、内存等。JVM要想完全暂停和运行任务（如GC），所有线程必须来到一个安全点。**
+  - 例如，要检索一个线程上的堆栈跟踪，我们必须来到一个安全点。这也意味着像 `jstack` 这样的工具要求程序的所有线程都能够到达一个**安全点**。
+
+#### 触发 STW 暂停的最常见原因：
+
+1. **GC Collection 操作**
+2. **JIT 操作**
+3. **偏向锁撤销**
+4. **JVMTI(JVM Tool Interface / JVM 提供的 native 接口 )** 
+5. **其他操作（死锁检查、stacktrace 转储等）**
+
+- `-XX:+LogVMOutput -XX:LogFile=vm.log` 记录 JVM 日志
+- **[垃圾收集代码 STW 演示](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/safepoints/FullGc.java)**
+
+```java
+import java.util.ArrayList;
+import java.util.Collection;
+
+public class FullGc {
+
+    private static final Collection<Object> leak = new ArrayList<>();
+    private static volatile Object sink;
+
+    // Run with: -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDetails
+    // Notice that all the stop the world pauses coincide with GC pauses
+
+    public static void main(String[] args) {
+        while(true) {
+            try {
+                leak.add(new byte[1024 * 1024]);
+
+                sink = new byte[1024 * 1024];
+            } catch(OutOfMemoryError e) {
+                leak.clear();
+            }
+        }
+    }
+}
+
+// 输出结果：
+// Application time 在显示 0.0544056 秒的时间内完成了有用的工作
+// Total time for which application threads were stopped 在应用程序完成有用工作后，所有线程暂停了 0.0174987 秒
+// Stopping threads took 其中停止线程花费了 0.0000163 秒
+Application time: 0.0544056 seconds
+Total time for which application threads were stopped: 0.0174987 seconds, Stopping threads took: 0.0000163 seconds
+Application time: 0.0067839 seconds
+Total time for which application threads were stopped: 0.0246979 seconds, Stopping threads took: 0.0000130 seconds
+```
+
+-  **[偏向锁代码 STW演示](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/safepoints/BiasedLocks.java)**
+  - **偏向锁核心思想：当线程 T1 获取锁后，再次申请持有锁时，无需再执行获取锁的操作。节省了申请锁的操作，提升了性能。如果其他线程再来申请锁，T1 会退出偏向锁模式。但是当大量线程不断请求锁，会导致线程竞争激烈，反而会降低性能。**
+
+```java
+import java.util.concurrent.locks.LockSupport;
+import java.util.stream.Stream;
+
+public class BiasedLocks {
+
+    private static synchronized void contend() {
+        LockSupport.parkNanos(100_000);
+    }
+
+    // Run with: -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDetails
+    // Notice that there are a lot of stop the world pauses, but no actual garbage collections
+    // This is because PrintGCApplicationStoppedTime actually shows all the STW pauses
+
+    // To see what's happening here, you may use the following arguments:
+    // -XX:+PrintSafepointStatistics  -XX:PrintSafepointStatisticsCount=1
+    // It will reveal that all the safepoints are due to biased lock revocations.
+
+    // Biased locks are on by default, but you can disable them by -XX:-UseBiasedLocking
+    // It is quite possible that in the modern massively parallel world, they should be
+    // turned back off by default
+
+    public static void main(String[] args) throws InterruptedException {
+
+        Thread.sleep(5_000); // Because of BiasedLockingStartupDelay
+
+        Stream.generate(() -> new Thread(BiasedLocks::contend))
+                .limit(10)
+                .forEach(Thread::start);
+    }
+
+}
+
+// 参数：
++PrintGCApplicationStoppedTime 打印 GC 暂停持续时间
++PrintGCDetails 打印 GC 详细信息
++PrintSafepointStatistics 打印安全点信息
++PrintSafepointStatisticsCount 打印安全点次数  
++UseBiasedLocking 开启偏向锁（JVM 默认是开启状态）
+-UseBiasedLocking 关闭偏向锁  
+  
+// 使用以下参数返回的标识解释：
+vmop(VM Operation)
+  threads(Safepoint 的第一时间戳)
+	  total	安全点内的线程总数
+  	initially_running	安全点开始时，正在运行状态的线程数
+	  wait_to_block	在 vmop 开始前需要等待其暂停的线程数
+  time(到达 Safepoint 的时间戳)
+  	spin	等待线程响应 Safepoint 号召的时间
+  	block	暂停所有线程所有时间
+  	sync	从开始进入 Safepoint 所耗时间 sync = spin + block
+  	cleanup 清理所用时间
+  	vmop	真正执行 VM Operation 所耗时间
+  page_trap_count 页面陷阱技术
+Metaspace
+	used 显示用于加载类的空间量
+	capacity 当前已分配的块中 Metaspace 可用的空间量
+	committed 块的可用空间量
+  reserved	为 Metaspace 保留的空间量
+  
+// 参数设置  
+1. -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDetails
+2. -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDetails -XX:+PrintSafepointStatistics  -XX:PrintSafepointStatisticsCount=1  
+// 1、2 的设置，可以查看 STW 次数一致，3关闭了偏向锁，STW 次数明显减少  
+3. -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDetails -XX:+PrintSafepointStatistics  -XX:PrintSafepointStatisticsCount=1 -XX:-UseBiasedLocking 
+```
+
 ### 垃圾收集算法
 
-#### Mark & Sweep(标记 & 清理)
+#### Mark & Sweep(标记 & 扫描)
 
 >   **删除未引用对象的基本策略是：识别存活对象并删除所有剩余对象。这分为两个阶段：Mark 和 Sweep。**
 
@@ -230,7 +356,7 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
 1.  **Mark(标记阶段)**
     -   查找所有可能在未来被使用的对象
-2.  **Sweep(清理/复制阶段)**
+2.  **Sweep / Copy (扫描 / 复制阶段)**
     -   删除所有未使用的对象
 3.  **Compact(紧凑阶段)**
     -   一般为压缩操作，防止产生内存碎片。
