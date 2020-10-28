@@ -6,10 +6,10 @@
     - [Algorithm](Algorithm/)       
     - [Sort](Algorithm/Sort/Sort.md)       
 - **Java**
-    - [Java](Java/README.md)
     - [JVM](Java/JVM/README.md)
         - [JDK 三大组件](Java/JVM/JDK.md)
         - [JVM 内存模型](Java/JVM/JVM.md)
+        - [垃圾收集器](Java/JVM/GarbageCollection.md)
 - **Spring**
     - [Spring](Spring/)  
     - [IoC](Spring/IoC/IoC.md)  
