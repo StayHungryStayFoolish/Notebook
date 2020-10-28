@@ -6,8 +6,8 @@
     - [Algorithm](Algorithm/)       
     - [Sort](Algorithm/Sort/Sort.md)       
 - **Java**
-    - [Java](Java/)
-    - [JVM](Java/JVM/)
+    - [Java](Java/README.md)
+    - [JVM](Java/JVM/README.md)
         - [JDK 三大组件](Java/JVM/JDK.md)
         - [JVM 内存模型](Java/JVM/JVM.md)
 - **Spring**
