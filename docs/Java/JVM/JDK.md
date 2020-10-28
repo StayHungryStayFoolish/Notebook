@@ -1,23 +1,23 @@
 # **Java** 概述
 
-## JDK 三大组件
+## 1. JDK 三大组件
 
 ![JDK](https://gitee.com/bonismo/notebook-img/raw/2a859fbdc77396e1c8e282e29c4ff681a9995072/img/jvm/JDK.png)
 
-### JDK(Java Development Kit)
+### 1.1 JDK(Java Development Kit)
 
 - `JDK`是开发 Java 引用程序的软件开发环境。`JDK` 包括 `JRE(Java Runtime Environment)`运行时环境、`Java`启动器(解释器/加载器)、`javac`(编译器)、`jar`(归档器)、`javadoc`(文档生成器)以及开发所需其他工具。
   
 - JDK 面向的是开发人员，如果只需运行程序，可以单独下载 JRE。
   
-### JRE(Java Runtime Environment)
+### 1.2 JRE(Java Runtime Environment)
 
   - `JRE`是构建了一个可以在其中执行 Java 程序的运行时环境。`JRE`提供了执行 Java 应用程序的最低要求。`JRE` 包括 Java 语言常用的 utils、集合框架等核心类库、`JVM(Java Virtual Machine)虚拟机`等。
   
   - **基本工作原理**
   - `JRE` 是 `JDK` 的一部分，在磁盘上。`JRE` 使用 Java 字节码(javac 执行后产生)，将其所需要的 Library 组合，然后启动 `JVM` 来执行。
 
-### JVM(Java Virtual Machine)
+### 1.3 JVM(Java Virtual Machine)
 
 [Oracle HotSpot JVM 优化指南](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/)
 
@@ -44,9 +44,9 @@
 
 
 
-## JVM 组件概述
+## 2. JVM 组件概述
 
-### 1. ClassLoader SubSystem(类加载器子系统)
+### 2.1. ClassLoader SubSystem(类加载器子系统)
 
 > **Java 的动态类加载由该系统负责处理。类加载子系统会加载、链接，并在运行时首次引用类的初始化类文件。该系统一共分为三个步骤。**
 
@@ -68,7 +68,7 @@
   
      - 尽管类加载器可以加载一个类，但它不能卸载已加载的类，而可以删除当前的类加载器，并创建新的类加载器。除了卸载，还可以删除当前的类加载器，并创建一个新的类加载器。
 
-#### 1.1 Loading(加载)
+#### 2.1.1 Loading(加载)
 
 **类的字节码文件将由此组件加载。BootStrap ClassLoader，Extension ClassLoader 和 Application ClassLoader 是有助于实现该目标的三个 ClassLoader。**
 
@@ -92,9 +92,9 @@
 
     每个 `ClassLoader`都有它的命名空间，存储加载的类。当 `ClassLoader` 加载一个类时，它会根据存储在命名空间中的 **FQCN（Fully Qualified Class Name，完全合格的类名）** 搜索该类，检查该类是否已经被加载。即使类的 **FQCN** 相同，但名称空间不同，也会被视为不同的类。**不同的命名空间意味着该类已经被另一个类加载器加载。**
 
-#### 1.2 Linking(链接)
+#### 2.1.2 Linking(链接)
 
-##### 1.2.1. Verify(验证)
+##### 2.1.2.1. Verify(验证)
 
 -   字节码验证程序验证生成的字节码是否正确，如果验证失败，将会收到验证错误 `java.lang.VerifyError`。
   
@@ -113,15 +113,15 @@
         
         - 变量的值是否是一个正确的类型
 
-##### 1.2.2 Prepare(准备)
+##### 2.1.2.2 Prepare(准备)
 
 -  为类的`static(静态变量)`分配内存，并设置**默认值**，但是在此阶段不执行任何初始化程序或代码。
 
-##### 1.2.3  Resolve(解析)
+##### 2.1.2.3  Resolve(解析)
 
 -  将所有符号存储引用替换为 `Method Area` 的原始引用，通过搜索 `Method Area` 以找到引用的实体来完成此操作。
 
-#### 1.3 Initialization(初始化)
+#### 2.1.3 Initialization(初始化)
 
 -   这是 `ClassLoading` 的最后阶段。在此，所有 `static(静态变量)`将被分配**原始值（代码中定义的值）**，并且将执行 `静态块`。
 
@@ -129,11 +129,11 @@
 
 `以上 1.1 - 1.3 共 5 个步骤，属于类加载过程。`
 
-### 2. Runtime Data Areas(运行时数据区)
+### 2.2. Runtime Data Areas(运行时数据区)
 
 >   **运行时数据区分为五个部分。**
 
-#### 2.1 Method Area(方法区域 -- 线程间共享)
+#### 2.2.1 Method Area(方法区域 -- 线程间共享)
 
 -   每个 JVM 实例都只有一个方法区域，**JVM 启动时创建该区域**，为线程间共享。
 
@@ -157,7 +157,7 @@
 
 - 该池是`方法区域`的子部分。由于它是元数据的重要组成部分，因此 **Oracle** 规范描述`方法区域`之外的运行时常量池。对于每个加载的类、接口，此常量池都会增加。该池就像常规编程语言的符号表。当引用类，方法或字段时，JVM 使用运行时常量池在内存中搜索实际地址。它还包含常量值，例如字符串文字或常量图元。
 
-#### 2.2 Heap Area(堆区 -- 线程间共享 -- 垃圾收集器工作区域)
+#### 2.2.2 Heap Area(堆区 -- 线程间共享 -- 垃圾收集器工作区域)
 
 -   `堆区代表运行时数据区`，从中为所有`类实例`和`数组`分配内存，所有对象及其对应的实例变量和数组都将存储在此区域。并在 **JVM 启动时创建该区域**。每个 JVM 实例还有一个 `Heap Area(堆区)`。由于 `Method Area` 和 `Heap Area` 为多个线程共享内存，所以`存储的数据不是线程安全的`。
 
@@ -169,7 +169,7 @@
 
     -   如果计算需要的堆多余自动存储管理系统可以提供的堆，JVM 将抛出 `OutOfMemoryError`。
 
-#### 2.3 Stack Area(栈区 -- 单个线程独享)
+#### 2.2.3 Stack Area(栈区 -- 单个线程独享)
 
 -   每一个线程，都会创建一个单独的 `Runtime Stack(运行时栈区)`。对于每一个方法的调用，都会在栈内存中建立一个条目，称为`堆栈帧`。栈区域不是共享资源，属于每个线程自己的，所以是 `线程安全的`。每次调用方法时，都会创建一个新 `Frame` 并将其放入栈中。框架的方法调用完成后，无论该完成是正常的还是异常的（它引发未捕获的异常），都会被销毁。
 
@@ -190,7 +190,7 @@
         - 这个栈被字节码指令用来处理参数。该栈还用于在（Java）方法调用中传递参数，并在调用方法的栈顶部获取被调用方法的结果。
   
   -   **Run-time constant pool reference(运行时常量池引用)**
-        
+      
         -   引用正在执行的**当前方法**的**当前类**的常量池。JVM 使用它来将符号方法、变量引用（例如: myInstance.method()）转换为实际的内存引用。
   
 -   **异常情况**
@@ -201,7 +201,7 @@
     
     -   如果没有足够的内存可以为新线程创建栈区，JVM 将抛出 `OutOfMemoryError`。
 
-#### 2.4 Program Counter Registers(程序计数寄存器 -- 单个线程独享)
+#### 2.2.4 Program Counter Registers(程序计数寄存器 -- 单个线程独享)
 
 -   **每个线程都有独立的程序计数寄存器，生命周期和线程的生命周期保持一致。**
 
@@ -209,7 +209,7 @@
 
 -   **程序计数寄存器会保存线程当前的执行指令地址，从而能在多线程并发交替执行时保证切换回来知道从何处继续执行。**
 
-#### 2.5 Native Method Stack(本地方法栈 --  单个线程独享)
+#### 2.2.5 Native Method Stack(本地方法栈 --  单个线程独享)
 
 -   本地方法栈也称为 `C栈`，保存本地方法信息，通常在`创建每个线程时为每个线程分配`。**Java线程和本机操作系统线程之间存在直接映射**。在为 Java 线程准备好所有状态之后，还将创建一个单独的本机堆栈，以存储通过`JNI（Java本机接口）`调用的本机方法信息（通常用C / C ++编写）。创建并初始化本地线程后，它将调用 Java 线程中的 `run()` 方法。当 `run()` 方法返回时，将处理未捕获的异常（如果有），然后本地线程确认是否需要由于线程终止而终止 JVM（即，它是最后一个非守护线程）。当线程终止时，将释放本地线程和 Java 线程的所有资源。Java 线程终止后，将回收本地线程。因此，操作系统负责调度所有线程并将其分配给任何可用的CPU。
 
@@ -221,11 +221,11 @@
     
     -   如果本地方法堆栈可以动态扩展，并且尝试扩展本机方法堆栈，但可用内存不足。或者可用内存不足，无法为新线程创建初始本地方法堆栈，JVM 将抛出`OutOfMemoryError`。
 
-### 3. Execution Engine(执行引擎)
+### 2.3. Execution Engine(执行引擎)
 
 >   **JVM 执行引擎将高级语言编译为机器语言，保证了不同机器都可以运行。字节码的实际执行在这里进行。执行引擎通过读取分配给上述运行时数据区域的数据逐行执行字节码中的指令。**
 
-#### 3.1 Interpreter(解释器)
+#### 2.3.1 Interpreter(解释器)
 
 - 先使用 `javac` 编译成字节码，然后由 `Interpreter` 进行逐行解释并翻译为本地机器指令，当一条字节码指令执行后，再根据 PC 寄存器记录的下一行被执行字节码执行。
   
@@ -235,7 +235,7 @@
       
       - `Code` 管理 `HotSpot JVM` 在运行时生成的本地机器指令。
         
-#### 3.2 JIT(Just-in-time Compiler)即时编译器
+#### 2.3.2 JIT(Just-in-time Compiler)即时编译器
 
 - 由于解释器相对低效，所以 JVM 支持即时编译技术。即时编译目的是为了避免函数被解释执行，而是将整个函数编译为本地机器指令。每次函数执行时，只需执行编译后的本地机器指令。
   
@@ -252,7 +252,7 @@
         目前 `HotSpot JVM` 采用基于计数器的热点探测，分别为函数创建 **2** 个计数器。
         
         1. **Invocation Counter(调用计数器)**
-          
+        
           -   统计函数被调用次数，默认阈值 `Client 模式 1500次，Server 模式 10000次`。`热点代码` 经过编译后存缓存为 `Code Cache`，存放在元空间。参数 `-XX:CompileThreshold=***` 设置。
           
               -   **热度衰减**
@@ -267,7 +267,7 @@
         
             -   统计函数内循环体代码执行次数，在字节码遇到控制流向后跳转的指令称为 `回边(Back Edge)`。回边计数器就是为了触发 `OSR编译`。
         
-#### 3.3 Garbage Collection(垃圾回收器) 
+#### 2.3.3 Garbage Collection(垃圾回收器) 
 
 >   **垃圾回收是 Java 中用来取消分配未使用的内存的机制，除了清除未使用的对象占用的空间外，什么都没有。为了释放未使用的内存，垃圾回收器会跟踪所有仍在使用的对象，并将其余对象标记为垃圾。基本上，垃圾回收器使用 `标记和清除算法` 清除未使用的内存。**
 >
@@ -275,7 +275,7 @@
 
 JVM 实际上提供了四个不同的垃圾收集器。每个垃圾收集器在 `Application throughput` 和 `Application pause` 两个指标上衡量会有所不同。`Application throughput`  表示 Java 应用程序运行的速度，`Application pause` 表示垃圾收集器清理未使用的内存空间所需的时间。
 
-#### 3.3.1 Serial Garbage Collector(串行垃圾收集器)
+#### 2.3.3.1 Serial Garbage Collector(串行垃圾收集器)
 
 -   最简单的 GC 实现方式，基本只使用一个线程工作。如果采用该收集器工作，串行垃圾收集器则拥有程序的所有运行线程。
 
@@ -287,7 +287,7 @@ JVM 实际上提供了四个不同的垃圾收集器。每个垃圾收集器在 
 
     -   造成应用程序吞吐量降低，增加应用程序暂停时间。
 
-#### 3.3.2 **Parallel Garbage Collector(并行垃圾收集器)**
+#### 2.3.3.2 **Parallel Garbage Collector(并行垃圾收集器)**
 
 -   `Java 8 默认的垃圾收集器`。
 
@@ -307,7 +307,7 @@ JVM 实际上提供了四个不同的垃圾收集器。每个垃圾收集器在 
 
     -   在小操作时，依然会暂停应用程序。
 
-#### 3.3.3 Concurrent Mark Sweep(CMS) Collector(并发标记扫除收集器)
+#### 2.3.3.3 Concurrent Mark Sweep(CMS) Collector(并发标记扫除收集器)
 
 -   **工作原理**
 
@@ -338,7 +338,7 @@ JVM 实际上提供了四个不同的垃圾收集器。每个垃圾收集器在 
     
     -   [CMS 弃用文章分析](https://www.linkedin.com/pulse/jvm-why-cms-garbage-collector-deprecating-kunal-saxena)
 
-#### 3.3.4 Garbage-First Garbage Collector(G1 垃圾收集器)
+#### 2.3.3.4 Garbage-First Garbage Collector(G1 垃圾收集器)
 
 -   首先在 JDK 7 中引入了 G1 垃圾收集器。起初，它的设计是为了更好地支持较大的堆内存应用，G1 Garbage Collector 是 `Java 9的默认垃圾收集器`。G1 收集器取代了 CMS 收集器，因为它的性能更高效。
 
@@ -351,10 +351,10 @@ JVM 实际上提供了四个不同的垃圾收集器。每个垃圾收集器在 
     
     -   G1 收集器将堆划分为若干个区域（Region），它仍然属于分代收集器。不过，这些区域的一部分包含新生代，新生代的垃圾收集依然采用暂停所有应用线程的方式，将存活对象拷贝到老年代或者 Survivor 空间。老年代也分成很多区域，G1 收集器通过将对象从一个区域`复制`到另外一个区域，完成了`清理`工作。这就意味着，在正常的处理过程中，G1 完成了`堆的压缩（至少是部分堆的压缩）`，这样也就不会有 CMS 内存碎片问题的存在了。
 
-### 4. JNI(Native Method Interface/本地接口)
+### 2.4. JNI(Native Method Interface/本地接口)
 
 -   JNI 与本地方法库进行交互，并提供执行引擎所需的本机方法库功能（通常用C / C ++编写）。JNI 使得 JVM 可以调用 C/C++ 库。
 
-### 5. Native Method Library(本地方法库)
+### 2.5. Native Method Library(本地方法库)
 
 -   本地方法库的集合，执行引擎所必须的。
