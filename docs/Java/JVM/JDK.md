@@ -97,7 +97,7 @@
 ##### 1.2.1. Verify(验证)
 
 -   字节码验证程序验证生成的字节码是否正确，如果验证失败，将会收到验证错误 `java.lang.VerifyError`。
-    
+  
     -   检查 `.class` 文件
         -   格式一致的符号表
         
@@ -184,7 +184,7 @@
   -   **Local variable array(局部变量数组)**
   
       - 此数组包含当前方法范围内的所有局部变量。该数组可以保存基本类型，引用或 returnAddress 的值。该数组的大小是在编译时计算的。JVM 使用局部变量在方法调用时传递参数，被调用方法的数组是从调用方法的操作数堆栈中创建的。
-        
+      
   -   **Operand Stack(操作数栈区)**
   
         - 这个栈被字节码指令用来处理参数。该栈还用于在（Java）方法调用中传递参数，并在调用方法的栈顶部获取被调用方法的结果。
@@ -254,7 +254,7 @@
         1. **Invocation Counter(调用计数器)**
           
           -   统计函数被调用次数，默认阈值 `Client 模式 1500次，Server 模式 10000次`。`热点代码` 经过编译后存缓存为 `Code Cache`，存放在元空间。参数 `-XX:CompileThreshold=***` 设置。
-           
+          
               -   **热度衰减**
                 
                   - 调用计数器统计的不是调用绝对次数，而是一个时间范围内的相对执行频率。当超过一定时间限度，调用次数不足以提交给 `JIT` 编译，调用计数器会减半，该过程称为**热度衰减**，该时间段为统计的**半衰周期(Counter Half Life Time)**。
@@ -327,11 +327,10 @@ JVM 实际上提供了四个不同的垃圾收集器。每个垃圾收集器在 
     
     3.  内存碎片（浮动垃圾）
     
-    4.  GC 周期内多次暂停
+    4.  GC 周期内多次 `STW` 暂停
     
 -   **Oracle 官方声明已弃用。**
-
-    -   [Oracle Docs](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/cms.html)
+-   [Oracle Docs](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/cms.html)
     
     -   [Oracle JavaSE HotSpot](https://docs.oracle.com/en/java/javase/11/gctuning/concurrent-mark-sweep-cms-collector.html#GUID-FF8150AC-73D9-4780-91DD-148E63FA1BFF)
     
@@ -341,17 +340,16 @@ JVM 实际上提供了四个不同的垃圾收集器。每个垃圾收集器在 
 
 #### 3.3.4 Garbage-First Garbage Collector(G1 垃圾收集器)
 
--   首先在 JDK 7 中引入了G1垃圾收集器。起初，它的设计是为了更好地支持较大的堆内存应用，G1 Garbage Collector 是 `Java 9的默认垃圾收集器`。G1收集器取代了CMS收集器，因为它的性能更高效。
+-   首先在 JDK 7 中引入了 G1 垃圾收集器。起初，它的设计是为了更好地支持较大的堆内存应用，G1 Garbage Collector 是 `Java 9的默认垃圾收集器`。G1 收集器取代了 CMS 收集器，因为它的性能更高效。
 
 -   Java 9 版本以下启动 G1 命令
 
     -   `XX：+ UseG1GC -jar GFGApplicationJar.java`
     
 -   **工作原理**
-
-    -   G1收集器将堆空间分割成多个大小相等的区域。基本上，它主要是为堆大于 `4GB` 的应用程序设计的。它将堆空间划分为多个区域，从 1MB 到 32MB 不等。
+-   G1 收集器将堆空间分割成多个大小相等的区域。基本上，它主要是为堆大于 `4GB` 的应用程序设计的。它将堆空间划分为多个区域，从 1MB 到 32MB 不等。
     
-    -   G1收集器将堆划分为若干个区域（Region），它仍然属于分代收集器。不过，这些区域的一部分包含新生代，新生代的垃圾收集依然采用暂停所有应用线程的方式，将存活对象拷贝到老年代或者 Survivor 空间。老年代也分成很多区域，G1收集器通过将对象从一个区域`复制`到另外一个区域，完成了`清理`工作。这就意味着，在正常的处理过程中，G1完成了`堆的压缩（至少是部分堆的压缩）`，这样也就不会有 CMS 内存碎片问题的存在了。
+    -   G1 收集器将堆划分为若干个区域（Region），它仍然属于分代收集器。不过，这些区域的一部分包含新生代，新生代的垃圾收集依然采用暂停所有应用线程的方式，将存活对象拷贝到老年代或者 Survivor 空间。老年代也分成很多区域，G1 收集器通过将对象从一个区域`复制`到另外一个区域，完成了`清理`工作。这就意味着，在正常的处理过程中，G1 完成了`堆的压缩（至少是部分堆的压缩）`，这样也就不会有 CMS 内存碎片问题的存在了。
 
 ### 4. JNI(Native Method Interface/本地接口)
 
