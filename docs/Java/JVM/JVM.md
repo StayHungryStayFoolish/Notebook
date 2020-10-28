@@ -34,13 +34,12 @@
 
 - JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 
-##### 1.2.1.1 Young Gen(年轻代)
+##### 1.2.1.1 Young Gen(年轻代，占用 Heap 的 1/3)
 
 >   **Young Gen 分为 3 个区，Eden 占用 80%，两个 Survivor 分别占用 10%。两个 Survivor 简称 S0, S1，在有些地方也称 From，To (JVM 打印日志会以该名称显示)。**
 
-- **Java 对象在年轻代的生命周期（复制算法实现步骤）**
-
-  1. 保存新分配的对象。大多数新创建的对象都被分配在 `Eden 区`。当 `Eden 区` 被创建的对象填满时，将执行 `Minor GC` ，并将幸存者对象一次性移动到其中一个 `Survivor 区`。
+- **Java 对象在年轻代的生命周期（Mark-Copy 算法垃圾回收）**
+1. 保存新分配的对象。大多数新创建的对象都被分配在 `Eden 区`。当 `Eden 区` 被创建的对象填满时，将执行 `Minor GC` ，并将幸存者对象一次性移动到其中一个 `Survivor 区`。
   
   2. `Minor GC` 也会检查幸存者对象，并将它们移动到另一个 `Survivor 区`。所以每次都会保证有一个 `Survivor 区` 是空的，**即 90% 的内存都可以被使用。**
   
@@ -62,9 +61,9 @@
       
           -   `Survivor 区` 无法存储，则会直接存储到 `Old Gen`。
 
-##### 1.2.1.2 Old Gen(老年代，采用标记扫描整理垃圾)
+##### 1.2.1.2 Old Gen(老年代，占用 Heap 的 2/3，采用 Mark-Sweep-Compact 算法垃圾回收)
 
-**注意：JVM 规范或 Garbage Collection 研究论文中没有这些术语的正式定义。**
+**注意：JVM 规范或 Garbage Collection 研究论文中没有 Major GC 术语的正式定义。**
 
 - **Java 对象在老年代的生命周期（标记整理算法实现步骤）**
 
@@ -215,15 +214,53 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
 ![GC-Roots](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/GC-Roots.png)
 
--   **Java 中有四种 GC根**
-    -   **Stack 内当前方法的局部变量和参数**
-        -   通过线程栈保持活跃状态。这不是一个真正的对象虚拟引用，因此不可见。就意图和目的而言，局部变量是 GC 的根。
-    -   **活跃线程**
-        -   活动的 Java 线程总是被认为是活动对象，因此是 GC 根。这一点对于**线程局部变量**尤为重要。
-    -   **静态变量**
-        -   静态变量是由它们的类引用的。这一事实使它们成为事实上的GC根。类本身可以被垃圾回收，这将删除所有引用的静态变量。当我们使用应用服务器、OSGi 容器或一般的类加载器时，这一点特别重要。
-    -   **JNI 引用**
-        -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象是 GC 根的一种非常特殊的形式。
+-   **Java 中有四种 GC根（此处查阅多种资料，表述多样化，此处暂时以大多数资料表述的以下 4 种为准）**
+    
+    1. **Stack 内当前方法的局部变量和参数**
+    
+       - 通过线程栈保持活跃状态。这不是一个真正的对象虚拟引用，因此不可见。就意图和目的而言，局部变量是 GC 的根。
+    
+       - ```java
+         public class StackLocalParameter {
+             public StackLocalParameter(String name){}
+         }
+         
+         public static void testGC(){
+           	// s 是 GC 的根。
+             // 当 s 设置为null时，
+             // localParameter 对象的引用链的 GC 根断开，并且该对象将被垃圾回收。
+             StackLocalParameter s = new StackLocalParameter("localParameter");
+             s = null;
+         }
+         ```
+    2. **活跃线程**
+    
+       -   活动的 Java 线程总是被认为是活动对象，因此是 GC根。这一点对于**线程局部变量**尤为重要。
+    3. **静态变量**
+    
+       - 静态变量是由它们的类引用的。这一事实使它们成为事实上的 GC根。类本身可以被垃圾回收，这将删除所有引用的静态变量。当我们使用应用服务器、OSGi 容器或一般的类加载器时，这一点特别重要。
+    
+       - ```java
+         public class MethodAreaStaicProperties {
+             public static MethodAreaStaicProperties m;
+             public MethodAreaStaicProperties(String name){}
+         }
+         
+         public static void testGC(){
+           	// s 是 GC的根并且s设置为null时，
+           	// 在GC之后，将s指向的属性对象进行垃圾回收，因为它无法与GC根建立连接。
+           	// 作为类的静态属性，m 也是 GC的根。
+           	// 参数对象仍连接到 GC根目录，因此在这种情况下将不会对参数对象进行垃圾回收。
+             MethodAreaStaicProperties s = new MethodAreaStaicProperties("properties");
+             s.m = new MethodAreaStaicProperties("parameter");
+             s = null;
+         }
+         ```
+    4. **JNI 引用**
+    
+       -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象是 GC 根的一种非常特殊的形式。
+       -   <img src="https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/JNI-NativeMethod.png" alt="JNI-NativeMethod" style="zoom: 67%;" />
+           -   上图大意是：`JNI` 总是使用 `Native Method Stack`，如果 `JNI` 调用的 `Native Method Library(因为一般是 C/C++ 编写)`，则当前 `Native Method Stack` 就是 `C Stack`。当线程调用 Java 方法时，JVM 会创建一个新的 `Frame` 并放进 `Stack`。因此当前的 `Frame` 就变成了特殊的 GC 根。[此处表述略复杂，可以参考 JVM 组件概述内的几个概念](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_2-jvm-%e7%bb%84%e4%bb%b6%e6%a6%82%e8%bf%b0)
 
 #### 2.1.1 GC Roots 工作原理
 
@@ -235,12 +272,14 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
         -   **Hotspot** 内为 `OopMap`
         -   **JRokit** 内为 `Livemap`
         -   **J9** 内为 `GC Map`
--   **Tracing GC(可达性分析算法，垃圾收集算法会详细讲解)**
+-   **Tracing GCs(可达性分析算法，垃圾收集算法会详细讲解)**
     -   给定一个集合的引用作为根出发，通过引用关系遍历对象图，能被遍历到的（可到达的）对象就被判定为`存活`，其余对象（也就是没有被遍历到的）就自然被判定为`死亡`。`Tracing GC` 的本质是通过找出所有存活对象，然后其余的认定为`无用`，而不是找出所有死掉的对象并回收它们占用的空间。`GC Roots` 这组引用是 `Tracing GC` 的起点。要实现语义正确的 `Tracing GC`，就必须要能完整枚举出所有的 `GC Roots`，否则就可能会漏扫描应该存活的对象，导致 GC 错误回收了这些被漏扫的活对象。
 
 ### 2.2 Stop-The-World(STW) pause in JVM
 
 **不同的事件会导致 JVM 暂停所有的应用线程。这样的暂停称为：`Stop-The-World(STW) Pause`。**
+
+**`STW` 持续时间和 `Heap` 大小无关，也和 `Heap` 内对象总数无关，只取决于活动对象数量。**
 
 #### 2.2.1 SafePoint(安全点)
 
@@ -367,7 +406,7 @@ Metaspace
 3. -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDetails -XX:+PrintSafepointStatistics  -XX:PrintSafepointStatisticsCount=1 -XX:-UseBiasedLocking 
 ```
 
-## 3. 垃圾收集算法
+## 3. 垃圾分析算法
 
 ### 3.1 定义 JVM Heap 内的垃圾
 
@@ -430,20 +469,81 @@ public static void testGC(){
 #### 3.1.3 Reachability Analysis Algorithm(可达性分析算法)
 
 - `可达性分析算法`的基本思想是从 `GC Roots` 开始。`GC` 遍历内存中的整个 `OopMap(Hotspot)`，从这些 `根集合` 开始，然后从根到其他对象进行引用。该路径称为参考链。如果对象没有指向 `GC Roots` 的引用链，即无法从 `GC Roots` 访问该对象，则该对象不可用。
-  - 具体请参考 `2.1 Java Garbage Collection Roots`。
+  - 具体请参考 [`2.1 Java Garbage Collection Roots`](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_21-java-garbage-collection-rootsgc-roots-java-%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e6%a0%b9)。
 
-## 4. 垃圾收集器
-### 2.3.2 Mark & Sweep(标记 & 扫描)
+![GC-Roots-Alibaba](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/GC-Roots-Alibaba.png)
+
+- `可达性分析算法` 成功解决了 `引用计数算法` 中的**循环引用**问题。只要对象无法与 `GC Roots` 建立直接或间接连接，系统就会确定该对象将被垃圾回收。
+
+## 4. 标记&扫描&压实&复制策略
+
+### 4.1 Mark & Sweep Two Phase(标记 & 扫除两阶段)
 
 >   **删除未引用对象的基本策略是：识别存活对象并删除所有剩余对象。这分为两个阶段：Mark 和 Sweep。**
 
-**任何垃圾收集算法都需要具备三个基本步骤：**
+**任何垃圾收集算法都需要具有三个基本步骤：**
 
 1.  **Mark(标记阶段)**
     -   查找所有可能在未来被使用的对象
-2.  **Sweep / Copy (扫描 / 复制阶段)**
+2.  **Sweep / Copy (扫除 / 复制阶段)**
     -   删除所有未使用的对象
-3.  **Compact(紧凑阶段)**
+3.  **Compact(压实/紧凑阶段)**
     -   一般为压缩操作，防止产生内存碎片。
+
+#### 4.1.1 Mark 标记阶段
+
+**使用`可达性分析算法`识别所有可达对象，标记存活对象。**
+
+`GC` 在内存中遍历整个对象图，从那些 `GC Roots` 开始，并跟随从根到其他对象的`引用`。垃圾收集所访问的每个对象都会被标记为`存活`。
+
+当标记阶段结束时，每个存活对象都被标记。
+
+所有其他的对象都是`无法从垃圾收集根部访问的`，这意味着你的应用程序不能再使用这些无法访问的对象。这样的对象被认为是`垃圾`，垃圾收集算法应该在未来的阶段把它们清除。
+
+**标记阶段发生了什么？**
+
+1. 当所有应用线程被暂停时，JVM 可以整理内部内存空间，这个点被称为 [`Safepoint(安全点)`](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_221-safepoint%e5%ae%89%e5%85%a8%e7%82%b9)。
+2. 产生 `Safepoint` 并触发 `STW` 有[很多原因](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_222-%e8%a7%a6%e5%8f%91-stw-%e6%9a%82%e5%81%9c%e7%9a%84%e6%9c%80%e5%b8%b8%e8%a7%81%e5%8e%9f%e5%9b%a0%ef%bc%9a)，`GC` 是引入 `Safepoint` 最常见原因。
+3. `STW` 持续时间和 `Heap` 大小无关，也和 `Heap` 内对象总数无关，只取决于活动对象数量。
+4. 增加 `Heap` 大小不会直接影响标记阶段持续时间。
+
+标记阶段完成，`GC` 可以进行下一步，删除无法访问的对象。
+
+#### 4.1.2 删除无法访问对象
+
+不同的垃圾收集算法，删除策略不同，总体分为三类：Sweeping(扫除)、Compacting(压实也称为紧凑)、Copying(复制)
+
+##### 4.1.2.1 Sweeping 扫除
+
+![Sweeping](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Sweeping.png)
+
+`Mark-Sweep` 的算法使用了最简单的垃圾删除方法，从概念上讲只是忽略对象。意味着标记阶段完成后，所有不可访问的对象占用的空间都是空闲的，因此可以删除这些对象重新分配新的对象。
+
+**该算法有三个潜在问题：**
+
+1. 该方法需要使用所谓的**自由列表记录每个自由区域及其大小**。自由列表的管理**增加了对象分配的开销**。
+2. 这种方法内置了另一个弱点就是可能存在大量的空闲区域，但如果没有一个区域大到足以容纳分配，分配仍然会失败，出现 `OutOfMemoryError`。
+3. 应用程序时间增加，内存空间`碎片化比较严重`。
+
+##### 4.1.2.2 Compacting 压实
+
+![Compacting](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Compacting.png)
+
+`Mark-Sweep-Compact` 算法通过将所有标记对象移动到内存区域的开始，解决了 `Mark-Sweep` 的缺点。采用 `Mark` 和 `Sweep` 在经过 `Compact` 操作后，通过指针凸起，新的对象分配又是极其便宜。使用这样的方法，**空闲空间的位置始终是已知的**，也不会引发碎片化问题。
+
+**该算法有一个潜在问题：**
+
+1. 存活对象的重新定位，增加了 `STW` 持续时间，**因为我们需要将所有对象复制到一个新的地方，并更新对这些对象的所有引用**。
+
+##### 4.1.2.3 Copying 复制
+
+![Copying](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Copying.png)
+
+`Mark-Copy` 算法与 `Mark-Sweep-Compact`  算法非常相似，因为它们也可以重新定位存活对象。**重要的区别是，重定位的目标是一个不同的内存区域，作为幸存者的新空间。`Mark-Copy` 方法具有一些优势，因为复制可以与标记在同一阶段同时发生。**可以参考 [1.2.1.1 Young Gen 内 Eden 和 Survivor 的介绍](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_1211-young-gen%e5%b9%b4%e8%bd%bb%e4%bb%a3)
+
+**该算法有一个潜在问题：**
+
+1. 需要另外一个存储区域，该存储区域应足够大以容纳幸存的存活对象。
+
 
 
