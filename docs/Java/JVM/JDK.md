@@ -61,7 +61,7 @@
   
      - 该原则规定，被父类加载的类不应再被子类加载器加载，确保不发生重复加载类的情况。
      
-  3. **Delegation Hierarchy Principle(委托层次原则)**
+  3. **Delegation Hierarchy Principle(委托层级原则)**
   
      - 为了满足以上2个原则，JVM 遵循授权的层次结构来选择每个类加载请求的类加载器。这里，从最低的子级开始，`Application ClassLoader` 将收到的类加载请求委托给 `Extension ClassLoader`，然后 `Extension ClassLoader`再将请求委托给 `Bootstrap ClassLoader`。如果请求的类在 `Bootstrap` 的路径中找到，则该类被加载，否则请求再次转回 `Extension ClassLoader`。从 `Extension` 路径或自定义指定的路径中找到类。如果它也失败了，请求就会回到 `Application ClassLoader`，从 `System` 类路径中找到类，如果 `Application ClassLoader` 也不能加载所请求的类，那么我们就会得到运行时异常 `java.lang.ClassNotFoundException`。
      
