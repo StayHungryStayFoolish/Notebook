@@ -8,6 +8,8 @@ Java垃圾收集是一个自动过程，在此过程中，GC 将检查堆上的�
 
 ![GC](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Java Garbage Collection.png)
 
+**上图的 G1 看似不是分代垃圾收集器，但是从 JDK 1.7 Update 4 之后，采取了 `Heap Region(堆区域)`，实际上也是分代思想。**
+
 ## 1. Serial Garbage Collector(串行垃圾收集器)
 
 最简单的 GC 实现方式，基本只使用**一个线程**清理未使用的 `Heap Memory`。如果采用该收集器工作，串行垃圾收集器则拥有程序的所有运行线程。
@@ -84,6 +86,9 @@ Java 9 版本以下启动 G1 命令
 G1 收集器将堆空间分割成多个大小相等的区域。基本上，它主要是为堆大于 `4GB` 的应用程序设计的。它将堆空间划分为多个区域，从 **1MB** 到 **32MB** 不等。
 
 -   G1 收集器将堆划分为若干个 `堆区域（Heap Region）`，它仍然属于分代收集器。不过，这些区域的一部分包含新生代，新生代的垃圾收集依然采用暂停所有应用线程的方式，将存活对象拷贝到 `Old Gen` 或者  `Survivor` 空间。 `Old Gen` 也分成很多区域，G1 收集器通过将对象从一个区域`复制`到另外一个区域，完成了`清理`工作。这就意味着，在正常的处理过程中，G1 完成了`堆的压缩（至少是部分堆的压缩）`，这样也就不会有 CMS 内存碎片问题的存在了。
+
+**`Heap Region` 主要分为三种类型：Eden Space、Survivor Space、Old Generation**。
+
 
 ## 5. Epsilon Garbage Collection(EGC 垃圾收集器)
 

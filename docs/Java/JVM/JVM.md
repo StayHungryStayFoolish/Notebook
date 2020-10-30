@@ -262,11 +262,12 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
    -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象是 GC 根的一种非常特殊的形式。
    -   <img src="https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/JNI-NativeMethod.png" alt="JNI-NativeMethod" style="zoom: 67%;" />
-       -   上图大意是：`JNI` 总是使用 `Native Method Stack`，如果 `JNI` 调用的 `Native Method Library(因为一般是 C/C++ 编写)`，则当前 `Native Method Stack` 就是 `C Stack`。当线程调用 Java 方法时，JVM 会创建一个新的 `Frame` 并放进 `Stack`。因此当前的 `Frame` 就变成了特殊的 GC 根。[此处表述略复杂，可以参考 JVM 组件概述内的几个概念](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_2-jvm-%e7%bb%84%e4%bb%b6%e6%a6%82%e8%bf%b0)
+       
+   -   上图大意是：`JNI` 总是使用 `Native Method Stack`，如果 `JNI` 调用的 `Native Method Library(因为一般是 C/C++ 编写)`，则当前 `Native Method Stack` 就是 `C Stack`。当线程调用 Java 方法时，JVM 会创建一个新的 `Frame` 并放进 `Stack`。因此当前的 `Frame` 就变成了特殊的 GC 根。[此处表述略复杂，可以参考 JVM 组件概述内的几个概念](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_2-jvm-%e7%bb%84%e4%bb%b6%e6%a6%82%e8%bf%b0)
 
 #### 2.1.1 GC Roots 工作原理
 
-> **GC Roots 一句话总结就是：一组活跃的引用。**
+> **GC Roots 简言之就是一组活跃的引用树形结构。**
 
 **快速遍历 GC Roots 两种方法**
 
