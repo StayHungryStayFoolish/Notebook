@@ -4,15 +4,15 @@
 
 > 此文只讨论 JVM 内存模型，如需了解上图全部结构，请查看 [JDK 三大组件](http://notebook.bonismo.ink/#/Java/JVM/JDK)。
 
-- JVM 是使计算机能够运行 Java 程序的抽象计算机。JVM 有三种概念：
+JVM 是使计算机能够运行 Java 程序的抽象计算机。JVM 有三种概念：
 
-  - **规范** （指定 JVM 的工作方式。但是实现由Sun和其他公司提供）
-  
-  - **实现** （称为（JRE）Java Runtime Environment）
-  
-  - **实例** （在编写 Java 命令之后运行） Java类，将创建 JVM 的实例）。
+- **规范** （指定 JVM 的工作方式。但是实现由Sun和其他公司提供）
 
-- Java虚拟机加载代码，验证代码，执行代码，管理内存（这包括从操作系统（OS）分配内存，管理 Java 分配，包括堆压缩和垃圾对象的删除），并最终提供运行时环境。
+- **实现** （称为（JRE）Java Runtime Environment）
+
+- **实例** （在编写 Java 命令之后运行） Java类，将创建 JVM 的实例）。
+
+Java 虚拟机加载代码，验证代码，执行代码，管理内存（这包括从操作系统（OS）分配内存，管理 Java 分配，包括堆压缩和垃圾对象的删除），并最终提供运行时环境。
 
 ## 1.  JVM 内存结构
 
@@ -32,13 +32,14 @@
 
 > **JVM 堆内存采用分代模型，分为两大部分：年轻代、老年代。其中年轻代又分为三个区域：Eden Memory(伊甸园区)、Survivor Memory(幸存者区S0、S1)**
 
-- JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
+JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 
 ##### 1.2.1.1 Young Gen(年轻代，占用 Heap 的 1/3)
 
 >   **Young Gen 分为 3 个区，Eden 占用 80%，两个 Survivor 分别占用 10%。两个 Survivor 简称 S0, S1，在有些地方也称 From，To (JVM 打印日志会以该名称显示)。**
 
-- **Java 对象在年轻代的生命周期（Mark-Copy 算法垃圾回收）**
+**Java 对象在年轻代的生命周期（Mark-Copy 算法垃圾回收）**
+
 1. 保存新分配的对象。大多数新创建的对象都被分配在 `Eden 区`。当 `Eden 区` 被创建的对象填满时，将执行 `Minor GC` ，并将幸存者对象一次性移动到其中一个 `Survivor 区`。
   
   2. `Minor GC` 也会检查幸存者对象，并将它们移动到另一个 `Survivor 区`。所以每次都会保证有一个 `Survivor 区` 是空的，**即 90% 的内存都可以被使用。**
@@ -65,11 +66,11 @@
 
 **注意：JVM 规范或 Garbage Collection 研究论文中没有 Major GC 术语的正式定义。**
 
-- **Java 对象在老年代的生命周期（标记整理算法实现步骤）**
+**Java 对象在老年代的生命周期（标记整理算法实现步骤）**
 
-  - 这是为包含可能在多轮 `Minor GC` 中存活下来的长寿命对象而保留的，一般 `Young Gen` 经过 **15** 次 `Minor GC` 后存活下来，会转入老年代。
-  
-  - 当 `Old Gen` 空间已满时，将执行 `Major GC`（通常需要更长的时间）
+- 这是为包含可能在多轮 `Minor GC` 中存活下来的长寿命对象而保留的，一般 `Young Gen` 经过 **15** 次 `Minor GC` 后存活下来，会转入老年代。
+
+- 当 `Old Gen` 空间已满时，将执行 `Major GC`（通常需要更长的时间）
 
 #### 1.2.2 Non-Heap Memory(非堆内存)
 
@@ -77,17 +78,17 @@
 
 ##### 1.2.2.1 Metaspace
 
-- 上图的 `Perm Gen` 为 **Java 7** 的永久代。在 **Java 8** 已由 `Metaspace` 替换。默认情况下，`Metaspace` 自动增长，最大可用空间是总可用系统内存。在此，当类元数据使用量达到其最大 `Metaspace` 大小时，将**自动触发垃圾收集**。
+上图的 `Perm Gen` 为 **Java 7** 的永久代。在 **Java 8** 已由 `Metaspace` 替换。默认情况下，`Metaspace` 自动增长，最大可用空间是总可用系统内存。在此，当类元数据使用量达到其最大 `Metaspace` 大小时，将**自动触发垃圾收集**。
 
-- **Metaspace 与 Perm Gen 之间最大的区别在于：Metaspace 并不在虚拟机中，而是使用本地内存。**
+**Metaspace 与 Perm Gen 之间最大的区别在于：Metaspace 并不在虚拟机中，而是使用本地内存。**
 
-- `Metaspace` 包含 `Runtime Data Area` 的 `Method Area`，分别存储以下三种信息
+`Metaspace` 包含 `Runtime Data Area` 的 `Method Area`，分别存储以下三种信息
 
-  1. 类信息（字段、方法的数量，超类名称，接口名称，版本等）。
-  
-  2. 方法和构造函数的字节码。
-  
-  3. 每个类加载的运行时常量池。
+1. 类信息（字段、方法的数量，超类名称，接口名称，版本等）。
+
+2. 方法和构造函数的字节码。
+
+3. 每个类加载的运行时常量池。
 
 #### 1.2.3 Other Memory(其他内存)
 
@@ -103,7 +104,7 @@
 
 ![Heap-Non-Stack](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Stack&Heap.png)
 
-- **注：Non Heap 图中的 Permanent Generation 在 Java 8 中已更换为 Metaspace**
+**注：Non Heap 图中的 Permanent Generation 在 Java 8 中已更换为 Metaspace**
 
 | Parameter | Stack Memory                                                 | Heap Memory                                                  |
 | --------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -135,58 +136,59 @@ public class Test {
 
 ![Code-Heap-Stack](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/0_HWkfCG1q4DFsFfoF.jpeg)
 
-- 观察上图可以发现，`int` 类型的 **id = 23** 是在当前 `Stack` 内的 `Frame` 中，**p** 是 `Heap` 内 Person 对象的引用，**pName** 因为是 `String` 类型，所以该引用也指向 `Heap` 内的 `String Pool`。
+观察上图可以发现，`int` 类型的 **id = 23** 是在当前 `Stack` 内的 `Frame` 中，**p** 是 `Heap` 内 Person 对象的引用，**pName** 因为是 `String` 类型，所以该引用也指向 `Heap` 内的 `String Pool`。
 
 ##### 1.3.1.1 String Pool
 
-- Java 中 String 的定义为 `final`。所以 JVM 内部采用了 `Flyweight` 的设计模式，为了能在 Java 运行时节省大量空间，通过`引用指向`的方式，采用了字符串池存储。
+Java 中 String 的定义为 `final`。所以 JVM 内部采用了 `Flyweight` 的设计模式，为了能在 Java 运行时节省大量空间，通过`引用指向`的方式，采用了字符串池存储。
 
-- 注：上述 `String Pool` 只会存储 `String s = "value"`，如果采用 `new String` 方式则会按照创建对象方式存储到 `Heap` 中。
+注：上述 `String Pool` 只会存储 `String s = "value"`，如果采用 `new String` 方式则会按照创建对象方式存储到 `Heap` 中。
 
-  - ```java
-    String s1 = "abc"
-    String s2 = "abc"
-    s1 == s2 // True，因为s1,s2 引用都指向 String Pool 中的 value，
+- ```java
+  String s1 = "abc"
+  String s2 = "abc"
+  s1 == s2 // True，因为s1,s2 引用都指向 String Pool 中的 value，
+  
+  String s3 = "abc";
+  String s4 = new String("abc");
+  s3 == s4 // False
+  
+  String s5 = new String("abc");
+  String s6 = new String("abc");
+  s5 == s6 // False
     
-    String s3 = "abc";
-    String s4 = new String("abc");
-    s3 == s4 // False
+  String s7 = "abc";
+  String s8 = "ab" + "c"; // 该方式属于字符串常量表达式
+  s7 == s8 // True
     
-    String s5 = new String("abc");
-    String s6 = new String("abc");
-    s5 == s6 // False
-      
-    String s7 = "abc";
-    String s8 = "ab" + "c"; // 该方式属于字符串常量表达式
-    s7 == s8 // True
-      
-    String.intern() 表示首先会去 String Pool 中查找当前字符串，如果没有会将该字符串放入 String Pool
-      
-    String s9 = "abc";
-    String s10 = "ab";
-    String s11 = s9 + "c";
-    s9 == s11 // False
-    s9 == s11.intern() // True  
-    ```
+  String.intern() 表示首先会去 String Pool 中查找当前字符串，如果没有会将该字符串放入 String Pool
+    
+  String s9 = "abc";
+  String s10 = "ab";
+  String s11 = s9 + "c";
+  s9 == s11 // False
+  s9 == s11.intern() // True  
+  ```
 
 ### 1.4 JVM 优化厂商
 
 #### 1.4.1 Oracle 的 JIT 编译器模型 Hotspot
 
--   `Hotspot` 分为 **Client** 和 **Server** 模式，使用 `java -version` 可以看到本机模式。**Client** 旨在通过减少应用程序启动时间和内存占用量，主要运行在客户端环境。**Server** 旨在提高最大峰值的运行速度，占用更多的内存，**目前 64 位处理器默认使用 Server 模式**。主要区别在内部的**编译器级别**。
-  -   Client 编译器不会尝试执行由服务器VM中的编译器执行的许多更复杂的优化，但是作为交换，它需要较少的时间来分析和编译一段代码。这意味着客户端VM可以更快地启动，并且需要较小的内存空间。
-    
-    -   Server 包含一个高级自适应编译器，该编译器支持通过优化 C++ 编译器执行的许多相同类型的优化，以及一些传统编译器无法完成的优化，例如跨虚拟方法调用的主动内联。与静态编译器相比，这是一个竞争优势和性能优势。自适应优化技术的方法非常灵活，通常甚至优于高级静态分析和编译技术。
+`Hotspot` 分为 **Client** 和 **Server** 模式，使用 `java -version` 可以看到本机模式。**Client** 旨在通过减少应用程序启动时间和内存占用量，主要运行在客户端环境。**Server** 旨在提高最大峰值的运行速度，占用更多的内存，**目前 64 位处理器默认使用 Server 模式**。主要区别在内部的**编译器级别**。
+
+-   Client 编译器不会尝试执行由服务器VM中的编译器执行的许多更复杂的优化，但是作为交换，它需要较少的时间来分析和编译一段代码。这意味着客户端VM可以更快地启动，并且需要较小的内存空间。
+  
+  -   Server 包含一个高级自适应编译器，该编译器支持通过优化 C++ 编译器执行的许多相同类型的优化，以及一些传统编译器无法完成的优化，例如跨虚拟方法调用的主动内联。与静态编译器相比，这是一个竞争优势和性能优势。自适应优化技术的方法非常灵活，通常甚至优于高级静态分析和编译技术。
 
 #### 1.4.2 Oracle 收购 BEA 后的 JRockit
 
--   在 JDK8 中已将部分功能融合如 Hotspot。
+在 JDK8 中已将部分功能融合如 Hotspot。
 
 #### 1.4.3 IBM 的 AOT(Ahead-Of-Time) 编译器模型 J9
 
--   J9 的模块化程度更高，但因为许可协议限制，只能在 IBM 的产品上使用。
+J9 的模块化程度更高，但因为许可协议限制，只能在 IBM 的产品上使用。
 
--   JVM 共享通过共享缓存编译的本机代码，因此已经通过 AOT 编译器编译的代码可以由另一个 JVM 使用，而无需编译。此外，IBM JVM通过使用 AOT 编译器将代码预编译为 JXE（Java可执行文件）文件格式，提供了一种快速的执行方式。
+JVM 共享通过共享缓存编译的本机代码，因此已经通过 AOT 编译器编译的代码可以由另一个 JVM 使用，而无需编译。此外，IBM JVM通过使用 AOT 编译器将代码预编译为 JXE（Java可执行文件）文件格式，提供了一种快速的执行方式。
 
 ## 2. 垃圾收集机制
 
@@ -214,66 +216,69 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
 ![GC-Roots](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/GC-Roots.png)
 
--   **Java 中有四种 GC根（此处查阅多种资料，表述多样化，此处暂时以大多数资料表述的以下 4 种为准）**
-    
-    1. **Stack 内当前方法的局部变量和参数**
-    
-       - 通过线程栈保持活跃状态。这不是一个真正的对象虚拟引用，因此不可见。就意图和目的而言，局部变量是 GC 的根。
-    
-       - ```java
-         public class StackLocalParameter {
-             public StackLocalParameter(String name){}
-         }
-         
-         public static void testGC(){
-           	// s 是 GC 的根。
-             // 当 s 设置为null时，
-             // localParameter 对象的引用链的 GC 根断开，并且该对象将被垃圾回收。
-             StackLocalParameter s = new StackLocalParameter("localParameter");
-             s = null;
-         }
-         ```
-    2. **活跃线程**
-    
-       -   活动的 Java 线程总是被认为是活动对象，因此是 GC根。这一点对于**线程局部变量**尤为重要。
-    3. **静态变量**
-    
-       - 静态变量是由它们的类引用的。这一事实使它们成为事实上的 GC根。类本身可以被垃圾回收，这将删除所有引用的静态变量。当我们使用应用服务器、OSGi 容器或一般的类加载器时，这一点特别重要。
-    
-       - ```java
-         public class MethodAreaStaicProperties {
-             public static MethodAreaStaicProperties m;
-             public MethodAreaStaicProperties(String name){}
-         }
-         
-         public static void testGC(){
-           	// s 是 GC的根并且s设置为null时，
-           	// 在GC之后，将s指向的属性对象进行垃圾回收，因为它无法与GC根建立连接。
-           	// 作为类的静态属性，m 也是 GC的根。
-           	// 参数对象仍连接到 GC根目录，因此在这种情况下将不会对参数对象进行垃圾回收。
-             MethodAreaStaicProperties s = new MethodAreaStaicProperties("properties");
-             s.m = new MethodAreaStaicProperties("parameter");
-             s = null;
-         }
-         ```
-    4. **JNI 引用**
-    
-       -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象是 GC 根的一种非常特殊的形式。
-       -   <img src="https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/JNI-NativeMethod.png" alt="JNI-NativeMethod" style="zoom: 67%;" />
-           -   上图大意是：`JNI` 总是使用 `Native Method Stack`，如果 `JNI` 调用的 `Native Method Library(因为一般是 C/C++ 编写)`，则当前 `Native Method Stack` 就是 `C Stack`。当线程调用 Java 方法时，JVM 会创建一个新的 `Frame` 并放进 `Stack`。因此当前的 `Frame` 就变成了特殊的 GC 根。[此处表述略复杂，可以参考 JVM 组件概述内的几个概念](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_2-jvm-%e7%bb%84%e4%bb%b6%e6%a6%82%e8%bf%b0)
+**Java 中有四种 GC根（此处查阅多种资料，表述多样化，此处暂时以大多数资料表述的以下 4 种为准）**
+
+1. **Stack 内当前方法的局部变量和参数**
+
+   - 通过线程栈保持活跃状态。这不是一个真正的对象虚拟引用，因此不可见。就意图和目的而言，局部变量是 GC 的根。
+
+   - ```java
+     public class StackLocalParameter {
+         public StackLocalParameter(String name){}
+     }
+     
+     public static void testGC(){
+       	// s 是 GC 的根。
+         // 当 s 设置为null时，
+         // localParameter 对象的引用链的 GC 根断开，并且该对象将被垃圾回收。
+         StackLocalParameter s = new StackLocalParameter("localParameter");
+         s = null;
+     }
+     ```
+2. **活跃线程**
+
+   -   活动的 Java 线程总是被认为是活动对象，因此是 GC根。这一点对于**线程局部变量**尤为重要。
+3. **静态变量**
+
+   - 静态变量是由它们的类引用的。这一事实使它们成为事实上的 GC根。类本身可以被垃圾回收，这将删除所有引用的静态变量。当我们使用应用服务器、OSGi 容器或一般的类加载器时，这一点特别重要。
+
+   - ```java
+     public class MethodAreaStaicProperties {
+         public static MethodAreaStaicProperties m;
+         public MethodAreaStaicProperties(String name){}
+     }
+     
+     public static void testGC(){
+       	// s 是 GC的根并且s设置为null时，
+       	// 在GC之后，将s指向的属性对象进行垃圾回收，因为它无法与GC根建立连接。
+       	// 作为类的静态属性，m 也是 GC的根。
+       	// 参数对象仍连接到 GC根目录，因此在这种情况下将不会对参数对象进行垃圾回收。
+         MethodAreaStaicProperties s = new MethodAreaStaicProperties("properties");
+         s.m = new MethodAreaStaicProperties("parameter");
+         s = null;
+     }
+     ```
+4. **JNI 引用**
+
+   -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象是 GC 根的一种非常特殊的形式。
+   -   <img src="https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/JNI-NativeMethod.png" alt="JNI-NativeMethod" style="zoom: 67%;" />
+       -   上图大意是：`JNI` 总是使用 `Native Method Stack`，如果 `JNI` 调用的 `Native Method Library(因为一般是 C/C++ 编写)`，则当前 `Native Method Stack` 就是 `C Stack`。当线程调用 Java 方法时，JVM 会创建一个新的 `Frame` 并放进 `Stack`。因此当前的 `Frame` 就变成了特殊的 GC 根。[此处表述略复杂，可以参考 JVM 组件概述内的几个概念](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_2-jvm-%e7%bb%84%e4%bb%b6%e6%a6%82%e8%bf%b0)
 
 #### 2.1.1 GC Roots 工作原理
 
 > **GC Roots 一句话总结就是：一组活跃的引用。**
 
--   **快速遍历 GC Roots 两种方法**
-    -   遍历 `Stack Memory` 内所有变量，判断类型，如果是 `Reference` 类型，则是 `GC Roots`。
-    -   通过外部记录 `Stack Memory` 内的 `Reference` 类型，储存为一个映射表。
-        -   **Hotspot** 内为 `OopMap`
-        -   **JRokit** 内为 `Livemap`
-        -   **J9** 内为 `GC Map`
--   **Tracing GCs(可达性分析算法，垃圾收集算法会详细讲解)**
-    -   给定一个集合的引用作为根出发，通过引用关系遍历对象图，能被遍历到的（可到达的）对象就被判定为`存活`，其余对象（也就是没有被遍历到的）就自然被判定为`死亡`。`Tracing GC` 的本质是通过找出所有存活对象，然后其余的认定为`无用`，而不是找出所有死掉的对象并回收它们占用的空间。`GC Roots` 这组引用是 `Tracing GC` 的起点。要实现语义正确的 `Tracing GC`，就必须要能完整枚举出所有的 `GC Roots`，否则就可能会漏扫描应该存活的对象，导致 GC 错误回收了这些被漏扫的活对象。
+**快速遍历 GC Roots 两种方法**
+
+1.  遍历 `Stack Memory` 内所有变量，判断类型，如果是 `Reference` 类型，则是 `GC Roots`。
+2.  通过外部记录 `Stack Memory` 内的 `Reference` 类型，储存为一个映射表。
+    1.  **Hotspot** 内为 `OopMap`
+    2.  **JRokit** 内为 `Livemap`
+    3.  **J9** 内为 `GC Map`
+
+**Tracing GCs(可达性分析算法，垃圾收集算法会详细讲解)**
+
+给定一个集合的引用作为根出发，通过引用关系遍历对象图，能被遍历到的（可到达的）对象就被判定为`存活`，其余对象（也就是没有被遍历到的）就自然被判定为`死亡`。`Tracing GC` 的本质是通过找出所有存活对象，然后其余的认定为`无用`，而不是找出所有死掉的对象并回收它们占用的空间。`GC Roots` 这组引用是 `Tracing GC` 的起点。要实现语义正确的 `Tracing GC`，就必须要能完整枚举出所有的 `GC Roots`，否则就可能会漏扫描应该存活的对象，导致 GC 错误回收了这些被漏扫的活对象。
 
 ### 2.2 Stop-The-World(STW) pause in JVM
 
@@ -283,9 +288,11 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
 #### 2.2.1 SafePoint(安全点)
 
-- **Oracle 官方解释：**A point during program execution at which all GC roots are known and all heap object contents are consistent. From a global point of view, all threads must block at a safepoint before the GC can run.
-- **STW 暂停机制被称为 Safepoint(安全点)，安全点是程序执行中的一个点，在这个点上，程序的状态是已知的，可以检查。比如寄存器、内存等。JVM要想完全暂停和运行任务（如GC），所有线程必须来到一个安全点。**
-  - 例如，要检索一个线程上的堆栈跟踪，我们必须来到一个安全点。这也意味着像 `jstack` 这样的工具要求程序的所有线程都能够到达一个**安全点**。
+**Oracle 官方解释：**A point during program execution at which all GC roots are known and all heap object contents are consistent. From a global point of view, all threads must block at a safepoint before the GC can run.
+
+**STW 暂停机制被称为 Safepoint(安全点)，安全点是程序执行中的一个点，在这个点上，程序的状态是已知的，可以检查。比如寄存器、内存等。JVM要想完全暂停和运行任务（如GC），所有线程必须来到一个安全点。**
+
+- 例如，要检索一个线程上的堆栈跟踪，我们必须来到一个安全点。这也意味着像 `jstack` 这样的工具要求程序的所有线程都能够到达一个**安全点**。
 
 #### 2.2.2 触发 STW 暂停的最常见原因：
 
@@ -299,7 +306,7 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
 >   **`-XX:+LogVMOutput -XX:LogFile=vm.log` 记录 JVM 日志**
 
-- **[垃圾收集代码 STW 演示](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/safepoints/FullGc.java)**
+**[垃圾收集代码 STW 演示](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/safepoints/FullGc.java)**
 
 ```java
 import java.util.ArrayList;
@@ -336,8 +343,9 @@ Application time: 0.0067839 seconds
 Total time for which application threads were stopped: 0.0246979 seconds, Stopping threads took: 0.0000130 seconds
 ```
 
--  **[偏向锁代码 STW演示](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/safepoints/BiasedLocks.java)**
-  - **偏向锁核心思想：当线程 T1 获取锁后，再次申请持有锁时，无需再执行获取锁的操作。节省了申请锁的操作，提升了性能。如果其他线程再来申请锁，T1 会退出偏向锁模式。但是当大量线程不断请求锁，会导致线程竞争激烈，反而会降低性能。**
+**[偏向锁代码 STW演示](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/safepoints/BiasedLocks.java)**
+
+- **偏向锁核心思想：当线程 T1 获取锁后，再次申请持有锁时，无需再执行获取锁的操作。节省了申请锁的操作，提升了性能。如果其他线程再来申请锁，T1 会退出偏向锁模式。但是当大量线程不断请求锁，会导致线程竞争激烈，反而会降低性能。**
 
 ```java
 import java.util.concurrent.locks.LockSupport;
@@ -414,7 +422,7 @@ Metaspace
 
 #### 3.1.1 Reference Counting Algorithm(引用计数算法)
 
-- `参考计数算法` 在对象头存储对象的引用计数分配一个字段。如果该对象被另一个对象引用，则计数器增加一次。如果删除对该对象的引用，则计数器减一次。当该对象引用计数器减至零时，将对该对象进行垃圾回收。
+`参考计数算法` 在对象头存储对象的引用计数分配一个字段。如果该对象被另一个对象引用，则计数器增加一次。如果删除对该对象的引用，则计数器减一次。当该对象引用计数器减至零时，将对该对象进行垃圾回收。
 
 ```java
 // 1. 创建 String 对象为 m
@@ -427,14 +435,15 @@ m = null;
 
 ![String-jack-null](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/jack-null.png)
 
-- 根据上图和代码，解析 GC 步骤为：
-  1. 创建了一个 `String`，其中 `m` 引用了 `jack` 。
-  2. `m` 设置为 `null`，`jack` 的引用计数为 `0`，在引用计数算法上，将回收 `jack` 的内存。
-- **引用计数算法在程序执行中执行 `GC`。此算法不会触发 `Stop-The-World` 事件。`Stop-The-World` 意味着将暂停 `GC` 的程序执行，直到处理完堆中的所有对象为止。因此，此算法不严格遵循 `Stop-The-World GC` 机制。**
+根据上图和代码，解析 GC 步骤为：
+1. 创建了一个 `String`，其中 `m` 引用了 `jack` 。
+2. `m` 设置为 `null`，`jack` 的引用计数为 `0`，在引用计数算法上，将回收 `jack` 的内存。
+
+**引用计数算法在程序执行中执行 `GC`。此算法不会触发 `Stop-The-World` 事件。`Stop-The-World` 意味着将暂停 `GC` 的程序执行，直到处理完堆中的所有对象为止。因此，此算法不严格遵循 `Stop-The-World GC` 机制。**
 
 #### 3.1.2 放弃参考 Reference Counting Algorithm 原因
 
-- **当循环依赖的时候，引用计数算法就会出现问题。此处肯定无法使用 IoC 解决循环依赖的方法处理。**
+**当循环依赖的时候，引用计数算法就会出现问题。此处肯定无法使用 IoC 解决循环依赖的方法处理。**
 
 ```java
 public class ReferenceCountingGC {
@@ -462,18 +471,19 @@ public static void testGC(){
 
 ![Loop-Reference](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Loop-Reference.png)
 
-- 根据上图和代码，解析：
-  1. 定义了两个对象 `a` 和 `b`，此时引用计数器增加一次，然后`互相引用` 再增加一次，此时两个对象引用计数为 **2**。
-  2. 将两个对象都设置为 `null`，此时引用计数器减一次，最终为 **1**，虽然两个对象无法访问，但是因为相互引用，所以引用计数器永远不会为 **0**，**永远无法通过引用计数器通知 GC 进行垃圾回收**。
+根据上图和代码，解析：
+1. 定义了两个对象 `a` 和 `b`，此时引用计数器增加一次，然后`互相引用` 再增加一次，此时两个对象引用计数为 **2**。
+2. 将两个对象都设置为 `null`，此时引用计数器减一次，最终为 **1**，虽然两个对象无法访问，但是因为相互引用，所以引用计数器永远不会为 **0**，**永远无法通过引用计数器通知 GC 进行垃圾回收**。
 
 #### 3.1.3 Reachability Analysis Algorithm(可达性分析算法)
 
-- `可达性分析算法`的基本思想是从 `GC Roots` 开始。`GC` 遍历内存中的整个 `OopMap(Hotspot)`，从这些 `根集合` 开始，然后从根到其他对象进行引用。该路径称为参考链。如果对象没有指向 `GC Roots` 的引用链，即无法从 `GC Roots` 访问该对象，则该对象不可用。
-  - 具体请参考 [`2.1 Java Garbage Collection Roots`](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_21-java-garbage-collection-rootsgc-roots-java-%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e6%a0%b9)。
+`可达性分析算法`的基本思想是从 `GC Roots` 开始。`GC` 遍历内存中的整个 `OopMap(Hotspot)`，从这些 `根集合` 开始，然后从根到其他对象进行引用。该路径称为参考链。如果对象没有指向 `GC Roots` 的引用链，即无法从 `GC Roots` 访问该对象，则该对象不可用。
+
+具体请参考 [`2.1 Java Garbage Collection Roots`](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_21-java-garbage-collection-rootsgc-roots-java-%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e6%a0%b9)。
 
 ![GC-Roots-Alibaba](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/GC-Roots-Alibaba.png)
 
-- `可达性分析算法` 成功解决了 `引用计数算法` 中的**循环引用**问题。只要对象无法与 `GC Roots` 建立直接或间接连接，系统就会确定该对象将被垃圾回收。
+`可达性分析算法` 成功解决了 `引用计数算法` 中的**循环引用**问题。只要对象无法与 `GC Roots` 建立直接或间接连接，系统就会确定该对象将被垃圾回收。
 
 ## 4. 标记&扫描&压实&复制策略
 
@@ -511,7 +521,7 @@ public static void testGC(){
 
 #### 4.1.2 删除无法访问对象
 
-不同的垃圾收集算法，删除策略不同，总体分为三类：Sweeping(扫除)、Compacting(压实也称为紧凑)、Copying(复制)
+**不同的垃圾收集算法，删除策略不同，总体分为三类：Sweeping(扫除)、Compacting(压实也称为紧凑)、Copying(复制)**
 
 ##### 4.1.2.1 Sweeping 扫除
 
@@ -525,7 +535,7 @@ public static void testGC(){
 2. 这种方法内置了另一个弱点就是可能存在大量的空闲区域，但如果没有一个区域大到足以容纳分配，分配仍然会失败，出现 `OutOfMemoryError`。
 3. 应用程序时间增加，内存空间`碎片化比较严重`。
 
-##### 4.1.2.2 Compacting 压实
+##### 4.1.2.2 Compacting 压实（会发生STW）
 
 ![Compacting](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Compacting.png)
 
@@ -535,7 +545,7 @@ public static void testGC(){
 
 1. 存活对象的重新定位，增加了 `STW` 持续时间，**因为我们需要将所有对象复制到一个新的地方，并更新对这些对象的所有引用**。
 
-##### 4.1.2.3 Copying 复制
+##### 4.1.2.3 Copying 复制（会发生STW）
 
 ![Copying](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Copying.png)
 
