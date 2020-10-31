@@ -10,7 +10,7 @@ JVM 是使计算机能够运行 Java 程序的抽象计算机。JVM 有三种概
 
 - **实现** （称为（JRE）Java Runtime Environment）
 
-- **实例** （在编写 Java 命令之后运行） Java类，将创建 JVM 的实例）。
+- **实例** （在编写 Java 命令之后运行） Java类，将创建 JVM 的实例）
 
 Java 虚拟机加载代码，验证代码，执行代码，管理内存（这包括从操作系统（OS）分配内存，管理 Java 分配，包括堆压缩和垃圾对象的删除），并最终提供运行时环境。
 
@@ -52,7 +52,7 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
           
       2. **动态对象年龄判断**
       
-          -   一批对象总大小**大于**当前 `Survivor区` 内存的大小的 **50%**，那么大于等于这批对象年龄的对象就会被转移到老年代。**每一次GC，年龄+1。如果 年龄1 + 年龄2 + 年龄N > 50%，则年龄N的会移到 Old Gen。**
+          -   一批对象总大小**大于**当前 `Survivor区` 内存的大小的 **50%**，那么大于等于这批对象年龄的对象就会被转移到老年代。**每一次GC，年龄+1。如果`年龄1 + 年龄2 + 年龄N > 50%`，则年龄N的会移到 Old Gen。**
           
       3. **大对象直接进入 Old Gen**
       
@@ -74,7 +74,7 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 
 #### 1.2.2 Non-Heap Memory(非堆内存)
 
-![Non-Heap Memory](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Non-Heap Memory.png)
+![Non-Heap Memory](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Non-Heap%20Memory.png)
 
 ##### 1.2.2.1 Metaspace
 
@@ -85,10 +85,16 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 `Metaspace` 包含 `Runtime Data Area` 的 `Method Area`，分别存储以下三种信息
 
 1. 类信息（字段、方法的数量，超类名称，接口名称，版本等）。
-
 2. 方法和构造函数的字节码。
-
 3. 每个类加载的运行时常量池。
+
+**`Metaspace` 会被 `Full GC` 回收内存空间，必须同时满足以下三个条件：**
+
+1. 该类的所有实例已经被回收。
+2. 加载该类的 ClassLoader 已经被卸载。
+3. 该类对应的 java.lang.Class 对象没有被引用。
+
+**`Metaspace` 如果频繁的 `Full GC` 表示内存空间太小或者存在 `OutOfMemoryError` 的风险。如果使用默认大小并且发生了`OOM`，则会导致系统内存被耗尽。**
 
 #### 1.2.3 Other Memory(其他内存)
 
@@ -182,7 +188,7 @@ Java 中 String 的定义为 `final`。所以 JVM 内部采用了 `Flyweight` �
 
 #### 1.4.2 Oracle 收购 BEA 后的 JRockit
 
-在 JDK8 中已将部分功能融合如 Hotspot。
+在 JDK8 中已将部分功能融合入 Hotspot。
 
 #### 1.4.3 IBM 的 AOT(Ahead-Of-Time) 编译器模型 J9
 
