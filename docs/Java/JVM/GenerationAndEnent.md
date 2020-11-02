@@ -68,5 +68,9 @@
 #### Full GC
 
 1. 当 `Minor GC` 之后的对象，因连续内存空间太大无法移至 `Survivor` 区，触发 `Major GC`，在 `Major GC` 之后 ，`Old Gen` 剩余连续空间**小于**需要存储的存活对象或者 `Old Gen` **小于**存活对象的平均大小（分配担保机制），则会触发 `Full GC`，如果触发 `Full GC` 之后仍然无法存储，则导致 `OutOfMemoryError`。
-2. 在 JDK 8 中，当 `Metaspace` 的内存空间超过默认值**（20MB）**时，也会触发 `Full GC` 进行回收。主要回收：**不再使用的`类`和`类加载器`**。在 `Full GC` 后，会增加 `Metaspace` 的大小，以延迟因为存储空间而导致的下次 `Full GC` 时间。所以设置一个合理的 `MaxMetaspaceSize` 也很重要。
+2. 在 JDK 8 中，当 `Metaspace` 的内存空间超过默认值**（20MB）**时，也会触发 `Full GC` 进行回收。在 `Full GC` 后，会增加 `Metaspace` 的大小，以延迟因为存储空间而导致的下次 `Full GC` 时间。所以设置一个合理的 `MaxMetaspaceSize` 也很重要。
+   - `Metaspace` 回收的对象**必须同时满足 3 个条件**
+     1. 该类的所有实例已经被回收。
+     2. 加载该类的 ClassLoader 已经被卸载。
+     3. 该类对应的 java.lang.Class 对象没有被引用，因为 `Heap Memory` 内的对象持有对 `Metaspace` 对象的特殊引用。
 
