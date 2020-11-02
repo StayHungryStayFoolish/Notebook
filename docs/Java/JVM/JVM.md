@@ -40,11 +40,11 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 
 **Java 对象在年轻代的生命周期（Mark-Copy 算法垃圾回收）**
 
-1. 保存新分配的对象。大多数新创建的对象都被分配在 `Eden 区`。当 `Eden 区` 被创建的对象填满时，将执行 `Minor GC` ，并将幸存者对象一次性移动到其中一个 `Survivor 区`。
+1. 保存新分配的对象。大多数新创建的对象都被分配在 `Eden`。当 `Eden` 被创建的对象填满时，将执行 `Minor GC` ，并将幸存者对象一次性移动到其中一个 `Survivor`。
   
-  2. `Minor GC` 也会检查幸存者对象，并将它们移动到另一个 `Survivor 区`。所以每次都会保证有一个 `Survivor 区` 是空的，**即 90% 的内存都可以被使用。**
+  2. `Minor GC` 也会检查幸存者对象，并将它们移动到另一个 `Survivor`。所以每次都会保证有一个 `Survivor` 是空的，**即 90% 的内存都可以被使用。**
   
-  3. `Eden 区`的 对象将移至 `Old Gen` ，有 **4** 种情况。
+  3. `Eden`的 对象将移至 `Old Gen` ，有 **4** 种情况。
   
       1. **GC 次数判断**
       
@@ -52,25 +52,25 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
           
       2. **动态对象年龄判断**
       
-          -   一批对象总大小**大于**当前 `Survivor区` 内存的大小的 **50%**，那么大于等于这批对象年龄的对象就会被转移到老年代。**每一次GC，年龄+1。如果`年龄1 + 年龄2 + 年龄N > 50%`，则年龄N的会移到 Old Gen。**
+          -   一批对象总大小**大于**当前 `Survivor` 内存的大小的 **50%**，那么大于等于这批对象年龄的对象就会被转移到老年代。**每一次GC，年龄+1。如果 年龄1 + 年龄2 + 年龄N > 50%，则年龄N的会移到 Old Gen。**
           
       3. **大对象直接进入 Old Gen**
       
-          -   参数 `-XX:PretenureSizeThreshold` 可以设置对象大小，默认为 **0**。如果设置该阈值，则超过的不会分配到 `Eden 区` 而是直接进入 `Old Gen`。
+          -   参数 `-XX:PretenureSizeThreshold` 可以设置对象大小，默认为 **0**。如果设置该阈值，则超过的不会分配到 `Eden` 而是直接进入 `Old Gen`。
           
-      4. **Minor GC 后存活的对象太多，无法进入 Survivor 区**
+      4. **Minor GC 后存活的对象太多，无法进入 Survivor**
       
-          -   `Survivor 区` 无法存储，则会直接存储到 `Old Gen`。
+          -   `Survivor` 无法存储，则会直接存储到 `Old Gen`。
 
 ##### 1.2.1.2 Old Gen(老年代，占用 Heap 的 2/3，采用 Mark-Sweep-Compact 算法垃圾回收)
 
 **注意：JVM 规范或 Garbage Collection 研究论文中没有 Major GC 术语的正式定义。**
 
-**Java 对象在老年代的生命周期（标记整理算法实现步骤）**
+**Java 对象在老年代的生命周期**
 
 - 这是为包含可能在多轮 `Minor GC` 中存活下来的长寿命对象而保留的，一般 `Young Gen` 经过 **15** 次 `Minor GC` 后存活下来，会转入老年代。
 
-- 当 `Old Gen` 空间已满时，将执行 `Major GC`（通常需要更长的时间）
+- 当 `Old Gen` 空间已满时或者无法提供足够的连续空间存储 `Young Gen` 的对象时（此处可以参考 [Heap Memory 内的 GC 事件机制](http://notebook.bonismo.ink/#/Java/JVM/GenerationAndEnent?id=heap-memory-%e5%86%85%e7%9a%84-gc-%e4%ba%8b%e4%bb%b6)），将执行 `Major GC`（通常需要更长的时间）。
 
 #### 1.2.2 Non-Heap Memory(非堆内存)
 
@@ -268,7 +268,7 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
    -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象是 GC 根的一种非常特殊的形式。
    -   <img src="https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/JNI-NativeMethod.png" alt="JNI-NativeMethod" style="zoom: 67%;" />
-       
+     
    -   上图大意是：`JNI` 总是使用 `Native Method Stack`，如果 `JNI` 调用的 `Native Method Library(因为一般是 C/C++ 编写)`，则当前 `Native Method Stack` 就是 `C Stack`。当线程调用 Java 方法时，JVM 会创建一个新的 `Frame` 并放进 `Stack`。因此当前的 `Frame` 就变成了特殊的 GC 根。[此处表述略复杂，可以参考 JVM 组件概述内的几个概念](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_2-jvm-%e7%bb%84%e4%bb%b6%e6%a6%82%e8%bf%b0)
 
 #### 2.1.1 GC Roots 工作原理
