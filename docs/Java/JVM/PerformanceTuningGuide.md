@@ -37,20 +37,20 @@
 `Mac OS` 终端输入`/usr/libexec/java_home -V` 进入 `bin` 路径可以看到 JDK 自带的这些工具。
 
 -   **Monitoring Tools**
-    -   **jps** - 查询 JVM 运行进程状态信息
-    -   **jstat** - 实时监控 JVM 状态，比如：类加载、内存、垃圾收集、JIT 编译等  
-    -   **jstatd** - 可以远程监控 JVM 状态，需要在服务器机器设置一个后缀为 `.policy` 的文件。
+    -   **jps** - 查询 JVM 运行进程状态信息，类似 ps 命令子集。
+    -   **jstat** - 实时本地、远程监控 JVM 内存、类加载、垃圾收集、JIT 编译等，但是当显示 GC 信息时，仅在 GC 之后会更新最新值，这点不像 **jcmd** 永远显示实时信息。  
+    -   **jstatd** - 实时本地、远程监控 JVM 状态，需要在服务器机器设置一个后缀为 `.policy` 的文件。
 -   **Troubleshooting Tools**
-    -   jinfo
-    -   jhat
-    -   jmap
+    -   **jinfo** - 查看 JVM 配置参数，还可以动态设置部分参数值。`jinfo` 使用时需要 `attach` 到目标 JVM 上。
+    -   **jhat** - 用于解析堆、支持生成堆信息文件，并对转储文件进行展示分析，服务启动后，可以通过 http://127.0.0.1:7000/ 查看。
+    -   **jmap** - 打印 JVM 堆概要信息，包括堆配置、新生代、老生代信息，支持**导出文件**，并结合 `jvisualvm`、`MAT`、`JProfile` 等工具进行分析。当使用 `jamp -histo:live pid` 携带 `:live` 命令只打印活动类信息，会触发 GC，导致 `STW`，生产环境慎用。
     -   jsadebugd
-    -   jstack
+    -   **jstack** - 查看 JVM 进程内当前时刻的线程快照，定位线程停顿、死锁等长时间等待的问题，支持导出线程相关信息。
 -   **Troubleshooting, Profiling, Monitoring and Management Tools**
-    -   **jcmd** 不支持远程查看 JVM 
-    -   jconsole
-    -   jmc
-    -   jvisualvm
+    -   **jcmd**- 用于将诊断命令请求发送到 JVM，不支持远程连接 JVM。 
+    -   **jconsole** - 实时本地、远程监控 CPU、JVM 内存、类加载、垃圾收集、线程（检测死锁）和类等的监控，是一个基于 JMX（java management extensions）的 GUI 性能监测工具。
+    -   **jvisualvm** - `jmap、jinfo、jstat、jstack、jconsole` 功能合集，支持多种功能插件，因为 `jvisualvm` 不仅支持 JMX 还支持 Jvmstat、Attach API 和 SA 等监测技术，还可以记录有关 JVM 实例的数据，并将该数据保存到本地系统，便于分析，支持**内存泄漏检测**。
+    -   **jmc** - 相对 `jconsole`、`jvisualvm` 可以展示更多的信息，也是 GUI 监测工具。
 
-
+以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
 
