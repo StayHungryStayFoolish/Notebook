@@ -50,17 +50,26 @@
     -   **jcmd**- 用于将诊断命令请求发送到 JVM，不支持远程连接 JVM。 
     -   **jconsole** - 实时本地、远程监控 CPU、JVM 内存、类加载、垃圾收集、线程（检测死锁）和类等的监控，是一个基于 JMX（java management extensions）的 GUI 性能监测工具。
     -   **jvisualvm** - `jmap、jinfo、jstat、jstack、jconsole` 功能合集，支持多种功能插件，因为 `jvisualvm` 不仅支持 JMX 还支持 Jvmstat、Attach API 和 SA 等监测技术，还可以记录有关 JVM 实例的数据，并将该数据保存到本地系统，便于分析，支持**内存泄漏检测**。
-    -   **jmc** - 相对 `jconsole`、`jvisualvm` 可以展示更多的信息，也是 GUI 监测工具。
+    -   **jmc** - 相对 `jconsole`、`jvisualvm` 可以展示更多的信息，也是 GUI 监测工具，UI 更美观，在 `JDK 8u261` 被移除，[Oracle JDK 8u261更新文档](https://www.oracle.com/java/technologies/javase/8u261-relnotes.html)，可在 [Oracle 官方](https://www.oracle.com/java/technologies/javase/jmc-install.html) 单独下载。
 
 以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
 
-### 2.1 JPS Tools
+### 2.1 jsp tools
 
-| JPS 命令 |      |      |
-| -------- | ---- | ---- |
-|          |      |      |
-|          |      |      |
-|          |      |      |
+[Oracle jps command](https://docs.oracle.com/en/java/javase/13/docs/specs/man/jps.html)
+
+| JPS 命令            | 显示结果                                   |
+| ------------------- | ------------------------------------------ |
+| Jps                 | 显示 vmid、启动类名称                      |
+| jps -m              | 显示 vmid、传递 main 方法的参数            |
+| Jps -l              | 显示 vmid、启动类完成包名或 jar 完整路径名 |
+| jps -v              | 显示 vmid、传递给 jvm 参数                 |
+| jps -V              | 显示 vmid、启动类名、jar 文件名            |
+| m、l、v、V 任意组合 | 显示结果组合                               |
+
+### 2.2 jstat tools
+
+[Oracle jstat command](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jps.html)
 
 ### JVisualvm Tools
 
@@ -120,6 +129,8 @@ java \
 
 4.  **本地机器**运行 `jvisualvm` 启动，然后添加**远程主机 IP**，配置服务器地址 `***.***.**.**`，添加 JMX 连接，配置端口号，输入用户名 `monitorRole` 或 `controlRole`，再输入对应的密码，远程服务器连接成功。
 5.  如需开启 SSL 请查阅官方文档。
+
+**以上步骤 1、2、3 属于 JMX 配置，完成后，可以使用支持 JMX 的工具进行连接。**
 
 
 
