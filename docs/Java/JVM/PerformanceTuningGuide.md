@@ -1,5 +1,5 @@
 # JVM 性能调优指南
-## JVM 性能监测工具
+## 1. JVM 性能监测工具
 
 ### Application Performance Management(APM)
 
@@ -30,7 +30,7 @@
 
 `Prometheus` 通常和 `Grafana` 配合使用，因为 `Grafana` 只负责绘图，并且 UI 比较酷炫。
 
-## JDK 自带工具
+## 2. JDK 自带工具
 
 上边介绍了一些功能强大的监测工具，都包含了 JVM 性能监测。在实际生产部署过程中，可能会选择适合的工具。但是如果只想关注 JVM ，则可是使用以下功能相对单一的工具。
 
@@ -53,4 +53,73 @@
     -   **jmc** - 相对 `jconsole`、`jvisualvm` 可以展示更多的信息，也是 GUI 监测工具。
 
 以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
+
+### 2.1 JPS Tools
+
+| JPS 命令 |      |      |
+| -------- | ---- | ---- |
+|          |      |      |
+|          |      |      |
+|          |      |      |
+
+### JVisualvm Tools
+
+[Oracle 远程链接文档](https://docs.oracle.com/javase/1.5.0/docs/guide/management/agent.html#PasswordAccessFiles)
+
+#### 远程无认证连接
+
+1.  服务器启动 jar
+
+```shell
+java \
+# 服务器地址
+-Djava.rmi.server.hostname=***.***.**.** \
+# 开启远程链接
+-Dcom.sun.management.jmxremote=true \
+# jmx 端口
+-Dcom.sun.management.jmxremote.port=*** \
+# 是否开启认证
+-Dcom.sun.management.jmxremote.authenticate=false \
+# 是否开启 ssl
+-Dcom.sun.management.jmxremote.ssl=false \
+-jar ***.jar
+```
+
+2. **本地机器**运行 `jvisualvm` 启动，然后添加**远程主机 IP**，配置端口号，远程服务器连接成功。
+
+#### 远程安全认证连接
+
+1.  **服务器**进入路径 `JRE_HOME/lib/management/`
+2.  拷贝 `jmxremote.password.template` 为 `jmxremote.password` 并打开 `monitorRole` 和 `controlRole` 注释，`monitorRole` 只可以监控，`controlRole` 可以在本地服务器进行一些操作，比如堆转储，GC 等操作。
+
+```shell
+# The "monitorRole" role has password "QED".
+# The "controlRole" role has password "R&D".
+monitorRole QED
+controlRole R&D
+```
+
+3.  使用 JVM 参数启动 `***.jar`
+
+```shell
+java \
+# 服务器地址
+-Djava.rmi.server.hostname=***.***.**.** \
+# 开启远程链接
+-Dcom.sun.management.jmxremote=true \
+# jmx 端口
+-Dcom.sun.management.jmxremote.port=*** \
+# 是否开启 ssl
+-Dcom.sun.management.jmxremote.ssl=false \
+# 是否开启密码认证
+-Dcom.sun.management.jmxremote.password=true \
+# 是否开启认证，此参数可以省略
+-Dcom.sun.management.jmxremote.authenticate=true \
+-jar ***.jar
+```
+
+4.  **本地机器**运行 `jvisualvm` 启动，然后添加**远程主机 IP**，配置服务器地址 `***.***.**.**`，添加 JMX 连接，配置端口号，输入用户名 `monitorRole` 或 `controlRole`，再输入对应的密码，远程服务器连接成功。
+5.  如需开启 SSL 请查阅官方文档。
+
+
 
