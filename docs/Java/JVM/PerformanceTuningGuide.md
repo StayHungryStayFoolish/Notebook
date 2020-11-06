@@ -58,7 +58,7 @@
 
 [Oracle jps command](https://docs.oracle.com/en/java/javase/13/docs/specs/man/jps.html)
 
-| JPS 命令            | 显示结果                                   |
+| Jps 命令            | 显示结果                                   |
 | ------------------- | ------------------------------------------ |
 | Jps                 | 显示 vmid、启动类名称                      |
 | jps -m              | 显示 vmid、传递 main 方法的参数            |
@@ -70,6 +70,45 @@
 ### 2.2 jstat tools
 
 [Oracle jstat command](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jps.html)
+
+| 显示参数 | Jstat 命令                                         | 描述                                                         |
+| -------- | -------------------------------------------------- | ------------------------------------------------------------ |
+| S0C      | 以字节为单位显示 **Survivor 0** 区域的当前大小     | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
+| S1C      | 以字节为单位显示 **Survivor 1** 区域的当前大小     | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
+| S0U      | 以字节为单位显示 **Survivor 0** 区域的当前使用情况 | -gc<br/>-gcnew                                               |
+| S1U      | 以字节为单位显示 **Survivor 1** 区域的当前使用情况 | -gc<br/>-gcnew                                               |
+| EC       | 显示 `Eden` 的当前大小，以 KB 为单位               | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
+| EU       | 显示 `Eden Space` 的当前使用情况，以 KB 为单位     | -gc<br/>-gcnew                                               |
+| OC       | 显示 `Old Gen` 的当前大小，以 KB 为单位            | -gc<br/>-gccapacity<br/>-gcold<br/>-gcoldcapacity            |
+| OU       | 显示 `Old Gen` 的当前使用情况，以 KB 为单位        | -gc<br/>-gcold                                               |
+| MC       | 显示 `Metaspace` 的当前大小，以 KB 为单位          | -gc<br/>-gccapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity |
+| MU       | 显示 `Metaspace` 的当前使用情况，以 KB 为单位      | -gc<br/>-gcold                                               |
+| YGC      | `Young Gen` 发生 GC 事件的次数                     | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| YGCT     | `Young Gen` 的 GC 累计时间                         | -gc<br/>-gcnew<br/>-gcutil<br/>-gccause                      |
+| FGC      | `Full GC` 发生 GC 事件的次数                       | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| FGCT     | `Full GC` 累计时间                                 | -gc<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| GCT      | GC 操作累积的总时间                                | -gc<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| NGCMN    | `Young Gen` 初始化大小，以 KB 为单位               | -gccapacity<br/>-gcnewcapacity                               |
+| NGCMX    | `Young Gen` 最大容量，以 KB 为单位                 | -gccapacity<br/>-gcnewcapacity                               |
+| NGC      | `Young Gen` 当前容量，以 KB 为单位                 | -gccapacity<br/>-gcoldcapacity                               |
+| OGCMN    | `Old Gen` 初始化大小，以 KB 为单位                 | -gccapacity<br/>-gcoldcapacity                               |
+| OGCMX    | `Old Gen` 最大容量，以 KB 为单位                   | -gccapacity<br/>-gcoldcapacity                               |
+| OGC      | `Old Gen` 当前容量，以 KB 为单位                   | -gccapacity<br/>-gcoldcapacity                               |
+| MCMN     | `Metapsace` 初始化大小，以 KB 为单位               | -gccapacity<br/>-gcmetacapacity                              |
+| MCMX     | `Metapsace` 最大容量，以 KB 为单位                 |                                                              |
+| MC       | `Metapsace` 当前容量，以 KB 为单位                 |                                                              |
+| CCSMN    |                                                    |                                                              |
+| CCSMX    |                                                    |                                                              |
+| CCSC     |                                                    |                                                              |
+| PC       |                                                    |                                                              |
+| PU       |                                                    |                                                              |
+| LGCC     |                                                    |                                                              |
+| GCC      |                                                    |                                                              |
+| TT       |                                                    |                                                              |
+| MTT      |                                                    |                                                              |
+| DSS      |                                                    |                                                              |
+
+
 
 ### JVisualvm Tools
 
