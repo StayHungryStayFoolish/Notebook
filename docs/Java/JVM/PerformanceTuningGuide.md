@@ -54,15 +54,15 @@
 
 以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
 
-### 2.1 jsp tools
+### 2.1 jps tools
 
 [Oracle jps command](https://docs.oracle.com/en/java/javase/13/docs/specs/man/jps.html)
 
 | Jps 命令            | 显示结果                                   |
 | ------------------- | ------------------------------------------ |
-| Jps                 | 显示 vmid、启动类名称                      |
+| jps                 | 显示 vmid、启动类名称                      |
 | jps -m              | 显示 vmid、传递 main 方法的参数            |
-| Jps -l              | 显示 vmid、启动类完成包名或 jar 完整路径名 |
+| jps -l              | 显示 vmid、启动类完成包名或 jar 完整路径名 |
 | jps -v              | 显示 vmid、传递给 jvm 参数                 |
 | jps -V              | 显示 vmid、启动类名、jar 文件名            |
 | m、l、v、V 任意组合 | 显示结果组合                               |
@@ -71,44 +71,43 @@
 
 [Oracle jstat command](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jps.html)
 
-| 显示参数 | Jstat 命令                                         | 描述                                                         |
-| -------- | -------------------------------------------------- | ------------------------------------------------------------ |
-| S0C      | 以字节为单位显示 **Survivor 0** 区域的当前大小     | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
-| S1C      | 以字节为单位显示 **Survivor 1** 区域的当前大小     | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
-| S0U      | 以字节为单位显示 **Survivor 0** 区域的当前使用情况 | -gc<br/>-gcnew                                               |
-| S1U      | 以字节为单位显示 **Survivor 1** 区域的当前使用情况 | -gc<br/>-gcnew                                               |
-| EC       | 显示 `Eden` 的当前大小，以 KB 为单位               | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
-| EU       | 显示 `Eden Space` 的当前使用情况，以 KB 为单位     | -gc<br/>-gcnew                                               |
-| OC       | 显示 `Old Gen` 的当前大小，以 KB 为单位            | -gc<br/>-gccapacity<br/>-gcold<br/>-gcoldcapacity            |
-| OU       | 显示 `Old Gen` 的当前使用情况，以 KB 为单位        | -gc<br/>-gcold                                               |
-| MC       | 显示 `Metaspace` 的当前大小，以 KB 为单位          | -gc<br/>-gccapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity |
-| MU       | 显示 `Metaspace` 的当前使用情况，以 KB 为单位      | -gc<br/>-gcold                                               |
-| YGC      | `Young Gen` 发生 GC 事件的次数                     | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
-| YGCT     | `Young Gen` 的 GC 累计时间                         | -gc<br/>-gcnew<br/>-gcutil<br/>-gccause                      |
-| FGC      | `Full GC` 发生 GC 事件的次数                       | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
-| FGCT     | `Full GC` 累计时间                                 | -gc<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
-| GCT      | GC 操作累积的总时间                                | -gc<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
-| NGCMN    | `Young Gen` 初始化大小，以 KB 为单位               | -gccapacity<br/>-gcnewcapacity                               |
-| NGCMX    | `Young Gen` 最大容量，以 KB 为单位                 | -gccapacity<br/>-gcnewcapacity                               |
-| NGC      | `Young Gen` 当前容量，以 KB 为单位                 | -gccapacity<br/>-gcoldcapacity                               |
-| OGCMN    | `Old Gen` 初始化大小，以 KB 为单位                 | -gccapacity<br/>-gcoldcapacity                               |
-| OGCMX    | `Old Gen` 最大容量，以 KB 为单位                   | -gccapacity<br/>-gcoldcapacity                               |
-| OGC      | `Old Gen` 当前容量，以 KB 为单位                   | -gccapacity<br/>-gcoldcapacity                               |
-| MCMN     | `Metapsace` 初始化大小，以 KB 为单位               | -gccapacity<br/>-gcmetacapacity                              |
-| MCMX     | `Metapsace` 最大容量，以 KB 为单位                 |                                                              |
-| MC       | `Metapsace` 当前容量，以 KB 为单位                 |                                                              |
-| CCSMN    |                                                    |                                                              |
-| CCSMX    |                                                    |                                                              |
-| CCSC     |                                                    |                                                              |
-| PC       |                                                    |                                                              |
-| PU       |                                                    |                                                              |
-| LGCC     |                                                    |                                                              |
-| GCC      |                                                    |                                                              |
-| TT       |                                                    |                                                              |
-| MTT      |                                                    |                                                              |
-| DSS      |                                                    |                                                              |
+| 显示参数 | Jstat 命令                                                   | 描述                                                         |
+| -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| S0C      | 以字节为单位显示 **Survivor 0** 区域的当前大小               | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
+| S1C      | 以字节为单位显示 **Survivor 1** 区域的当前大小               | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
+| S0U      | 以字节为单位显示 **Survivor 0** 区域的当前使用情况           | -gc<br/>-gcnew                                               |
+| S1U      | 以字节为单位显示 **Survivor 1** 区域的当前使用情况           | -gc<br/>-gcnew                                               |
+| EC       | 显示 `Eden` 的当前大小，以 KB 为单位                         | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
+| EU       | 显示 `Eden Space` 的当前使用情况，以 KB 为单位               | -gc<br/>-gcnew                                               |
+| OC       | 显示 `Old Gen` 的当前大小，以 KB 为单位                      | -gc<br/>-gccapacity<br/>-gcold<br/>-gcoldcapacity            |
+| OU       | 显示 `Old Gen` 的当前使用情况，以 KB 为单位                  | -gc<br/>-gcold                                               |
+| MC       | 显示 `Metaspace` 的当前大小，以 KB 为单位                    | -gc<br/>-gccapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity |
+| MU       | 显示 `Metaspace` 的当前使用情况，以 KB 为单位                | -gc<br/>-gcold                                               |
+| MCMN     | `Metapsace` 初始化大小，以 KB 为单位                         | -gccapacity<br/>-gcmetacapacity                              |
+| MCMX     | `Metapsace` 最大容量，以 KB 为单位                           | -gccapacity<br/>-gcmetacapacity                              |
+| YGC      | `Young Gen` 发生 GC 事件的次数                               | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| YGCT     | `Young Gen` 的 GC 累计时间                                   | -gc<br/>-gcnew<br/>-gcutil<br/>-gccause                      |
+| FGC      | `Full GC` 发生 GC 事件的次数                                 | -gc<br/>-gccapacity<br/>-gcnewcapacity<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| FGCT     | `Full GC` 累计时间                                           | -gc<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| GCT      | GC 操作累积的总时间                                          | -gc<br/>-gcold<br/>-gcoldcapacity<br/>-gcmetacapacity<br/>-gcutil<br/>-gccause |
+| NGCMN    | `Young Gen` 初始化大小，以 KB 为单位                         | -gccapacity<br/>-gcnewcapacity                               |
+| NGCMX    | `Young Gen` 最大容量，以 KB 为单位                           | -gccapacity<br/>-gcnewcapacity                               |
+| NGC      | `Young Gen` 当前容量，以 KB 为单位                           | -gccapacity<br/>-gcoldcapacity                               |
+| OGCMN    | `Old Gen` 初始化大小，以 KB 为单位                           | -gccapacity<br/>-gcoldcapacity                               |
+| OGCMX    | `Old Gen` 最大容量，以 KB 为单位                             | -gccapacity<br/>-gcoldcapacity                               |
+| OGC      | `Old Gen` 当前容量，以 KB 为单位                             | -gccapacity<br/>-gcoldcapacity                               |
+| CSS      | `Compressed Class Space` 利用率百分比。                      | -gcutil<br />-gccause                                        |
+| CCSMN    | `Compressed Class Space` 初始化大小，以 KB 为单位            | -gccapacity<br/>-gcmetacapacity                              |
+| CCSMX    | `Compressed Class Space` 最大容量，以 KB 为单位              | -gccapacity<br/>-gcmetacapacity                              |
+| CCSC     | `Compressed Class Space` 当前容量，以 KB 为单位              | -gc<br />-gccapacity<br/>-gcold<br />-gcmetacapacity         |
+| CCSU     | `Compressed Class Space` 使用容量，以 KB 为单位              | -gc<br />-gcold                                              |
+| LGCC     | 上次 GC 的原因                                               | -gccause                                                     |
+| GCC      | 当前 GC 的原因                                               | -gccause                                                     |
+| TT       | `Young Gen -> Old Gen` 的 `Tenuring Threshold`阈值。如果在年轻区域复制这么多次(S0 ->S1, S1->S0)，它们就会被移动到老区域。 | -gcnew                                                       |
+| MTT      | `Young Gen -> Old Gen` 最大阈值                              | -gcnew                                                       |
+| DSS      | 所需的 `Survivor Space` 的大小，以 KB 为单位，当 `S0U` 或者 `S1U` 超过 `DSS` 将使当前 `Survivor` 区域对象移至 `Old Gen`，最终会触发 GC ，`YCG` 增加 **1** 次，`YGCT` 时间会变化。 | -gcnew                                                       |
 
-
+`Compressed Class Space(压缩类空间)` 是 `Hotspot` 在 **64** 位系统的压缩技术，旨在使用 32 位指针找到 64 位地址（通过存储的一个 base 值加上 32 位基准地址值）。
 
 ### JVisualvm Tools
 
