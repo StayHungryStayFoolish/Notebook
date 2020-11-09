@@ -54,7 +54,19 @@
 
 以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
 
-### 2.1 jps tools
+### 2.1 JVM 通信
+
+#### 2.1.1 Java Remote Method Invocation(Java RMI)
+
+**[Wiki 关于 RMI 的解释：](https://en.wikipedia.org/wiki/Java_remote_method_invocation)** 在计算机中，Java 远程方法调用（Java RMI）是一种执行远程方法调用的 Java API，相当于面向对象的远程过程调用（RPC），支持直接传输序列化的 Java 类和分布式垃圾回收。
+
+#### 2.1.1 Java Management Extensions(JMX)
+
+**[Wiki 关于 JMX 的解释](https://en.wikipedia.org/wiki/Java_Management_Extensions)：**Java 管理扩展（JMX）是一种 Java 技术，它为管理和监控应用程序、系统对象、设备（如打印机）和面向服务的网络提供工具。这些资源由称为 **MBeans（Managed Bean的缩写）**的对象来表示。在 API 中，类可以被动态加载和实例化。管理和监控应用程序可以使用 `Java Dynamic Management Kit(Java动态管理工具包)`  来设计和开发。
+
+**JMX 使用的 RMI 协议进行通信，被称为 JRMP，由`javax.management.remote.rmi.RMIConnector`JVM中的实现。**
+
+### 2.2 jps tools(rmi 通信协议)
 
 [Oracle jps command](https://docs.oracle.com/en/java/javase/13/docs/specs/man/jps.html)
 
@@ -67,11 +79,43 @@
 | jps -V              | 显示 vmid、启动类名、jar 文件名            |
 | m、l、v、V 任意组合 | 显示结果组合                               |
 
-### 2.2 jstat tools
+### 2.2 jstat tools(rmi 通信协议)
 
 [Oracle jstat command](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jps.html)
 
-| 显示参数 | Jstat 命令                                                   | 描述                                                         |
+**jstat 命令格式**
+
+```shell
+jstat -outputOptions [ -t] [-hlines] vmid [interval [count] ]
+
+参数描述：
+-t:	显示一个时间戳列作为输出的第一列。时间戳是自目标JVM的启动时间以来的时间。vmid 	 
+-h n:	每 `n` 个输出行显示一个列标题，其中`n`是一个正整数。默认值为`0`，它显示数据第一行的列标题。
+vmid:	当前 JVM 线程 id
+interval:	指定单位的采样间隔，秒（s）或毫秒（ms）。默认单位是毫秒。这必须是一个正整数。当指定时，jstat命令会在每个时间间隔产生输出。
+count:	要显示的样本数量。默认值是无穷大，这会导致jstat命令显示统计数据，直到目标JVM终止或jstat命令终止。这个值必须是一个正整数。
+```
+
+**jstat Options**
+
+| 命令              | 描述                                                         |
+| ----------------- | ------------------------------------------------------------ |
+| -class            | 显示有关类加载器行为的统计信息                               |
+| -compiler         | 显示有关 `HotSpot VM` 即时编译器行为的统计信息               |
+| -gc               | 显示有关垃圾收集堆行为的统计信息                             |
+| -gccapacity       | 显示内存所有分代及其相应空间的统计数据                       |
+| -gccause          | 显示有关垃圾收集统计信息的摘要（`-gcutil` 与相同），以及最近和当前（如果适用）垃圾收集事件的原因 |
+| -gcnew            | 显示有关 `Young Gen` 行为的统计信息                          |
+| -gcnewcapacity    | 显示有关 `Young Gen` 大小及其相应空间的统计信息              |
+| -gcold            | 显示有关 `Old Gen` 行为的统计信息和元空间统计信息            |
+| -gcoldcapacity    | 显示有关 `Old Gen` 的大小的统计信息                          |
+| -gcmetacapacity   | 显示有关 `Metaspace` 大小的统计信息                          |
+| -gcutil           | 显示有关  GC 收集统计信息的摘要                              |
+| -printcompilation | 显示 `HotSpot VM` 编译方法统计信息                           |
+
+**jps 显示结果参数描述**
+
+| 参数描述 | jstat 命令                                                   | jps 命令                                                     |
 | -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | S0C      | 以字节为单位显示 **Survivor 0** 区域的当前大小               | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
 | S1C      | 以字节为单位显示 **Survivor 1** 区域的当前大小               | -gc<br/>-gccapacity<br/>-gcnew<br/>-gcnewcapacity            |
