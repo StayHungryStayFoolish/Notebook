@@ -49,7 +49,7 @@
     -   **jcmd**- 用于将诊断命令请求发送到 JVM，不支持远程连接 JVM。 
     -   **jconsole** - 实时本地、远程监控 CPU、JVM 内存、类加载、垃圾收集、线程（检测死锁）和类等的监控，是一个基于 JMX（java management extensions）的 GUI 性能监测工具。
     -   **jvisualvm** - `jmap、jinfo、jstat、jstack、jconsole` 功能合集，支持多种功能插件，因为 `jvisualvm` 不仅支持 JMX 还支持 Jvmstat、Attach API 和 SA 等监测技术，还可以记录有关 JVM 实例的数据，并将该数据保存到本地系统，便于分析，支持**内存泄漏检测**。
-    -   **jmc** - 相对 `jconsole`、`jvisualvm` 可以展示更多的信息，也是 GUI 监测工具，UI 更美观，在 `JDK 8u261` 被移除，[Oracle JDK 8u261更新文档](https://www.oracle.com/java/technologies/javase/8u261-relnotes.html)，可在 [Oracle 官方](https://www.oracle.com/java/technologies/javase/jmc-install.html) 单独下载。
+    -   **jmc** - `JDK Mission Control` 相对 `jconsole`、`jvisualvm` 可以展示更多的信息，也是 GUI 监测工具，UI 更美观，在 `JDK 8u261` 被移除，[Oracle JDK 8u261更新文档](https://www.oracle.com/java/technologies/javase/8u261-relnotes.html)，可在 [Oracle 官方](https://www.oracle.com/java/technologies/javase/jmc-install.html) 单独下载。
 
 以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
 
@@ -109,7 +109,7 @@ jstatd \
 
 **[Wiki 关于 JMX 的解释](https://en.wikipedia.org/wiki/Java_Management_Extensions)：**Java 管理扩展（JMX）是一种 Java 技术，它为管理和监控应用程序、系统对象、设备（如打印机）和面向服务的网络提供工具。这些资源由称为 **MBeans（Managed Bean的缩写）**的对象来表示。在 API 中，类可以被动态加载和实例化。管理和监控应用程序可以使用 `Java Dynamic Management Kit(Java动态管理工具包)`  来设计和开发。
 
-**JMX 使用的 RMI 协议进行通信，被称为 JRMP，由 `javax.management.remote.rmi.RMIConnector` JVM 中的实现。**
+**JMX 使用的 RMI 协议进行通信，被称为 Java Remote Message Protoco(JRMP)，由 `javax.management.remote.rmi.RMIConnector` JVM 中的实现，该协议要求服务端和客户端都需要用 Java 编写。**
 
 ##### JMX 配置
 
@@ -222,32 +222,22 @@ select s from java.lang.String s where s.count > 100
 ```shell
 # 打印 pid 线程信息
 jstack pid	
-
-# 关于线程信息状态：
-runnable，线程处于执行中
-deadlock，死锁（重点关注）
-blocked，线程被阻塞 （重点关注）
-Parked，停止
-locked，对象加锁
-waiting，线程正在等待
-waiting to lock 等待上锁
-Object.wait()，对象等待中
-waiting for monitor entry 等待获取监视器（重点关注）
-Waiting on condition，等待资源（重点关注），最常见的情况是线程在等待网络的读写
 ```
 
-| 线程参数 | 线程状态       |
-| -------- | -------------- |
-| runnable | 线程处于运行中 |
-| deadlock | **死锁**       |
-|          |                |
-|          |                |
-|          |                |
-|          |                |
+| 线程参数                  | 线程状态                                         |
+| ------------------------- | ------------------------------------------------ |
+| runnable                  | 线程处于运行中                                   |
+| deadlock                  | **`死锁`**                                       |
+| blocked                   | **`线程阻塞`**                                   |
+| Parked                    | 停止                                             |
+| locked                    | 对象加锁                                         |
+| watiting                  | 线程正在等待                                     |
+| waiting to lock           | 等待上锁                                         |
+| Object.wait()             | 对象等待中                                       |
+| waiting for monitor entry | **`等待获取监视器`**                             |
+| Waiting on condition      | **`待资源，最常见的情况是线程在等待网络的读写`** |
 
-
-
-### JVisualvm Tools
+### 2.6 jconsole & JVisualvm & JMC Tools
 
 [Oracle 远程链接文档](https://docs.oracle.com/javase/1.5.0/docs/guide/management/agent.html#PasswordAccessFiles)
 
