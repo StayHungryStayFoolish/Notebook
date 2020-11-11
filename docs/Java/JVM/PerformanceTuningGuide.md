@@ -298,5 +298,21 @@ java \
 
 **以上步骤 1、2、3 属于 JMX 配置，完成后，可以使用支持 JMX 的工具进行连接。**
 
+## 3.  JVM 参数调优
 
+上边介绍了各种 JVM 监测工具的相关配置和部分参数。接下来将介绍如何通过参数对 JVM 进行调优。
+
+**JVM 调优是为了优化 GC，一般根据三个维度进行调优。**
+
+1. **Latency(延迟)**
+
+2. **Throughput(吞吐量)**
+
+3. **Capacity(容量)**
+
+### 3.1 Low Latency
+
+### 3.2 High Throughout
+
+### 3.3 Proper Capacity
 
