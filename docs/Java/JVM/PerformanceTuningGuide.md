@@ -302,24 +302,46 @@ java \
 
 上边介绍了各种 JVM 监测工具的相关配置和部分参数。接下来将介绍如何通过参数对 JVM 进行调优。
 
-**JVM 调优是为了优化 GC，一般根据三个维度进行调优。**
+### 3.1 性能指标
 
 1. **Latency(延迟)**
     -   `GC` 过程中的 `STW` 时间越少，延迟越低。
 2. **Throughput(吞吐量)**
     -   应用程序的线程用时与程序总用时的占比。应用程序线程占比越高，吞吐量越高。**99%** 的吞吐量意味着应用程序运行了 **99 秒**，而 `GC` 运行了 **1 秒**。
-3. **Capacity(容量)**
+3. **Memory usage(内存利用率)**
     -   适当的内存能保证一个稳定的内存使用率，可以保证 `GC` 不会因为要回收的垃圾太多而造成较长时间的 `STW`，也可以一定程度避免 `OOM` 问题。
 
 这三个维度中任何一个的性能提升几乎是以其他一个或两个属性的性能损失为代价的。应用程序业务需求确定一个或两个属性对应用程序的重要性。
 
-延迟与吞吐量是竞争关系。在 [GC 收集器](http://notebook.bonismo.ink/#/Java/JVM/GarbageCollection) 中提到过 `Application throughput` 和 `Application pause` 两个概念
+**延迟与吞吐量是竞争关系**。在 [GC 收集器](http://notebook.bonismo.ink/#/Java/JVM/GarbageCollection) 中提到过 `Application pause` 和 `Application throughput` 两个概念就是本文的延迟与吞吐量。JVM 中有独立的线程（GC Threads）来执行 GC，所以只要 `GC threads` 是活动的就肯定会与 `Application threads` 竞争 CPU 的时钟周期。
 
-**一般会采用低延迟、高吞吐量、适当的内存使用率来进行调优。**
+因此高吞吐量势必造成 `Heap Memory` 中的对象数量持续攀高，当 `GC` 需要确定 `Heap Memory` 中对象是否可以回收时，需要更长的 `STW` 时间，以便于完成工作。**通常来讲，会在延迟与吞吐量取舍上采取折中方案，推荐采用低延迟、高吞吐量、适当的内存使用率来进行调优。**
 
-### 3.1 Low Latency
+### 3.2 性能调整原则
 
-### 3.2 High Throughout
+1.  **Minor GC**
+    -   每次 `Minor GC` 尽可能多的收集垃圾对象，减少 `Full GC` 频率。
+2.  **GC 内存最优原则**
+    -   选择最优内存，以达到低延迟和高吞吐量的性能。内存并不是越大越好，内存越大，`GC ` 回收造成的 `STW` 时间就越长，相反内存越小，`GC` 的频率就越高。
+3.  **GC 三分之二原则**
+    -   按照应用程序需求在**三个性能指标**选择最优化。
 
-### 3.3 Proper Capacity
+### 3.3 调优过程
 
+应用程序可以分为三个阶段：
+
+1.  初始化阶段
+2.  稳定性阶段
+3.  报告阶段
+
+
+
+
+
+调优需要达到的最高性能要求
+
+1.  最低延迟
+    -   一致的 Java 应用响应时间
+    -   [LatencyUtils](https://github.com/LatencyUtils/LatencyUtils)
+2.  不出现抖动和有问题的垃圾收集暂停现象
+    -   消除由停顿和抖动引起的问题。
