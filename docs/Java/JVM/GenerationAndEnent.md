@@ -63,7 +63,7 @@
 
 #### Major GC
 
-1. 经过多次 `Minor GC` 周期（默认 **15** 次），`Young Gen` 区域存活下来的对象将被移至 `Old Gen` 区域。当 `Old Gen` 区域内没有多余空间时，就会触发 `Major GC`，耗时比 `Minor GC`  多。**`Major GC` 造成的 JVM 的 `STW` 时间较长，在 JVM 优化中需要注意。**
+1. 经过多次 `Minor GC` 周期（默认 **15** 次），`Young Gen` 区域存活下来的对象将被移至 `Old Gen` 区域。当 `Old Gen` 区域内没有多余空间时，就会触发 `Major GC`，耗时比 `Minor GC`  多。**在 JVM 优化中需要注意 `Major GC` 造成的 JVM 的 `STW` 时间较长。**
 
 #### Full GC
 
