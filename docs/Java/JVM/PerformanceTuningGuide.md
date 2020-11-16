@@ -68,6 +68,8 @@ Java 应用程序影响性能的因素非常多，比如磁盘、内存、IO等�
 
 以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
 
+**GC 在线解析工具：** [GCeasy](https://gceasy.io/)
+
 ### 2.1 JVM 两种通信方式
 
 #### 2.1.1 Java Remote Method Invocation(Java RMI)
@@ -347,12 +349,51 @@ JVM 调优主要涉及优化**GC(垃圾收集器)**以获得更好的收集性�
 
 ## 4. 调优过程
 
-![Tuning-JVM](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Tuning-JVM.png)
+![Tuning-JVM](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/jvm-tuning-process.png)
 
 
 **JVM 调整涉及连续的配置优化和基于性能测试结果的多次迭代。**在满足每个所需的系统指标之前，每个先前的步骤可能会经历多次迭代。在某些情况下，为了满足特定指标，可能需要多次调整先前的参数，从而需要再次测试所有先前的步骤。
 
 此外，调整通常从满足应用程序的`内存使用`要求开始，然后是`延迟时间`和`吞吐量`。调整应遵循以下步骤顺序。
+
+### 4.1 JVM 调优参数表
+
+>   -XX:+	 `+` 代表开启
+>
+>   -XX:-	  `-` 代表关闭
+>
+>   -XX:=	  `=` 代表指定一个值、文件路径、指令等
+
+| JVM 1~8 参数                       | JVM 9 ~ N 参数              | Log 格式                                                     | 说明                                                         |
+| :--------------------------------- | --------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **日期**                           | **日期**                    | **日期**                                                     | **日期**                                                     |
+| -XX:+PrintGCDateStamps             | **废弃**                    | [2013-05-04T21:53:59.234+0800]                               | 当前时间                                                     |
+| -XX:+PrintGCTimeStamps             | -Xlog:gc*::time             | [0.004s]                                                     | JVM 启动时间                                                 |
+| **垃圾收集器**                     | **垃圾收集器**              | **垃圾收集器**                                               | **垃圾收集器**                                               |
+| -XX:+UseSerualGC                   | -XX:+UserSerualGC           | `响应速度优先`                                               | 串行GC                                                       |
+| -XX:+UseParallelGC                 | -XX:+UseParallelGC          | `吞吐量优先`                                                 | 并行 GC，`Young Gen` 多线程收集，`Old Gen` 单线程收集        |
+| -XX:+UseParallerOldGC              | -XX:+UseParallerOldGC       | `吞吐量优先`                                                 | 并行 GC，`Young Gen` 和 `Old Gen` 都是多线程收集             |
+| -XX:+UseConcMarkSweepGC            | -XX:+UseConcMarkSweepGC     | `响应速度优先`                                               | 并发收集                                                     |
+| -XX:UseG1GC                        | -XX:UseG1GC                 | `响应速度优先`                                               | CMS 替代版本                                                 |
+| **内存配置**                       | **内存配置**                | **内存配置**                                                 | **内存配置**                                                 |
+| -Xmx2048m                          | -Xmx                        |                                                              | 最大 `Heap Memory`                                           |
+| -Xms2048m                          | -Xms                        |                                                              | 初始 `Heap Memory`，一般和 `-Xmx` 一样，不留 `reserved`      |
+| -Xmn800m 等价 -XX:MaxHeapSize=800m | -Xmn                        |                                                              | `Young Gen` 大小                                             |
+| -XX:MetaSpaceSize=50m              | -XX:MetaSpaceSize=          |                                                              | 每次触发 `Full GC` 扩容的阈值                                |
+| -XX:MaxMetaSpaceSize=2048m         | -XX:MaxMetaSpaceSize=       |                                                              | `Metaspace` 最大值，建议设置最大值，因为默认是系统内存值，容易导致系统内存不够。 |
+| -XX:MinMetaspaceFreeRatio          | -XX:MinMetaspaceFreeRatio   |                                                              | `Full GC` 后 `Metaspace` 剩余空间**小于**该参数则**扩容**    |
+| -XX:MaxMetaspaceFreeRatio          | -XX:MaxMetaspaceFreeRatio   |                                                              | `Full GC` 后 `Metaspace` 剩余空间**大于**该参数则**缩容**    |
+| -XX:MaxTenuringThreshold=15        | -XX:MaxTenuringThreshold=15 |                                                              | `Young Gen` 晋升到 `Old Gen` 的阈值                          |
+|                                    |                             |                                                              |                                                              |
+| **日志记录**                       | **日志记录**                | **日志记录**                                                 | **日志记录**                                                 |
+|                                    | `-Xlog:gc`                  |                                                              |                                                              |
+| -Xloggc:/path/to/file/gc.log       | `-Xlog:gc:/path/gc.log`     |                                                              | 输出日志到指定路径                                           |
+|                                    | -Xlog:gc=debug              |                                                              | 日志级别                                                     |
+|                                    | -Xlog:gc=debug:file=gc.txt  |                                                              |                                                              |
+| -XX:+PrintTenuringDistribution     |                             | Desired survivor size 87359488 bytes, new threshold 4 (max 4)<br/>- age   1:    9167144 bytes,    9167144 total<br/>- age   2:    9178824 bytes,   18345968 total<br/>- age   3:   16101552 bytes,   34447520 total<br/>- age   4:   21369776 bytes,   55817296 total | `GC Event` 之后打印 `Survivor` 对象情况                      |
+|                                    |                             |                                                              |                                                              |
+|                                    |                             |                                                              |                                                              |
+|                                    |                             |                                                              |                                                              |
 
 ### 4.1 确定内存使用率（活动数据大小）
 
