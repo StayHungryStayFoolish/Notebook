@@ -330,8 +330,9 @@ BRPOPLPUSH source destination timeout
 ### 3.2 List 应用场景
 
 -   LREM 可以实现待办事项列表
--   PUSH 相关命令可以实现评论列表等
+-   PUSH 相关命令可以实现评论列表等**（List 数据结构不太适合删除数据）**
 -   POP 相关的命令可以实现阻塞、非阻塞队列
+-   LRANGE 实现分页查询**（涉及到删除场景的可以使用 ZSET 数据类型）**
 
 ## 4.Set
 
@@ -498,6 +499,8 @@ ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MI
 ### 5.2 ZSet 应用场景
 
 -   ZRANGE 命令集合实现排行榜、权重排名
+
+-   分页功能：页面总数：ZCOUNT，当前页面：ZRANGE，倒序：ZREVRANGE
 
 ## 6. Bitmap    
 
