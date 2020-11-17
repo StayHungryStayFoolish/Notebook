@@ -8,7 +8,7 @@
 3.  **架构层**
     -   在理解架构机制的情况下进行最优配置，提高计算、存储能力，降低系统负载
 4.  **JVM 层**
-    -   通过对应用程序的压测，不断调整  JVM 参数，最终达到低延迟、高吞吐量、最优内存使用率三个性能指标
+    -   通过对应用程序的压测，不断调整 JVM 参数，最终达到低延迟、高吞吐量、最优内存使用率三个性能指标
 
 Java 应用程序影响性能的因素非常多，比如磁盘、内存、IO等因素。以上 4 个层级优化难度是依次递增的，架构层优化对系统性能影响最大。
 
@@ -363,6 +363,8 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 >   -XX:-	  `-` 代表关闭
 >
 >   -XX:=	  `=` 代表指定一个值、文件路径、指令等
+>
+>   **JVM 配置数值只支持整数类型，不支持带小数的值。**
 
 [Oracle JVM 8 官方文档参数](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html)
 
@@ -370,7 +372,7 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 
 **强烈推荐：**[JVM 在线设置参数工具](http://jvmmemory.com/)
 
-| 参数                                               | JVM 9 ~ N 参数                                     | Log 格式                                                     | 说明                                                         |
+| 参数                                               | JVM 9 ~ N 参数                                     | 默认值 / 格式                                                | 说明                                                         |
 | :------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | **系统设置**                                       |                                                    |                                                              |                                                              |
 | `-Duser.timezone=US/Eastern`                       | `-Duser.timezone=US/Eastern`                       |                                                              | 如果 Java 代码中有使用 `java.util.Date` 和 `java.util.Calendar` 则可以使用该参数**指定时区** |
@@ -417,19 +419,19 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 |                                                    |                                                    |                                                              |                                                              |
 | **JVM 8 打印日志**                                 | **JVM 9 ~ N 打印日志**                             | **JVM 打印日志格式**                                         | **JVM 打印日志说明**                                         |
 | **JVM 8 日期**                                     | **JVM 9 ~ N 日期参数**                             | **JVM 日期**                                                 | **JVM 日期说明**                                             |
-| -XX:+PrintGCDateStamps                             | -Xlog:gc*::timemillis                              | 2013-05-04T21:53:59.234+0800<br />JVM 9 显示时间戳`(System.currentTimeMillis())` | 当前时间                                                     |
+| -XX:+PrintGCDateStamps                             | -Xlog:gc*::timemillis                              | 2013-05-04T 21:53:59.234+0800<br />JVM 9 显示时间戳`(System.currentTimeMillis())` | 当前时间                                                     |
 | -XX:+PrintGCTimeStamps                             | -Xlog:gc*::time                                    | 0.004s                                                       | JVM 启动时间                                                 |
 | -XX:+PrintGC                                       | `-Xlog:gc`                                         | [GC (Allocation Failure)  9216K->7930K(23552K), 0.0030461 secs] | 打印 GC **基本信息**                                         |
 | -XX:+PrintGCDetails                                | `-Xlog:gc*`                                        | [GC (Allocation Failure) [PSYoungGen: 9216K->996K(10240K)] 9216K->7938K(23552K), 0.0028309 secs] [Times: user=0.01 sys=0.01, real=0.01 secs] | 打印 GC **详细信息**                                         |
 | -XX:+PrintGCApplicationStoppedTime                 | -XX:+PrintGCApplicationStoppedTime                 | Total time for which application threads were stopped: 0.0468229 seconds | 打印 GC 的 `STW` 时间                                        |
 | -XX:+PrintGCApplicationConcurrentTim               | -XX:+PrintGCApplicationConcurrentTim               | Application time: 2.0373444 seconds                          | 打印 GC 回收前程序未中断的执行时间                           |
-| -XX:+PrintTLAB                                     | -XX:+PrintTLAB                                     | TLAB: gc thread: 0x00007fce4d0d2000 [id: 16387] desired_size: 184KB slow allocs: 0  refill waste: 2944B alloc: 0.99996     9216KB refills: 1 waste 99.9% gc: 188584B slow: 0B fast: 0B<br/>TLAB totals: thrds: 3  refills: 50 max: 47 slow allocs: 3 max 3 waste:  2.9% gc: 244640B max: 188584B slow: 23784B max: 23720B fast: 1096B max: 1096B | 查看 `TLAB` 空间的使用情况                                   |
+| -XX:+PrintTLAB                                     | **已废弃**                                          | TLAB: gc thread: 0x00007fce4d0d2000 [id: 16387] desired_size: 184KB slow allocs: 0  refill waste: 2944B alloc: 0.99996     9216KB refills: 1 waste 99.9% gc: 188584B slow: 0B fast: 0B<br/>TLAB totals: thrds: 3  refills: 50 max: 47 slow allocs: 3 max 3 waste:  2.9% gc: 244640B max: 188584B slow: 23784B max: 23720B fast: 1096B max: 1096B | 查看 `TLAB` 空间的使用情况                                   |
 | -XX:TLABWasteTargetPercent=1                       | -XX:TLABWasteTargetPercent=1                       | **默认值 1%**                                                | TLAB 占 `Eden Space` 的百分比                                |
 | -XX:+DoEscapeAnalysis                              | -XX:+DoEscapeAnalysis                              |                                                              | 开启 `逃逸分析`                                              |
 | `-XX:+PrintHeapAtGC`                               | `-Xlog:gc+heap=trace`                              |                                                              | 打印 GC 前后的详细堆栈信息                                   |
 | `-Xdebug`                                          | `-Xlog:gc=debug`                                   |                                                              | 根据 GC 级别打印日志                                         |
 |                                                    | -Xlog:gc=debug:file=gc.txt                         |                                                              |                                                              |
-| -XX:+PrintTenuringDistribution                     | -XX:+PrintTenuringDistribution                     | Desired survivor size 87359488 bytes, new threshold 4 (max 4)<br/>- age   1:    9167144 bytes,    9167144 total<br/>- age   2:    9178824 bytes,   18345968 total<br/>- age   3:   16101552 bytes,   34447520 total<br/>- age   4:   21369776 bytes,   55817296 total | `GC Event` 之后打印 `Survivor` 对象情况                      |
+| `-XX:+PrintTenuringDistribution`                   | `-Xlog:gc+age*=trace`                              | Desired survivor size 87359488 bytes, new threshold 4 (max 4)<br/>- age   1:    9167144 bytes,    9167144 total<br/>- age   2:    9178824 bytes,   18345968 total<br/>- age   3:   16101552 bytes,   34447520 total<br/>- age   4:   21369776 bytes,   55817296 total | `GC Event` 之后打印 `Survivor` 对象情况                      |
 |                                                    |                                                    |                                                              |                                                              |
 | **JVM 8 导出日志及对转储文件**                     | **JVM 9 ~ N 导出日志及对转储文件**                 | **JVM 导出日志及对转储文件格式**                             | **JVM 导出日志及对转储文件说明**                             |
 | **-XX:ErrorFile=/path/error.log**                  | **-XX:ErrorFile=/path/error.log**                  |                                                              | 在指定路径输出应用程序内的错误日志                           |
@@ -442,9 +444,9 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 | -XX:OnOutOfMemoryError="< cmd args >;< cmd args >" | -XX:OnOutOfMemoryError="< cmd args >;< cmd args >" |                                                              | 出现 `OutOfMemoryError` 情况下，执行用于发出紧急命令以在出现内存不足错误时执行；在cmd args的空格中应使用正确的命令。例如立即重启服务器 `-XX:OnOutOfMemoryError="shutdown -r"` |
 |                                                    |                                                    |                                                              |                                                              |
 | **JVM 8 线程相关**                                 | **JVM 9 ~ N 线程**                                 |                                                              | **JVM 线程相关说明**                                         |
-| -XX:+UseSpinning                                   | -XX:+UseSpinning                                   |                                                              | 开启自旋锁，**默认开启**                                     |
-| -XX:PreBlockSpin=10                                | -XX:PreBlockSpin=10                                |                                                              | 设置自旋锁自旋次数                                           |
-| -XX:+UseBiasLocking                                | -XX:+UseBiasLocking                                |                                                              | 开启 JVM `偏向锁`，**默认开启**                              |
+| -XX:+UseSpinning                                   | -XX:+UseSpinning                                   | **默认开启**                                                 | 开启自旋锁                                                   |
+| -XX:PreBlockSpin=10                                | -XX:PreBlockSpin=10                                | **默认值 10**                                                | 设置自旋锁自旋次数                                           |
+| -XX:+UseBiasLocking                                | -XX:+UseBiasLocking                                | **默认开启**                                                 | 开启 JVM `偏向锁`                                            |
 | -XX:MaxJavaStackTraceDepth=1024                    | -XX:MaxJavaStackTraceDepth=1024                    |                                                              | `Stack Memory` 栈深                                          |
 | -XX:+UseLWPSynchronization                         | -XX:+UseLWPSynchronization                         |                                                              | 使用轻量级进程替换线程同步                                   |
 | -XX:+UseBoundTherads                               | -XX:+UseBoundTherads                               |                                                              | 绑定所有的用户线程到内核线程，减少线程进入到饥饿状态次数     |
@@ -453,7 +455,7 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 | -XX:+UseStringCache                                | -XX:+UseStringCache                                |                                                              | 启用常用分配的字符串的缓存                                   |
 | -XX:+UseCompressedStrings                          | -XX:+UseCompressedStrings                          |                                                              | 对可以使用纯ASCII表示的字符串使用byte []                     |
 | -XX:+OptimizeStringConcat                          | -XX:+OptimizeStringConcat                          |                                                              | 尽可能优化字符串连接操作                                     |
-| -XX:AutoBoxCacheMax=127                            | -XX:AutoBoxCacheMax=127                            | 默认 [-128, 127]                                             | 设置自动拆装箱 `IntegerCache` 的**静态内部类**缓存，在此范围内的两个对象是**内存地址是相同的**。对 Long 无效。**旨在减少内存开销**，只在 `Server` 模式有效。 |
+| -XX:AutoBoxCacheMax=127                            | -XX:AutoBoxCacheMax=127                            | **默认 [-128, 127]**                                         | 设置自动拆装箱 `IntegerCache` 的**静态内部类**缓存，在此范围内的两个对象是**内存地址是相同的**。对 Long 无效。**旨在减少内存开销**，只在 `Server` 模式有效。 |
 |                                                    |                                                    |                                                              |                                                              |
 
 ### 4.1 确定内存使用率（活动数据大小）
