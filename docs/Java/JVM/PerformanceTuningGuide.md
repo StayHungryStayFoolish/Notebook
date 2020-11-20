@@ -405,7 +405,7 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 | -XX:NewRatio=2                                     | -XX:NewRatio=2                                     | **默认值 1:2**                                               | `Young Gen`:`Old Gen` = 1:2                                  |
 | -XX:SurvivorRatio=8                                | -XX:SurvivorRatio=8                                | **默认值 8:1:1**                                             | `Eden`:`Survivor`:`Survivor` = 8:1:1                         |
 | -XX:+UseTLAB                                       | -XX:+UseTLAB                                       | **默认启用**                                                 | 在 `Young Gen` 分配 `TLAB` 所需的内存空间                    |
-| `-XX:TLABSize=512k`                                | `-XX:TLABSize=512k`                                | **默认值 512 KB**                                            | 设置 `TLAB` 大小                                             |
+| `-XX:TLABSize=512k`                                | `-XX:TLABSize=512k`                                | **默认值 512 KB，JVM 会根据线程数量、分配率、Eden 大小三个因素自适应调整** | 设置 `TLAB` 大小                                             |
 | **设置 `Metaspace` 空间(可以理解成 Method Area)**  |                                                    |                                                              |                                                              |
 | -XX:MetaSpaceSize=50m                              | -XX:MetaSpaceSize=                                 | **默认值 20 MB，根据 OS 变化**                               | 每次触发 `Full GC` 扩容的阈值                                |
 | -XX:MaxMetaSpaceSize=2048m                         | -XX:MaxMetaSpaceSize=                              | **默认值为 OS 内存**                                         | `Metaspace` 最大值，建议设置最大值，因为默认是系统内存值，容易导致系统内存不够。 |
@@ -641,9 +641,9 @@ public class GC_Example {
 
 从上面的GC日志中，可以简单统计下**分配率**。**分配率是在每个时间单位内分配的内存使用量。分配率过高可能意味着应用程序性能出现问题。在 JVM 上运行时，此问题将造成大量开销的垃圾回收。**
 
->   **分配值 = x -  y**
+>   **分配值（Allocation） = x -  y**
 >
->   **分配率 = 分配值 / GC 间隔时间**
+>   **分配率（Allocation rate） = 分配值 / GC 间隔时间**
 
 | GC 事件    | 启动时间 | 暂停时间       | Young 前 | Young 后 | Heap 前 `x` | Heap 后 `y` | 分配值    | 分配率        |
 | ---------- | -------- | -------------- | -------- | -------- | ----------- | ----------- | --------- | ------------- |

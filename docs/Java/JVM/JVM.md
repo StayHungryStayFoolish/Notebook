@@ -78,8 +78,49 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 **Java 对象在老年代的生命周期**
 
 - 这是为包含可能在多轮 `Minor GC` 中存活下来的长寿命对象而保留的，一般 `Young Gen` 经过 **15** 次 `Minor GC` 后存活下来，会转入老年代。
-
 - 当 `Old Gen` 空间已满时或者无法提供足够的连续空间存储 `Young Gen` 的对象时（此处可以参考 [Heap Memory 内的 GC 事件机制](http://notebook.bonismo.ink/#/Java/JVM/GenerationAndEnent?id=heap-memory-%e5%86%85%e7%9a%84-gc-%e4%ba%8b%e4%bb%b6)），将执行 `Major GC`（通常需要更长的时间）。
+
+##### 1.2.1.3 Thread Local Allocation Buffer(Eden Space 的特殊空间)
+
+> 在 Java 中，新对象在 `Eden Space` 中分配。这是线程之间共享的内存空间。如果考虑到多个线程可以同时分配新对象，那么显然需要某种同步机制。怎么解决呢？分配队列？某种互斥锁？即使这些是不错的解决方案，也有更好的解决方案。这就是 `TLAB` 发挥作用的地方。
+>
+> `TLAB` 代表**线程本地分配缓冲区**，它是 `Eden Space` 内部的一个区域，**专门分配给线程**。只有一个线程可以在该区域分配新对象。每个线程都有自己的 `TLAB`。因此，只要在 `TLAB` 中分配对象，就不需要任何类型的同步。
+>
+> `TLAB` 内部的分配是一个简单的*指针* （这就是为什么有时将其称为指针缓冲分配）的原因。
+
+![TLAB](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/TLAB.svg)
+
+**上图为线程内对象分配流程**
+
+**TLAB 空间大小**
+
+默认情况下，`TLAB ` 空间大小由三个共同的因素进行动态调整。
+
+1. 应用线程数量
+2. 分配率（Allocation rate，在 [JVM 调优指南](http://notebook.bonismo.ink/#/Java/JVM/PerformanceTuningGuide?id=_42-%e5%bb%b6%e8%bf%9f%e8%b0%83%e6%95%b4)中有计算方式）
+3. `Eden Space` 大小
+
+**TLAB 退役问题**
+
+当一个线程创建对象时，如果 `TLAB` 空间剩余空间不多，或者对象太大时，会发生两种情况：
+
+1. 将对象分配在 `TLAB` 之外，即分配在 `Eden Space`，该分配过程也被称为**慢分配**。
+2. 创建一个新的 `TLAB`，并将对象分配在新的 `TLAB`，严格的讲，JVM 会将原来的 `TLAB` 进行**退役处理**。
+
+**TLAB 允许空间浪费**
+
+当 JVM 在 `TLAB` 之外分配大对象时，由于分配缓慢，该 `TLAB` 的剩余空间被浪费了。例如，JVM 在 `100KB 的 TLAB` 已经存储了 **75 KB**，此时再次分配了 **30KB** 对象，因为 `TLAB` 无法分配，会在 `Eden Space` 进行分配，则浪费了那些剩余的 **25KB**。
+
+同样，在 `Minor GC` 期间，每个 `TLAB` 的剩余空间也会被浪费。通常，当 JVM 退役 `TLAB` 时，该 `TLAB` 的可用剩余空间将被视为浪费。
+
+**TLAB 存在的问题**
+
+1. `TLAB` 允许空间浪费，导致 `Eden Space` 空间不连续，应该还需要进行压缩整理类似操作（没有查到相关资料）。
+2. 当 `Eden Space` 剩余空间不足时，申请 `TLAB` 空间将导致 `Minor GC`甚至 `Full GC` 操作。
+
+##### 1.2.1.4 Escape Analysis(逃逸分析)
+
+> Java 中的对象和数组并不一定都会在 `Heap Memory` 中创建。
 
 #### 1.2.2 Non-Heap Memory(非堆内存)
 
