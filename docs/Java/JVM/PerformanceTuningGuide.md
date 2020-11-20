@@ -370,6 +370,8 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 
 [Oracle JVM 9 官方文档参数](https://docs.oracle.com/javase/9/tools/java.htm#JSWOR624)
 
+[JVM 参数列表](http://pingtimeout.github.io/jvm-options/#)
+
 **强烈推荐：**[JVM 在线设置参数工具](http://jvmmemory.com/)
 
 | 参数                                               | JVM 9 ~ N 参数                                     | 默认值 / 格式                                                | 说明                                                         |
@@ -407,11 +409,12 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 | **设置 `Metaspace` 空间(可以理解成 Method Area)**  |                                                    |                                                              |                                                              |
 | -XX:MetaSpaceSize=50m                              | -XX:MetaSpaceSize=                                 | **默认值 20 MB，根据 OS 变化**                               | 每次触发 `Full GC` 扩容的阈值                                |
 | -XX:MaxMetaSpaceSize=2048m                         | -XX:MaxMetaSpaceSize=                              | **默认值为 OS 内存**                                         | `Metaspace` 最大值，建议设置最大值，因为默认是系统内存值，容易导致系统内存不够。 |
-| -XX:MinMetaspaceFreeRatio                          | -XX:MinMetaspaceFreeRatio                          |                                                              | `Full GC` 后 `Metaspace` 剩余空间**小于**该参数则**扩容**    |
-| -XX:MaxMetaspaceFreeRatio                          | -XX:MaxMetaspaceFreeRatio                          |                                                              | `Full GC` 后 `Metaspace` 剩余空间**大于**该参数则**缩容**    |
+| -XX:MinMetaspaceFreeRatio=40                       | -XX:MinMetaspaceFreeRatio=40                       |                                                              | `Full GC` 后 `Metaspace` 剩余空间**小于**该参数则**扩容**    |
+| -XX:MaxMetaspaceFreeRatio=90                       | -XX:MaxMetaspaceFreeRatio=90                       |                                                              | `Full GC` 后 `Metaspace` 剩余空间**大于**该参数则**缩容**    |
 |                                                    |                                                    |                                                              |                                                              |
 | **`JVM 优化（吞吐量、延迟、JIT）`**                | **`JVM 优化（吞吐量、延迟、JIT）`**                | **`JVM 优化（吞吐量、延迟、JIT）`**                          | **`JVM 优化（吞吐量、延迟、JIT）`**                          |
-| `-XX:MaxGCPauseMillis=500`                         | `-XX:MaxGCPauseMillis=500`                         | `优化延迟`                                                   | 设置GC 最大暂停时间，**软目标，JVM 会尽力实现**              |
+| `-XX:MaxGCMinorPauseMillis=1`                      | `-XX:MaxGCMinorPauseMillis=1`                      | **默认单位值毫秒** `优化延迟`                                | 设置 MinorGC 最大暂停时间，**软目标，JVM 会尽力实现          |
+| `-XX:MaxGCPauseMillis=500`                         | `-XX:MaxGCPauseMillis=500`                         | **默认单位值毫秒** `优化延迟`                                | 设置GC 最大暂停时间，**软目标，JVM 会尽力实现**              |
 | `-XX:GCTimeRatio=nnn`                              | `-XX:GCTimeRatio=nnn`                              | **`提高吞吐量，默认值 99%` 假设值为 nnn，则比例为 1 / (1 + nnn)，该值是 GC 的占比** | **应用程序线程的执行时间 / 总程序执行时间 = 目标比值，100% - 99% = 1% 意味着 GC 时间占比为 1%**，具体可以参考 [Oracale Ergonomics 文档](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gc-ergonomics.html) |
 | `-XX:+UseAdaptiveSizePolicy`                       | `-XX:+UseAdaptiveSizePolicy`                       | **默认启动，此参数和 `-XX:SurvivorRatio=8` 冲突**            | 自动选择 `Eden Gen` 和 `Survivor` 比例                       |
 | `-XX:+AggressiveOpts`                              | `-XX:+AggressiveOpts`                              |                                                              | 启用积极的性能优化功能                                       |
@@ -425,6 +428,8 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 | **JVM 8 日期**                                     | **JVM 9 ~ N 日期参数**                             | **JVM 日期**                                                 | **JVM 日期说明**                                             |
 | `-XX:+PrintGCDateStamps`                           | -Xlog:gc*::timemillis                              | 2013-05-04T 21:53:59.234+0800<br />JVM 9 显示时间戳`(System.currentTimeMillis())` | 当前时间                                                     |
 | `-XX:+PrintGCTimeStamps`                           | -Xlog:gc*::time                                    | 0.004s                                                       | JVM 启动时间                                                 |
+| `-Dsun.rmi.dgc.client.gcInterval=3600000`          | `-Dsun.rmi.dgc.client.gcInterval=3600000`          | **RMI 监控配置 Full GC 显式收集频率**                        | **如果使用 RMI 监控，默认 1小时显式进行 Full GC**            |
+| `-Dsun.rmi.dgc.server.gcInterval=3600000`          | `-Dsun.rmi.dgc.server.gcInterval=3600000`          | **RMI 监控配置 Full GC 显式收集频率**                        | **如果使用 RMI 监控，默认 1小时显式进行 Full GC**            |
 | `-XX:+PrintGC`                                     | `-Xlog:gc`                                         | [GC (Allocation Failure)  9216K->7930K(23552K), 0.0030461 secs] | 打印 GC **基本信息**                                         |
 | `-XX:+PrintGCDetails`                              | `-Xlog:gc*`                                        | [GC (Allocation Failure) [PSYoungGen: 9216K->996K(10240K)] 9216K->7938K(23552K), 0.0028309 secs] [Times: user=0.01 sys=0.01, real=0.01 secs] | 打印 GC **详细信息**                                         |
 | -XX:+PrintGCApplicationStoppedTime                 | **已废弃**                                         | Total time for which application threads were stopped: 0.0468229 seconds | 打印 GC 的 `STW` 时间                                        |
@@ -592,112 +597,20 @@ public class GC_Example {
 
 - 参考 **Minor GC 分段解析**
 
-#### 4.1.2 复杂 GC Logs 分析
-
-使用 `-Xmx100m -Xlog:gc* -XX:+UseParallelGC -Xlog:gc+heap=trace` 参数打开 GC 日志和 GC 前后堆日志，此处为了快速获取 GC 日志，所以限制了 Heap 最大内存为 **100MB**。
-
-```shell
-# 整个日志开头的 s 代表自 JVM 启动的时间
-# 初始 Heap 大小
-[0.004s][trace][gc,heap]   Initial heap size 104857600
-# 最小 Heap 大小
-[0.004s][trace][gc,heap]   Minimum heap size 6815736
-[0.010s][debug][gc,heap] Minimum heap 8388608  Initial heap 104857600  Maximum heap 104857600
-[0.010s][trace][gc,heap] 1: Minimum young 1572864  Initial young 34603008  Maximum young 34603008
-[0.010s][trace][gc,heap] Minimum old 524288  Initial old 70254592  Maximum old 70254592
-# 使用 Parallel GC
-[0.010s][info ][gc     ] Using Parallel
-
-# Heap 大小 = Young Gen（33 MB） + Old Gen（67 MB） = 100 MB
-# Young Gen（33 MB） = Eden Space(25 MB) + from[Survivor0]（4 MB） + to[Survivor1]（4 MB）
-
-[0.010s][info ][gc,heap,coops] Heap address: 0x00000007f9c00000, size: 100 MB, Compressed Oops mode: Zero based, Oop shift amount: 3
-# PSYoungGen total = 29696K = 29 MB(次数 YoungGen 只加了一个 Survivor) 
-[122.009s][debug][gc,heap      ] GC(0) Heap before GC invocations=1 (full 0): PSYoungGen      total 29696K, used 25600K [0x00000007fdf00000, 0x0000000800000000, 0x0000000800000000)
-# eden space 25600K = 25 MB，目前已经使用了 100%，接下来再分配对象到 Eden，肯定会出现 Allocation Failure（分配内存失败），发生 Minor GC Event
-[122.010s][debug][gc,heap      ] GC(0)   eden space 25600K, 100% used [0x00000007fdf00000,0x00000007ff800000,0x00000007ff800000)
-# from space 4096K = 4 MB，0% 使用
-[122.010s][debug][gc,heap      ] GC(0)   from space 4096K, 0% used [0x00000007ffc00000,0x00000007ffc00000,0x0000000800000000)
-# to space 4096K = 4 MB，0% 使用
-[122.010s][debug][gc,heap      ] GC(0)   to   space 4096K, 0% used [0x00000007ff800000,0x00000007ff800000,0x00000007ffc00000)
-# ParOldGen 68608K = 67 MB，目前使用 0K
-[122.010s][debug][gc,heap      ] GC(0)  ParOldGen       total 68608K, used 0K [0x00000007f9c00000, 0x00000007fdf00000, 0x00000007fdf00000)
-[122.010s][debug][gc,heap      ] GC(0)   object space 68608K, 0% used [0x00000007f9c00000,0x00000007f9c00000,0x00000007fdf00000)
-
-# Metaspace 
-# used 代表加载的类的大小
-# capacity 代表当前分配块的元数据的空间，被实际分配的 Chunk 总和 
-# committed 代表空间块的数量，被 commit 的 Chunk 总和
-# reserved 代表元数据的保留大小，JVM 启动时根据参数和操作系统预留的内存大小
-[122.010s][debug][gc,heap      ] GC(0)  Metaspace       used 14034K, capacity 14512K, committed 14720K, reserved 1062912K
-# Metaspace 的 class space 
-[122.010s][debug][gc,heap      ] GC(0)   class space    used 1438K, capacity 1629K, committed 1664K, reserved 1048576K
-# 因为 YoungGen 的内存分配失败，发生 MinorGC Event
-[122.010s][info ][gc,start     ] GC(0) Pause Young (Allocation Failure)
-# MinorGC 前 YoungGen 使用了 25600K，MinorGC 后使用了 4066K，总大小为 29696K = 29 MB
-[122.018s][info ][gc,heap      ] GC(0) PSYoungGen: 25600K->4066K(29696K)
-# MinorGC 前 OldGen 使用了 0K，MinorGC 后，OldGen 增加了 992K，总大小为 68608K = 67 MB
-[122.018s][info ][gc,heap      ] GC(0) ParOldGen: 0K->992K(68608K)
-# Meataspace 前后没有变化，总大小约 1G，因为没有设置 -XX:MaxMetaspaceSize
-[122.018s][info ][gc,metaspace ] GC(0) Metaspace: 14034K->14034K(1062912K)
-# YoungGen 发生了 MinorGC，暂停了 8.594ms(STW 的时间)
-[122.018s][info ][gc           ] GC(0) Pause Young (Allocation Failure) 25M->4M(96M) 8.594ms
-# User 表示用户状态消耗的 CPU 时间
-# Sys 表示内核状态小号的 CPU 时间
-# Real 表示操作从开始到结束所经过的 WallClock Time（墙上时钟时间，表示系统中所有进程运行的时钟总量）
-[122.018s][info ][gc,cpu       ] GC(0) User=0.01s Sys=0.01s Real=0.00s
-# GC 后的日志，使用 -Xlog:gc+heap=trace 打开
-[122.018s][debug][gc,heap      ] GC(0) Heap after GC invocations=1 (full 0): PSYoungGen      total 29696K, used 4066K [0x00000007fdf00000, 0x0000000800000000, 0x0000000800000000)
-[122.018s][debug][gc,heap      ] GC(0)   eden space 25600K, 0% used [0x00000007fdf00000,0x00000007fdf00000,0x00000007ff800000)
-[122.018s][debug][gc,heap      ] GC(0)   from space 4096K, 99% used [0x00000007ff800000,0x00000007ffbf8a58,0x00000007ffc00000)
-[122.018s][debug][gc,heap      ] GC(0)   to   space 4096K, 0% used [0x00000007ffc00000,0x00000007ffc00000,0x0000000800000000)
-[122.018s][debug][gc,heap      ] GC(0)  ParOldGen       total 68608K, used 992K [0x00000007f9c00000, 0x00000007fdf00000, 0x00000007fdf00000)
-[122.018s][debug][gc,heap      ] GC(0)   object space 68608K, 1% used [0x00000007f9c00000,0x00000007f9cf8030,0x00000007fdf00000)
-[122.018s][debug][gc,heap      ] GC(0)  Metaspace       used 14034K, capacity 14512K, committed 14720K, reserved 1062912K
-[122.018s][debug][gc,heap      ] GC(0)   class space    used 1438K, capacity 1629K, committed 1664K, reserved 1048576K
-# 下次 GC 开始的 Heap 数据
-[342.724s][debug][gc,heap      ] GC(1) Heap before GC invocations=2 (full 0): PSYoungGen      total 29696K, used 29666K [0x00000007fdf00000, 0x0000000800000000, 0x0000000800000000)
-
-# 在程序运行一段时间后，发生了 FullGC Event
-19.779s][info ][gc,start       ] GC(43) Pause Full (Ergonomics)
-# GC Roots 开始标记、整理、压缩三个步骤（不清楚 GC Roots 的请查看 JVM 内存模型 2.垃圾收集机制 2.2.1GC Roots 工作原理章节）
-[19.779s][info ][gc,phases,start] GC(43) Marking Phase
-[20.049s][info ][gc,phases      ] GC(43) Marking Phase 269.603ms
-[20.049s][info ][gc,phases,start] GC(43) Summary Phase
-[20.049s][info ][gc,phases      ] GC(43) Summary Phase 0.007ms
-[20.049s][info ][gc,phases,start] GC(43) Adjust Roots
-[20.049s][info ][gc,phases      ] GC(43) Adjust Roots 0.565ms
-[20.049s][info ][gc,phases,start] GC(43) Compaction Phase
-[20.102s][info ][gc,phases      ] GC(43) Compaction Phase 52.669ms
-[20.102s][info ][gc,phases,start] GC(43) Post Compact
-[20.102s][info ][gc,phases      ] GC(43) Post Compact 0.140ms
-[20.102s][info ][gc,heap        ] GC(43) PSYoungGen: 25600K->25600K(29696K)
-# 假定一个生产程序稳定阶段 OldGen 使用达到最高值
-[20.102s][info ][gc,heap        ] GC(43) ParOldGen: 68406K->68406K(68608K)
-[20.102s][info ][gc,metaspace   ] GC(43) Metaspace: 7486K->7486K(1056768K)
-[20.102s][info ][gc             ] GC(43) Pause Full (Ergonomics) 91M->91M(96M) 323.139ms
-[20.102s][info ][gc,cpu         ] GC(43) User=0.50s Sys=0.01s Real=0.33s
-[20.102s][debug][gc,heap        ] GC(43) Heap after GC invocations=44 (full 41): PSYoungGen      total 29696K, used 25600K [0x00000007fdf00000, 0x0000000800000000, 0x0000000800000000)
-```
-
-假定以上日志是经过多次的压测稳定阶段产生的 `GC` 日志，可以发现 `OldGen` 的内存当使用到了 **68608K（67 MB）** 时产生了 `Full GC`。
-
-#### 4.1.3 确定内存大小
+#### 4.1.2 确定内存大小
 
 **JVM Heap 参数优化参考，以 Old Gen 大小为基准进行调整，推荐设置大小 3~4倍，1.2~1.5 倍**
 
+假定经过多次的压测稳定阶段，当发生 `Full GC Event` 时  `OldGen` 的内存使用了 **102400K（100 MB）**。 
+
 | 内存分代        | 参数                                            | 说明                                                         | 大小                                                       |
 | --------------- | ----------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| **Heap 总大小** | **-Xms268m<br />-Xmx268m**                      | 初始的 Heap 的大小<br />Heap 的最大值                        | **Old Gen × 4 = 268 MB**                                   |
-| **YoungGen**    | **-Xmn100m**                                    | Young Gen 初始值                                             | **Old Gen × 1.5 = 100.5 MB**                               |
-| **OldGen**      | 无需设置                                        | Old Gen（不需要设置）                                        | **Heap(256 MB) - YoungGen(100.5 MB) = 167.5 MB**           |
+| **Heap 总大小** | **-Xms400m<br />-Xmx268m**                      | 初始的 Heap 的大小<br />Heap 的最大值                        | **Old Gen × 4 = 400 MB**                                   |
+| **YoungGen**    | **-Xmn150m**                                    | Young Gen 初始值                                             | **Old Gen × 1.5 = 150 MB**                                 |
+| **OldGen**      | 无需设置                                        | Old Gen（不需要设置）                                        | **Heap - YoungGen = 250 MB**                               |
 | **Metaspace**   | -XX:MetaspaceSize=N<br />-XX:MaxMetaspaceSize=N | 每次触发 `Full GC` 扩容的阈值，**不是初始值**<br />`Metaspace` 最大值，建议设置最大值，因为默认是系统内存值，容易导致系统内存不够。 | 该值正常来讲是 `Metaspace` 在压测时稳定平均值的 **1.5** 倍 |
 
-**根据上述表格，JVM 优化后的参数**
-
-```shell
--Xlog:gc* -XX:+UseParallelGC -Xlog:gc+heap=trace -Xms268m -Xmx268m -Xmn100.5m -XX:MetaspaceSize=20m -XX:MaxMetaspaceSize=1024m
-```
+**根据上述表格，JVM 优化后，还可以切换不同的 GC 以获得更好的性能。**
 
 ### 4.2 延迟调整
 
@@ -705,12 +618,12 @@ public class GC_Example {
 
 在此阶段，我们可能需要再次优化 `Heap` 配置，评估 `GC` 的**持续时间和频率**，并确定是否有必要切换到其他垃圾收集器。
 
-#### 4.2.1 系统延迟要求
+#### 4.2.1 系统延迟指标
 
 **延迟调整之前，我们需要知道什么是系统延迟要求，以及可以针对延迟调整哪些指标**
 
 1.  **可接受的应用程序平均 downtime**
-    -   此时间将与测得的次要GC持续时间进行比较
+    -   此时间将与测得的 `Minor GC` 持续时间进行比较
 2.  **可接受的 `Minor GC` 频率**
     -   将 `Minor GC` 频率与容忍值进行比较
 3.  **可接受的最大 pause time**
@@ -720,37 +633,88 @@ public class GC_Example {
 
 在上述指标中，请特别注意 **1** 和 **3**。这两个指标对于用户体验至关重要。
 
+#### 4.2.2 优化 Young Gen
 
+>   0.291: [GC (Allocation Failure) [PSYoungGen: 33280K->5088K(38400K)] 33280K->24360K(125952K), 0.0365286 secs] [Times: user=0.11 sys=0.02, real=0.04 secs] 
+>   0.446: [GC (Allocation Failure) [PSYoungGen: 38368K->5120K(71680K)] 57640K->46240K(159232K), 0.0456796 secs] [Times: user=0.15 sys=0.02, real=0.04 secs] 
+>   0.829: [GC (Allocation Failure) [PSYoungGen: 71680K->5120K(71680K)] 112800K->81912K(159232K), 0.0861795 secs] [Times: user=0.23 sys=0.03, real=0.09 secs]
 
-##### 4.2.1.1 优化 Young Gen
+从上面的GC日志中，可以简单统计下**分配率**。**分配率是在每个时间单位内分配的内存使用量。分配率过高可能意味着应用程序性能出现问题。在 JVM 上运行时，此问题将造成大量开销的垃圾回收。**
 
->   [122.018s][info ][gc           ] GC(0) Pause Young (Allocation Failure) 25M->4M(96M) 8.594ms
+>   **分配值 = x -  y**
+>
+>   **分配率 = 分配值 / GC 间隔时间**
 
-解析 4.1.2 的 `GC Log`，第一次 `Minor GC` 的 `STW` 时间是 **8.594ms**，假设该值在压测的稳定性阶段为该值，且每 **5ms** 发生一次，则需要进行调整。
+| GC 事件    | 启动时间 | 暂停时间       | Young 前 | Young 后 | Heap 前 `x` | Heap 后 `y` | 分配值    | 分配率        |
+| ---------- | -------- | -------------- | -------- | -------- | ----------- | ----------- | --------- | ------------- |
+| 1 Minor GC | 291 ms   | 0.0365286 secs | 33,280KB | 5,088KB  | 33,280KB    | 24,360KB    | 33,280KB  | **114MB/sec** |
+| 2 Minor GC | 446 ms   | 0.0456796 secs | 38,368KB | 5,120KB  | 57,640KB    | 46,240KB    | 33,280KB  | **215MB/sec** |
+| 3 Minor GC | 829 ms   | 0.0861795 secs | 71,680KB | 5,120KB  | 112,800KB   | 81,912KB    | 66,560KB  | **174MB/sec** |
+| **全部**   | 829ms    | 0.168,387,7 s  |          |          |             |             | 133,120KB | **161MB/sec** |
+| **平均**   | 276ms    | 0.0561s        |          |          |             |             |           |               |
 
-**如果可以 `指标 1` 可以接受的 6ms，则可以对减小 `Young Gen` 内存空间 10% 大小，尽可能保留 `Old Gen` 和 `Metaspace` 大小，通过该步骤的不断重复进行最优化。**
+上述日志 GC 平均时间 **56 ms**，且平均 **276ms** 发生一次。
+
+**如果根据 `指标 1` 可以接受的 50ms，则可以对减小 `Young Gen` 内存空间 10% 大小，尽可能保留 `Old Gen` 和 `Metaspace` 大小，通过该步骤的不断重复进行最优化。**
 
 因为 `Young Gen` 内存空间越大 `Minor GC` 时间越长且频率越低，内存空间越小 `Minor GC` 时间越短且频率越高。
 
 -   **减小暂停时间，需要减小 `Young Gen` 内存空间**
 -   **降低暂停频率，需要增大 `Young Gen` 内存空间**
 
-**JVM 参数可以参考确定内存大小的参数进行优化。**
+**JVM 参数可以参考确定内存大小的参数进行优化，需要注意分配率的变化。**
 
+#### 4.2.3 优化 Old Gen
 
+>   0.291: [GC (Allocation Failure) [PSYoungGen: 33280K->5088K(38400K)] 33280K->24360K(125952K), 0.0365286 secs] [Times: user=0.11 sys=0.02, real=0.04 secs] 
+>   0.446: [GC (Allocation Failure) [PSYoungGen: 38368K->5120K(71680K)] 57640K->46240K(159232K), 0.0456796 secs] [Times: user=0.15 sys=0.02, real=0.04 secs] 
+>   0.829: [GC (Allocation Failure) [PSYoungGen: 71680K->5120K(71680K)] 112800K->81912K(159232K), 0.0861795 secs] [Times: user=0.23 sys=0.03, real=0.09 secs]
 
-##### 4.2.1.2 优化 Old Gen
+可以参考  **优化 Young Gen** 方案进行优化。也可以使用根据对象分配率来优化 `Old Gen`。
 
->   [20.102s][Full GC (Ergonomics) [PSYoungGen: 9216K->9211K(10240K)] [Full GC (Ergonomics) [PSYoungGen: 9216K->9212K(10240K)] [ParOldGen: 13311K->13311K(13312K)] 22527K->22524K(23552K), [Metaspace: 9210K->9210K(1058816K)], 0.0065291 secs] [Times: user=0.03 sys=0.00, real=0.01 secs] 
+如果没有 `Full GC` 日志，可以使用 `PSYoungGen` 的日志分析。
+
+1.  `Old Gen 已用空间增长 u = y - b`，此处的**字母代表的值**，具体参考 **Minor GC 分段解析**。
+
+2.  `Minor GC` 平均发生时间为 `times`，则 `Young Gen` 向 `Old Gen` 的对象提升率为 `avg = u(平均值) / times`。
+
+3.  `Old Gen Size` 空间存储满的时间 = `Old Gen Size / avg` 
+
+以上两种方法都可以算出最差的 Full GC 频率。
+
+### 4.3 吞吐量调整
+
+>   **应用程序运行时间总长 / 程序运行时间总长 = 吞吐量**
 >
->   [20.102s][info ][gc             ] GC(43) Pause Full (Ergonomics) 91M->91M(96M) 323.139ms
+>   GC 运行时间总长越低，吞吐量越高。
 
+上述内存使用率、延迟经过调整后，如果吞吐量达到要求，则调整结束。如果还有一定差距，则可以适当调整参数，增加或减少应用程序的线程用时与程序总用时的占比。
 
+#### 4.4 JVM 调优参数模板
 
-调优需要达到的最高性能要求
+```shell
+-d64
+-server
+-Dsun.rmi.dgc.client.gcInterval=3600000
+-Dsun.rmi.dgc.server.gcInterval=3600000
+-Xmx2048m 
+-Xms2048m 
+-Xmn512m
+-XX:MetaspaceSize=50m
+-XX:MaxMetaspaceSize=1024m
+-XX:MaxTenuringThreshold=15
+-XX:MaxGCMinorPauseMillis=1
+-XX:MaxGCPauseMillis=5
+-XX:+UseParallelGC
+-XX:+AggressiveOpts
+-XX:+PrintGCDateStamps
+-XX:+PrintGCDetails
+-XX:+PrintTenuringDistribution
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/path/*.hprof
+-XX:+UseGCLogFileRotation
+-XX:NumberOfGCLogFiles=100
+-XX:GCLogFileSize=50m
+-Xloggc:/path/gc.log
+```
 
-1.  最低延迟
-    -   一致的 Java 应用响应时间
-    -   [LatencyUtils](https://github.com/LatencyUtils/LatencyUtils)
-2.  不出现抖动和有问题的垃圾收集暂停现象
-    -   消除由停顿和抖动引起的问题。
