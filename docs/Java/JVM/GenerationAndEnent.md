@@ -54,7 +54,7 @@
 
 #### Minor GC
 
-1. JVM 每次分配对象（进入 `Old Gen` 有 **4** 种情况，具体请参考 [JVM 内存模型 Young Gen](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_1211-young-gen%e5%b9%b4%e8%bd%bb%e4%bb%a3%ef%bc%8c%e5%8d%a0%e7%94%a8-heap-%e7%9a%84-13)），会首先将对象分配到 `Eden` 区。当 JVM 无法为新对象分配空间时，触发 `Minor GC`，存活下来的对象，将被复制到其中一个空闲的 `Survivor` 区，在此次触发过程中，会**存活对象增加一次年龄**。`Minor GC` 进行垃圾回收时，总会检查 `Survivor` 区，将区内存活对象移至林那个一个 `Survivor` 区，保证总是有一个 `Survivor` 区域是空闲的。**`Minor GC` 会造成 JVM 的 `STW`，通常因为时间很短，可以忽略不计。**
+1. JVM 每次分配对象（进入 `Old Gen` 有 **4** 种情况，具体请参考 [JVM 内存模型 Young Gen](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_1211-young-gen%e5%b9%b4%e8%bd%bb%e4%bb%a3%ef%bc%8c%e5%8d%a0%e7%94%a8-heap-%e7%9a%84-13)），会首先将对象分配到 `Eden` 区。当 JVM 无法为新对象分配空间时，触发 `Minor GC`，存活下来的对象，将被复制到其中一个空闲的 `Survivor` 区，在此次触发过程中，会**存活对象增加一次年龄**。`Minor GC` 进行垃圾回收时，总会检查 `Survivor` 区，将区内存活对象移至林那个一个 `Survivor` 区，保证总是有一个 `Survivor` 区域是空闲的。**频繁的 `Minor GC` 会造成 JVM 的 `STW`，通常因为时间很短，可以忽略不计。**
    - 直接进入 `Old Gen` 的**4** 种情况
      1. 默认 GC 年龄超过 **15** 次进入 `Old Gen`
      2. 动态对象年龄，`Eden` 区存活对象总大小超过 `Survivor` **50%** 的空间，则年龄最大的对象进入 `Old Gen`
