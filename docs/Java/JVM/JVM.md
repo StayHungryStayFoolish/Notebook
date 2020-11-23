@@ -118,9 +118,37 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 1. `TLAB` 允许空间浪费，导致 `Eden Space` 空间不连续，应该还需要进行压缩整理类似操作（没有查到相关资料）。
 2. 当 `Eden Space` 剩余空间不足时，申请 `TLAB` 空间将导致 `Minor GC`甚至 `Full GC` 操作。
 
-##### 1.2.1.4 Escape Analysis(逃逸分析)
+##### 1.2.1.4 Escape Analysis(逃逸分析，简称 EA)
 
 > Java 中的对象和数组并不一定都会在 `Heap Memory` 中创建。
+
+**一篇改变 JDK 的逃逸分析算法的论文**
+
+在 1999年，一篇名为 [Escape Analysis For Java](https://www.cc.gatech.edu/~harrold/6340/cs6340_fall2009/Readings/choi99escape.pdf) 的论文出现在 [ACM SIGPLAN](https://www.sigplan.org/) 大会上。该论文阐述了一种算法，该算法可以检测一个对象 `O` 是否会从当前之前的方法 `M` 或当前线程 `T` 中逃逸。
+
+该论文为 **JDK6u14** 引入 **HotSpot JVM Escape Analysis** 优化奠定了基础。从 **JDK6u21**，Escape Analysis 成为 **C2（Server） 编译器**的默认配置。
+
+**逃逸分析的三种状态**
+
+1.  **NoEscape**
+    -   对象在当前方法和线程之外不可见
+2.  **ArgEscape**
+    -   对象作为参数传递给方法时，在该方法之外或其他线程看不见该对象
+3.  **GlobalEsacpe**
+    -   对象可以逃逸出方法或线程。这基本上意味着具有`GlobalEscape`状态的对象 将在方法/线程外部可见，例如，当对象从方法返回或分配给静态字段时。
+
+**EA 与 JIT 的关系**
+
+一个后缀为 `.java` 的文件通过 `javac` 前端编译组件转为 `.class` 字节码文件。字节码文件通过 `Interpreter(解释器)` 翻译为对应的机器指令，当 JVM 发现部分代码片段在执行时触发了 [JIT 编译策略](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_232-jitjust-in-time-compiler%e5%8d%b3%e6%97%b6%e7%bc%96%e8%af%91%e5%99%a8) 被称为热点代码，`JIT(即时编译器)`则会把热点代码翻译为本地机器相关的指令，然后会进行很多种优化。如常见的几种优化策略：
+
+1.  逃逸分析
+2.  锁消除
+3.  锁膨胀
+4.  方法内联
+5.  空值检查消除
+6.  类型检查消除
+
+以上涉及的 JVM 组件可以在 [Java 概述](http://notebook.bonismo.ink/#/Java/JVM/JDK) 中搜索查看。
 
 #### 1.2.2 Non-Heap Memory(非堆内存)
 
