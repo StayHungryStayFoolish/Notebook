@@ -105,7 +105,7 @@ public class EscapeAnalysis {
         return stringBuffer;
     }
     
-    // NoEscape - 没有发生逃逸，改变了 stringBuilder 的指针并指向了 String 对象
+    // NoEscape - 没有发生逃逸，改变了 stringBuffer 的指针并指向了 String 对象
     public String createString(String... values) {
         StringBuffer stringBuffer = new StringBuffer();
         for (String string : values) {
