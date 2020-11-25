@@ -9,6 +9,7 @@
     - [JVM](Java/JVM/README.md)
         - [JDK 三大组件](Java/JVM/JDK.md)
         - [JVM 内存模型](Java/JVM/JVM.md)
+        - [JIT 的逃逸分析算法](Java/JVM/EscapeAnalysis.md)
         - [垃圾收集器](Java/JVM/GarbageCollection.md)
         - [Heap Memory 分代模型与 GC 事件](Java/JVM/GenerationAndEnent.md)
         - [JVM 性能调优指南](Java/JVM/PerformanceTuningGuide.md)
