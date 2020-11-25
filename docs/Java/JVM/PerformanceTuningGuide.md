@@ -66,6 +66,12 @@ Java 应用程序影响性能的因素非常多，比如磁盘、内存、IO等�
     -   **jvisualvm** - `jmap、jinfo、jstat、jstack、jconsole` 功能合集，支持多种功能插件，因为 `jvisualvm` 不仅支持 JMX 还支持 Jvmstat、Attach API 和 SA 等监测技术，还可以记录有关 JVM 实例的数据，并将该数据保存到本地系统，便于分析，支持**内存泄漏检测**。
     -   **jmc** - `JDK Mission Control` 相对 `jconsole`、`jvisualvm` 可以展示更多的信息，也是 GUI 监测工具，UI 更美观，在 `JDK 8u261` 被移除，[Oracle JDK 8u261更新文档](https://www.oracle.com/java/technologies/javase/8u261-relnotes.html)，可在 [Oracle JMC下载](https://www.oracle.com/cn/javase/jmc/) 并参考 [Oracle JMC 安装](https://www.oracle.com/java/technologies/javase/jmc-install.html)。
 
+| 场景               | 对应工具   | 备注 |
+| ------------------ | ---------- | ---- |
+| 分析内存泄漏       | jmap、jcmd |      |
+| 服务卡死或停止处理 | jstack     |      |
+|                    |            |      |
+
 以上基本介绍来自 [Oracle Tools 文档](https://docs.oracle.com/javase/8/docs/technotes/tools/)
 
 **GC 在线解析工具：** [GCeasy](https://gceasy.io/)
