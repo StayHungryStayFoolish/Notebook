@@ -1,4 +1,4 @@
-# 识别 OutOfMemory
+# 追踪 OutOfMemory 
 
 ![Memory-Leaks](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/memory-leaks.jpg)
 

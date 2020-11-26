@@ -13,7 +13,7 @@
         - [垃圾收集器](Java/JVM/GarbageCollection.md)
         - [Heap Memory 分代模型与 GC 事件](Java/JVM/GenerationAndEnent.md)
         - [JVM 性能调优指南](Java/JVM/PerformanceTuningGuide.md)
-        - [JVM 内存泄露常见原因](Java/JVM/MemoryLeaksCauses.md)
+        - [追踪 OutOfMemory](Java/JVM/MemoryLeaksCauses.md)
 - **Spring**
     - [Spring](Spring/)  
     - [IoC](Spring/IoC/IoC.md)  
