@@ -281,12 +281,216 @@ public class DirectMemoryExample {
 
 **在编程中建议只有使用常量（final static），避免使用可变的字段或集合。**
 
-### 3.2 线程局部变量
+**代码演示**
+
+```java
+public class StaticLeak {
+    public static List<Double> list = new ArrayList<>();
+ 
+    public void populateList() {
+        for (int i = 0; i < 10000000; i++) {
+            list.add(Math.random());
+        }
+    }
+ 
+    public static void main(String[] args) {
+        new StaticLeak().populateList();
+    }
+}
+```
+
+### 3.2 未关闭的流
+
+在进行 IO 操作时，如果不能正确的对流进行关闭，则会一直保持对象的引用，GC 不能进行对其回收，可能会造成内存泄漏。
+
+**在编程中对 IO 操作一定要在 `finally` 中进行关闭。**
+
+**代码演示**
+
+```java
+public class URLeak {
+ 
+    public static void main(String[] args) throws IOException {
+        URL url = new URL("https://raw.githubusercontent.com/zemirco/sf-city-lots-json/master/citylots.json");
+        ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+        FileOutputStream outputStream = new FileOutputStream("./citylots.json");
+        outputStream.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+    }
+}
+```
+
+### 3.3 未关闭的连接
+
+在连接第三方服务时，如果连接未关闭，可能会造成内存泄漏。
+
+**例如原生方式连接数据库一定要在 `finally` 中进行关闭。建议使用 `ORM` 框架，因为会帮我们进行连接资源的关闭。**
+
+**代码演示**
+
+```java
+public class DatabaseLeak {
+
+    public static final String URL = "jdbc:mysql://localhost:3306/mydb";
+    public static final String USER = "root";
+    public static final String PASSWORD = "admin";
+
+    public static void main(String[] args) throws Exception {
+        Class.forName("com.mysql.jdbc.Driver");
+        Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        PreparedStatement stmt = conn.prepareStatement("SELECT ... ...");
+    }
+}
+```
+
+### 3.4 equals() 和 hashCode() 重写不当
+
+一个非常常见的疏忽是在定义一个类时没有为 `equals()` 和 `hashCode()` 方法进行适当的重写。
+
+`HashSet` 和 `HashMap` 在许多操作中都使用这些方法，如果未正确重写它们，则它们可能成为潜在内存泄漏问题的根源。
+
+**在定义类时，始终重写 `equals()` 和 `hashCode()` 方法。**
+
+**代码演示**
+
+```java
+public class Person {
+    public String name;
+
+    public Person(String name) {
+        this.name = name;
+    }
+
+//    @Override
+//    public boolean equals(Object o) {
+//        if (o == this) return true;
+//        if (!(o instanceof Person)) {
+//            return false;
+//        }
+//        Person person = (Person) o;
+//        return person.name.equals(name);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        int result = 17;
+//        result = 31 * result + name.hashCode();
+//        return result;
+//    }
+  
+}	
+
+public class OverrideLeak {
+    public static void main(String[] args) {
+        Map<Person, Integer> map = new HashMap<>();
+        for (int i = 0; i < 100000; i++) {
+            // 使用 person 作为 key，如果不使用 equals() 和 hashCode()，map 的 size 最终是100000
+            map.put(new Person("boni"), i);
+        }
+	      System.out.println(map.size());
+    }
+}
+```
+
+### 3.5 引用外部类的内部类
+
+当引用一个`内部类对象（非静态内部类）`时，该类的初始化会默认需要初始化一个当前内部类的`外部类的实例`。内部类对象会持有一个`外部类`的**隐式引用**。如果`内部类`比`外部类`生命周期长的情况下，也不会被 GC 进行回收。
+
+**当定义内部类时，可以使用 `staic` 使内部类变为静态内部类或者使用匿名内部类，也可以使用 `WeakReference` 使内部类作为弱引用。**
+
+```java
+// 可以使用 javac 编译 OuterClass 会发现有两个类文件，分别是 OuterClass.class 和 OuterClass$InnerClass.class
+public class OuterClass {
+    private int[] data;
+
+    public OuterClass(int size) {
+        data = new int[size];
+    }
+
+    class InnerClass {
+    }
+
+    InnerClass getInnerClassInstance() {
+        return new InnerClass();
+    }
+}
+
+public class InnerClassLeak {
+
+    public static void main(String[] args) {
+        List<OuterClass.InnerClass> list = new ArrayList<>();
+        int counter = 0;
+        while (true) {
+            list.add(new OuterClass(1).getInnerClassInstance());
+            System.out.println(counter++);
+        }
+    }
+}
+```
+
+**Android 使用内部类也会出现内存泄漏问题**
+
+```java
+class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        new MyAsyncTask().execute();
+    }
+
+    private class MyAsyncTask extends AsyncTask {
+        @Override
+        protected Object doInBackground(Object[] params) {
+            return doSomeStuff();
+        }
+        private Object doSomeStuff() {
+            //do something to get result
+            return new MyObject();
+        }
+    }
+}
+```
+
+### 3.6 重写 finalize() 方法
+
+使用 `@Override` 重写 `Object` 对象内的 `finalize()` 方法，因为对象最终将对 JVM 的 `finalizer(终结器)` 保持可见，不会被 GC 回收，可能会造成内存泄漏。具体可以参考 [JIT 的逃逸算法-全局逃逸情况](http://notebook.bonismo.ink/#/Java/JVM/EscapeAnalysis?id=_4-%e5%9f%ba%e4%ba%8e-ea-%e6%a0%87%e8%af%86%e7%9a%84%e5%af%b9%e8%b1%a1%e7%8a%b6%e6%80%81)
+
+### 3.7 线程局部变量
 
 线程局部变量基本上是线程类中的一个成员字段。
 
-在多线程应用程序中，每个线程实例都有自己的类变量的实例。因此，将一个状态绑定到线程上是非常有用的。但这可能是危险的，因为只要线程本身还处于活跃状态，GC 就不会删除该线程的局部变量。由于线程通常是池化的，因此几乎永远活着，这个对象可能永远不    会 GC 删除。
-由于一个活跃的线程必须被认为是 GC 根，所以线程局部变量与静态变量非常相似。需要在编码中显式清理，这与垃圾收集器的理念相悖。就像可突变的静态变量一样，除非有非常少的充分理由，否则应该避免使用它。
-这类内存泄漏可以通过堆转储来发现。只要看一下堆转储中的 `ThreadLocalMap`，然后按照引用进行查找。也可以看看线程的名称，以弄清你的应用程序的哪个部分要对泄漏负责。
+在多线程应用程序中，每个线程实例都有自己的类变量实例。因此只要线程本身还处于活跃状态，GC 就不会删除该线程的局部变量。由于线程通常是池化的，因此几乎永远活着，这个对象可能永远不会 GC 删除。
 
-### 3.3 循环引用
+一个活跃的线程被认为是 `GC Root`，所以线程局部变量与静态变量非常相似。需要在编码中进行**显式清理**。
+
+这类内存泄漏可以通过`堆转储`来发现。查看堆转储中的 `ThreadLocalMap`，然后按照引用进行查找。也可以查看线程名称，确定内存泄漏的具体原因。
+
+**如果多线程中使用 `ThreadLocal` 一定要在 `finally` 中使用 `remove()`，使用 `Thread.set(null)` 实际上并不会清除值，而是将 `key-vaule` 分别设置为 `threadId:null`。**
+
+**代码演示**
+
+```java
+try {
+    threadLocal.set(System.nanoTime());
+}
+finally {
+  	// 必须使用 threadLocal.remove()，不能使用 threadLocal.set(null);
+    threadLocal.set(null);
+}
+```
+
+### 3.8 JNI 内存泄漏
+
+`Java Native Method Interface(JNI)` 产生的内存泄漏很难发现。
+
+`JNI` 与 `Native Method Library(本地方法库，通常由 C/C++ 编写)` 交互，通常由 Java 代码进行调用和创建Java对象。在 `JNI` 中创建的每个 Java 对象都以本地引用开始其生命，这意味着该对象将被引用，直到本机方法返回为止。可以理解为本机方法引用了 Java 对象。
+
+**发现 `JNI` 内存泄漏的唯一方法是使用显式标记本机引用的堆转储工具。**
+
+### 3.9 循环引用和复杂的双向引用（已过时）
+
+在 `Refernence Counting Algorithm` 算法中存在内存泄漏偶问题，当使用了`Reachability Ananlysis Algorithm` 算法时已经解决了该问题。具体可以参考 [JVM 内存模型-垃圾分析算法](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_311-reference-counting-algorithm%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0%e7%ae%97%e6%b3%95)
+
+### 3.10 String.intern() 方法（已过时）
+
+在 JDK8 以后，因为使用了 `Metaspace` 替换了 `PermGen`，所以使用 `intern()` 方法生成的 `interned string` 存储在 `Metaspace`，不会出现内存泄漏。[JDK interned string bug](https://bugs.openjdk.java.net/browse/JDK-8180048)
