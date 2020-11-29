@@ -494,3 +494,5 @@ finally {
 ### 3.10 String.intern() 方法（已过时）
 
 在 JDK8 以后，因为使用了 `Metaspace` 替换了 `PermGen`，所以使用 `intern()` 方法生成的 `interned string` 存储在 `Metaspace`，不会出现内存泄漏。[JDK interned string bug](https://bugs.openjdk.java.net/browse/JDK-8180048)
+
+## 4. 检测内存泄漏
