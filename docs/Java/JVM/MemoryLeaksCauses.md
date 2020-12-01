@@ -30,7 +30,7 @@
 
 如果只是因为 `Heap Memory` 空间不足，可以使用 `-Xmx` 和 `-Xms` 参数设置最大和初始值。
 
-此错误还有可能是**内存泄漏**，该问题接下来详细解释。
+此错误还有可能是**内存泄漏**，该问题将在[Memory Leaks 常见原因](http://notebook.bonismo.ink/#/Java/JVM/MemoryLeaksCauses?id=_3-memory-leaks-%e5%b8%b8%e8%a7%81%e5%8e%9f%e5%9b%a0)解释。
 
 **代码演示**
 
@@ -496,3 +496,115 @@ finally {
 在 JDK8 以后，因为使用了 `Metaspace` 替换了 `PermGen`，所以使用 `intern()` 方法生成的 `interned string` 存储在 `Metaspace`，不会出现内存泄漏。[JDK interned string bug](https://bugs.openjdk.java.net/browse/JDK-8180048)
 
 ## 4. 检测内存泄漏
+
+**检测内存泄漏需要使用不同的工具和技术相结合。可以尝试使用以下步骤解决问题。**
+
+1. 为应用程序配置详细的 GC 日志，使用 JVM 打印 GC 日志参数 `-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=100 -XX:GCLogFileSize=50m -Xloggc:/path/gc.log`，上述命令只是在指定路径滚动输出日志，并不包括具体 GC 打印参数，详细参数请参考 [JVM 调优参数表](http://notebook.bonismo.ink/#/Java/JVM/PerformanceTuningGuide?id=_41-jvm-%e8%b0%83%e4%bc%98%e5%8f%82%e6%95%b0%e8%a1%a8)。
+2. 生成 `堆转储文件（以 .hprof 后缀）`。
+3. 使用工具分析堆转储文件，并根据可以数据最终找出问题所在（一般大多数为代码问题，具体参考本文：**Memory Leaks 常见原因**）。
+
+### 4.1 在线查看堆直方图
+
+#### 4.1.1 jcmd 查看
+
+`jcmd <pid> GC.class_histopram`
+
+**jcmd 示例：**
+
+```shell
+λ ~/ jcmd 24499 GC.class_histogram
+24499:
+
+ num     #instances         #bytes  class name
+----------------------------------------------
+   1:          4112         367752  [C
+   2:           499         136648  [B
+   3:          4097          98328  java.lang.String
+   4:           723          82776  java.lang.Class
+   5:           709          45064  [Ljava.lang.Object;
+   6:           107          40232  java.lang.Thread
+   7:           696          27840  java.util.LinkedHashMap$Entry
+   8:           574          18368  java.util.HashMap$Node
+   9:           225          14400  java.net.URL
+  10:           293          13320  [Ljava.lang.String;
+  11:           167          12024  java.lang.reflect.Field
+  12:            32          11264  [Ljava.util.HashMap$Node;
+  13:           102           8160  [Ljava.lang.ThreadLocal$ThreadLocalMap$Entry;
+  
+# Class name 说明  
+[C -> char[]
+[B -> byte[]
+[S -> short[]
+[I -> int[]
+[[I -> int[][]
+[Ljava.lang.Object -> Object array
+```
+
+#### 4.1.2 jmap 查看
+
+`jmap -histo <pid>` 查看所有对象
+
+`jmap -histo:live <pid>` 先进行 `Full GC` 然后统计存活对象
+
+**jmap 示例：**
+
+```shell
+λ ~/ jmap -histo  24499
+
+ num     #instances         #bytes  class name
+----------------------------------------------
+   1:           574       35022056  [I
+   2:          5281         445528  [C
+   3:           395         148520  java.lang.Thread
+   4:           499         136648  [B
+   5:          4609         110616  java.lang.String
+   6:           725          82984  java.lang.Class
+   7:           711          45248  [Ljava.lang.Object;
+   8:           390          31200  [Ljava.lang.ThreadLocal$ThreadLocalMap$Entry;
+   9:           696          27840  java.util.LinkedHashMap$Entry
+  10:           862          27584  java.util.HashMap$Node
+  11:           219          21024  sun.util.calendar.Gregorian$Date
+  12:           387          18576  java.util.concurrent.ThreadPoolExecutor$Worker
+  13:            34          17440  [Ljava.util.HashMap$Node;
+  14:           400          16000  java.security.AccessControlContext
+  15:           225          14400  java.net.URL
+```
+
+### 4.2 生成堆转储文件
+
+> **生成堆转储文件有几种方式：主要分为线上生成，远程生成。**
+
+#### 4.2.1 在线生成堆转储文件
+
+**jcmd 命令：**`jcmd <pid> GC.heap_dump /path/filename.hprof` 
+
+**jmap 命令：**`jmap -dump:live,format=b,file=/path/filename.hprof <pid>`，该命令会强制应用程序先进行 `Full GC`，请谨慎只用。
+
+**JVM 参数：**`-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/path/*.hprof`，该命令会在应用程序出现 `OOM` 异常时，在指定路径生产堆转储文件。
+
+#### 4.2.2 远程生成堆转储文件
+
+远程连接的前提，需要使用 [JVM 参数配置 JMX](http://notebook.bonismo.ink/#/Java/JVM/PerformanceTuningGuide?id=_21-jvm-%e4%b8%a4%e7%a7%8d%e9%80%9a%e4%bf%a1%e6%96%b9%e5%bc%8f)
+
+- `Java VisualVM`
+
+![jvisual-heap](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/jcmd-hprof.jpg)
+
+- `JDK Mission Control`
+
+- `Eclipse Memory Analyzer Tool(MAT)`
+
+**上述三个工具不但可以查看堆转储、线程转储文件，还可以远程连接直接生成堆转储、线程转储文件。**
+
+- `Jhat`  采用 `html` 方式显示。
+
+#### 4.2.3 其他工具推荐
+
+[Arthas](https://github.com/alibaba/arthas/blob/master/README_CN.md)：**Alibaba** 开源的 Java 诊断工具，必须和应用程序同一服务器，否则无法 attach。
+
+[btace](https://github.com/btraceio/btrace)：需要配置一些环境，不如 Arthas 便捷。
+
+### 4.3 根据堆转储文件分析，解决 OOM
+
+根据堆转储文件分析，可以清晰的发现类实例加载情况，可以根据加载比例比较高的类实例一步步追寻到应用程序的代码中，进而解决 OOM 问题。
+
