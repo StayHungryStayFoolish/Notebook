@@ -36,7 +36,7 @@
     - [Redis参考文章](Redis/Refereneces.md)
 - **MySQL**
     - [MySQL](MySQL/)
-    - [MySQL 架构](MySQL/Structure/Structure.md)    
+    - [MySQL 架构](MySQL/Architecture/Architecture.md)    
     - [InnoDB 引擎架构](MySQL/InnoDB/InnoDB.md)    
     - [Lock 机制](MySQL/Lock/Lock.md)    
     - [Log 机制](MySQL/Log/Log.md)    
