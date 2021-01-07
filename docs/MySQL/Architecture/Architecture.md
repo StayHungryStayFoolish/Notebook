@@ -16,7 +16,7 @@ MySQL 逻辑架构可以分为三层（国内通常有另一种说法，但是�
 
 ### 1.1 Client Connectors(客户端连接器)
 
-**Client Connectors** 为客户端程序提供与 **MySQL RDMS** 的连接。API 使用传统的 MySQL协议或 X 协议提供对 MySQL资源的低级访问。连接器和 API 均能够连接和执行来自另一种语言或环境的 MySQL 语句，包括ODBC、Java（JDBC）、C ++、Python、Node.js、PHP、Perl、Ruby和C。
+**Client Connectors** 为客户端程序提供与 **MySQL RDMS** 的连接。API 使用传统的 MySQL协议或 X 协议提供对 MySQL 资源的低级访问。连接器和 API 均能够连接和执行来自另一种语言或环境的 MySQL 语句，包括ODBC、Java（JDBC）、C ++、Python、Node.js、PHP、Perl、Ruby和C。
 
 ### 1.2 Connection Pool(连接池)
 
