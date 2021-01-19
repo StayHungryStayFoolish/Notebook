@@ -249,3 +249,4 @@ mysql> show grants for root@localhost;
 1.  减少用于创建/销毁 TCP 连接的应用程序和数据库管理系统 I/O 开销
 2.  减少 JVM 对象垃圾
 
+##### 1.2.2.3 线程缓存与线程池
