@@ -16,7 +16,7 @@ MySQL 逻辑架构可以分为三层（国内通常有另一种说法，但是�
 
 ### 1.1 Client Connectors(客户端连接器)
 
-**Client Connectors** 为客户端程序提供与 **MySQL RDMS** 的连接。API 使用传统的 MySQL 协议或 X 协议提供对 MySQL 资源的低级访问。连接器和 API 均能够连接和执行来自另一种语言或环境的 MySQL 语句，包括 ODBC、Java（JDBC）、C ++、Python、Node.js、PHP、Perl、Ruby 和 C。
+**Client Connectors** 为客户端程序提供与 **MySQL RDMS** 的连接。API 使用传统的 `MySQL 协议`或  `X 协议` 提供对 MySQL 资源的低级访问。连接器和 API 均能够连接和执行来自另一种语言或环境的 MySQL 语句，包括 ODBC、Java（JDBC）、C ++、Python、Node.js、PHP、Perl、Ruby 和 C。
 
 ### 1.2 Connection Pool(连接池)
 
@@ -247,6 +247,17 @@ mysql> show grants for root@localhost;
 **使用连接池最直观的优点：**
 
 1.  减少用于创建/销毁 TCP 连接的应用程序和数据库管理系统 I/O 开销
-2.  减少 JVM 对象垃圾
+2.  减少 JVM 对象垃圾s
 
-##### 1.2.2.3 线程缓存与线程池
+##### 1.2.2.3 线程与线程池的连接与关闭
+
+**MySQL Server(mysqld)** 作为一个`OS进程`执行，有多个线程执行并发活动。MySQL 没有自己的线程实现**（企业版有线程池组件）**，而是`依赖于底层OS的线程实现`。当用户连接到数据库时，将在 `mysqld` 内创建一个用户线程，并且该用户线程执行用户查询，并将结果发送回该用户，直到该用户断开连接为止。
+
+![MySQL-ThreadPool](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/MySQL-ThreadPool.png)
+
+上图和 **1.2.2.2 连接池生命周期** 的时序图展示的都是客户端与服务端连接的过程，只不过该图侧重线程的描述。
+
+**线程缓存基本流程如下：**
+
+1.  多个 `Client` 向 `Server` 发送请求连接。
+
