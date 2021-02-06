@@ -18,6 +18,26 @@ MySQL 逻辑架构可以分为三层（国内通常有另一种说法，但是�
 
 **Client Connectors** 为客户端程序提供与 **MySQL RDMS** 的连接。API 使用传统的 `MySQL 协议`或  `X 协议` 提供对 MySQL 资源的低级访问。连接器和 API 均能够连接和执行来自另一种语言或环境的 MySQL 语句，包括 ODBC、Java（JDBC）、C ++、Python、Node.js、PHP、Perl、Ruby 和 C。
 
+#### 1.1.1 MySQL 协议
+
+MySQL 协议即 MySQL C/S 协议，是一种连接传授协议。MySQL 支持基于多种传输协议的服务器连接：TCP/IP、Unix socket file、named pipe、share memory。
+
+*TCP/IP 使用所有平台，Socket 适用 Unix、类 Unix 系统。Pipe、Memory 适用 Windows 系统。*
+
+**安全加密特性**
+
+*TCP/IP、Socket 支持 TLS/SSL 安全加密连接。*
+
+**localhost & 127.0.01 区别**
+
+*localhost 在 Unix 和 类 Unix 系统默认使用 socket 连接。127.0.0.1 默认使用 TCP/IP 连接。参数 `--protocol=TCP` 可以显式指定连接协议。*
+
+#### 1.1.2 MySQL X 协议
+
+MySQL X 协议是一个 MySQL Server 的插件，该协议使用了 protobuf(Google Protobuffers)，使用 `.proto` 格式文件提供完整的消息定义。
+
+具体可以参考：[MySQL 源码文档](https://dev.mysql.com/doc/dev/mysql-server/latest/mysqlx_protocol.html)
+
 ### 1.2 Connection Pool(连接池)
 
 **Connection Pool** 是一种创建和管理可供任何需要它们的线程使用的连接池的技术 。连接池可以大大提高应用程序的性能，同时减少总体资源使用量。
@@ -260,4 +280,6 @@ mysql> show grants for root@localhost;
 **线程缓存基本流程如下：**
 
 1.  多个 `Client` 向 `Server` 发送请求连接。
+2.  传入的请求进入队列，由 `Receiver Thread(接收线程器)` 处理。`Receiver Thread(接收线程器)`  唯一工作是在本机创建`用户线程`，然后由`用户线程`完成工作。
+3.  `Receiver Thread(接收线程器)`  会查找
 
