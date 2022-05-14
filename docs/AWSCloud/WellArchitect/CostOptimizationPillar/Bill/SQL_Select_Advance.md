@@ -2,18 +2,18 @@
 
 ## Keywords syntax
 
-| Syntax                 | Description                                                                                                                       |
-|:-----------------------|:----------------------------------------------------------------------------------------------------------------------------------|
-| AS                     | Aliases are used to give a table, or a column in a table, a temporary name.                                                       |
-| DISTINCT               | Used to return only different values                                                                                              |
-| WHERE                  | Used to extract only those records that fulfill a specified condition.                                                            |
-| GROUP BY               | Groups rows that have the same values into summary rows.                                                                          |
-| ORDER BY               | Used to sort the result-set in ascending or descending order.                                                                     |
+| Syntax                     | Description                                                                                                                       |
+|:---------------------------|:----------------------------------------------------------------------------------------------------------------------------------|
+| AS                         | Aliases are used to give a table, or a column in a table, a temporary name.                                                       |
+| DISTINCT                   | Used to return only different values.                                                                                             |
+| WHERE                      | Used to extract only those records that fulfill a specified condition.                                                            |
+| GROUP BY                   | Groups rows that have the same values into summary rows.                                                                          |
+| ORDER BY                   | Used to sort the result-set in ascending or descending order.                                                                     |
 | LIMIT `n_1` [OFFSET `n_2`] | Specify the number of records(offset the numbers) to return.                                                                      |
-| HAVING                 | The HAVING clause was added to SQL because the WHERE keyword cannot be used with `COUNT(), SUM(), AVG(), MAX(), MIN()` functions. |
-| INNER JOIN ... ON ...  | Selects records that have matching values in `both` tables.                                                                         |
-| LEFT JOIN ... ON ...   | Returns all records from the `left table`, and the matching records (if any) from the right table.                                |
-| RIGHT JOIN ... ON ...  | Returns all records from the `right table`, and the matching records (if any) from the left table.                                |
+| HAVING                     | The HAVING clause was added to SQL because the WHERE keyword cannot be used with `COUNT(), SUM(), AVG(), MAX(), MIN()` functions. |
+| INNER JOIN ... ON ...      | Selects records that have matching values in `both` tables.                                                                       |
+| LEFT JOIN ... ON ...       | Returns all records from the `left table`, and the matching records (if any) from the right table.                                |
+| RIGHT JOIN ... ON ...      | Returns all records from the `right table`, and the matching records (if any) from the left table.                                |
 
 ### AS
 
@@ -31,5 +31,43 @@ SELECT `column_name`
 FROM `table_name` AS `alias_name`;
 ```
 
+### DISTINCT
 
 ![MySQL JOIN](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/MySQL/mysql_join.png?raw=true)
+
+## SELECT Statement
+
+```sql
+SELECT
+    [ALL | DISTINCT | DISTINCTROW ]
+    [HIGH_PRIORITY]
+    [STRAIGHT_JOIN]
+    [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]
+    [SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]
+    select_expr [, select_expr] ...
+    [into_option]
+    [FROM table_references
+      [PARTITION partition_list]]
+    [WHERE where_condition]
+    [GROUP BY {col_name | expr | position}, ... [WITH ROLLUP]]
+    [HAVING where_condition]
+    [WINDOW window_name AS (window_spec)
+        [, window_name AS (window_spec)] ...]
+    [ORDER BY {col_name | expr | position}
+      [ASC | DESC], ... [WITH ROLLUP]]
+    [LIMIT {[offset,] row_count | row_count OFFSET offset}]
+    [into_option]
+    [FOR {UPDATE | SHARE}
+        [OF tbl_name [, tbl_name] ...]
+        [NOWAIT | SKIP LOCKED]
+      | LOCK IN SHARE MODE]
+    [into_option]
+
+into_option: {
+    INTO OUTFILE 'file_name'
+        [CHARACTER SET charset_name]
+        export_options
+  | INTO DUMPFILE 'file_name'
+  | INTO var_name [, var_name] ...
+}
+```
