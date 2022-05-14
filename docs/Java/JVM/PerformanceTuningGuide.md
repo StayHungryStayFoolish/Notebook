@@ -355,7 +355,7 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 
 ## 4. 调优过程
 
-![Tuning-JVM](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/jvm-tuning-process.png)
+![Tuning-JVM](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/jvm-tuning-process.png?raw=true)
 
 
 **JVM 调整涉及连续的配置优化和基于性能测试结果的多次迭代。**在满足每个所需的系统指标之前，每个先前的步骤可能会经历多次迭代。在某些情况下，为了满足特定指标，可能需要多次调整先前的参数，从而需要再次测试所有先前的步骤。
@@ -477,7 +477,7 @@ JVM 调优主要涉及优化 **GC(垃圾收集器)** 以获得更好的收集性
 
 ### 4.1 确定内存使用率（活动数据大小）
 
-![Tuning-size](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Tuning-size.png)
+![Tuning-size](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Tuning-size.png?raw=true)
 
 `应用程序运行`可以分为三个阶段：
 

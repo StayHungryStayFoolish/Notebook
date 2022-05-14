@@ -12,7 +12,7 @@
             -   假设 `CPU` 的`地址总线`由 **32** 根线组成，则可以传 **2<sup>32</sup>** 个地址组合，即 **4GB** 内存。
         -   `CPU` 通过 `地址总线` 的 32 根线使用电流发送 `1(高电平)`、`0(低电平)`来模拟 `bit` ，根据传输的 `bit` 值获取实际物理地址。**所以寻址空间大小由地址总线数量决定。**
         
-        ![CPU 寻址](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/CPU&寻址.svg)
+        ![CPU 寻址](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/CPU&寻址.svg?raw=true)
         
     -   **存储器**
       
@@ -76,7 +76,7 @@
 
 -   `kernel` 数据准备完成，由 `kernel` 向`用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
-    ![Block-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Blocking-IO-Page.svg)
+    ![Block-IO](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Blocking-IO-Page.svg?raw=true)
 
 #### 2. NonBlocking IO
 
@@ -86,7 +86,7 @@
 
 - 用户进程再次发起 `recvfrom()` 函数调用，由 `kernel` 向 `用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
-  ![NonBlocking-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/NonBlocking-IO-.svg)
+  ![NonBlocking-IO](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/NonBlocking-IO-.svg?raw=true)
 
 #### 3. IO Multiplexing 
 
@@ -98,7 +98,7 @@
 
 - 用户进程发起 `recvfrom()` 调用，等待由 `kernel` 向 `用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
-  ![IO-Multiplexing](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/IO-Multiplexing.svg)
+  ![IO-Multiplexing](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/IO-Multiplexing.svg?raw=true)
 
 ##### 3.1 select & poll & epoll & Reactor 
 
@@ -142,7 +142,7 @@
   
     
   
-  ![epoll](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/epoll.svg)
+  ![epoll](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/epoll.svg?raw=true)
 
 #### 4. Signal Driven IO
 
@@ -152,7 +152,7 @@
 
 - `kernel` 准备数据完成后，向 `用户进程` 递交 `SIGIO` 信号，用户进程收到该信号后发起 `recvfrom()` 系统调用，等待 `kernel` 向 `用户空间` 拷贝数据，完成后向 `用户进程` 返回 ok。
 
-  ![IO-SignalDriven](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/IO-SignalDriven.svg)
+  ![IO-SignalDriven](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/IO-SignalDriven.svg?raw=true)
 
 #### 5. Asynchronous IO
 
@@ -164,7 +164,7 @@
 
 -  `用户进程` 处理 `kernel` 拷贝数据到 `用户空间`。**此阶段 Blocking 状态**
 
-  ![Asynchronous-IO](https://gitee.com/bonismo/notebook-img/raw/master/img/redis/Asynchronous-IO.svg)
+  ![Asynchronous-IO](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Asynchronous-IO.svg?raw=true)
 
 ## Redis 命令周期
 

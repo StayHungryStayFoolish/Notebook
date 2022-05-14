@@ -6,9 +6,9 @@ Java垃圾收集是一个自动过程，在此过程中，GC 将检查堆上的�
 
 **JDK 版本截止在 12 ，JVM 实际上提供了七个不同的垃圾收集器**，相信后续的版本会出现更多优秀的垃圾收集器。每个垃圾收集器在 `Application throughput` 和 `Application pause` 两个指标上衡量会有所不同。`Application throughput`  表示 Java 应用程序运行的速度，`Application pause` 表示垃圾收集器清理未使用的内存空间所需的时间。
 
-![GC](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Java%20Garbage%20Collection.png)
+![GC](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Java%20Garbage%20Collection.png?row=true)
 
-![G1](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/G1.png)
+![G1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/G1.png?row=true)
 
 **上图的 G1 看似不是分代垃圾收集器，但是从 JDK 1.7 Update 4 之后，采取了 `Heap Region(堆区域)`，实际上也是分代思想。**
 

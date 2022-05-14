@@ -2,7 +2,7 @@
 
 ## 1. JDK 三大组件
 
-![JDK](https://gitee.com/bonismo/notebook-img/raw/2a859fbdc77396e1c8e282e29c4ff681a9995072/img/jvm/JDK.png)
+![JDK](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/JDK.png)
 
 ### 1.1 JDK(Java Development Kit)
 
@@ -34,7 +34,7 @@ JDK 面向的是开发人员，如果只需运行程序，可以单独下载 JRE
 >
 >   5.  Native Method Library(本地方法库)
 
-![JVM-Architecture](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/JVM-Architecture.png)
+![JVM-Architecture](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/JVM-Architecture.png?row=true)
 
 `JVM` 是 `JRE` 的实例，存在于内存中并与内存打交道，是 Java 语言实现跨平台的核心，即 `Write once, run anywhere!`
 
@@ -187,7 +187,7 @@ JDK 面向的是开发人员，如果只需运行程序，可以单独下载 JRE
 
 **Stack Frames 是一种数据结构，存储的是执行当前方法所必须的一些环境信息，方法进入是层级嵌套的，所以方法执行完退出即是反向操作，即栈区是 LIFO 的原因。分为三个子实体。**
 
-![Stack-Frame](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/Stack-Frame.png)
+![Stack-Frame](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Stack-Frame.png?row=true)
 
 1.  **Local variable array(局部变量数组)**
     - 此数组包含当前方法范围内的所有局部变量。该数组可以保存基本类型，引用或 returnAddress 的值。该数组的大小是在编译时计算的。JVM 使用局部变量在方法调用时传递参数，被调用方法的数组是从调用方法的操作数堆栈中创建的。

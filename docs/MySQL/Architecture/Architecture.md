@@ -6,7 +6,7 @@ MySQL 逻辑架构可以分为三层（国内通常有另一种说法，但是�
 -   Login Layer(逻辑层) **/** 解析层
 -   Physical Layer(物理层) **/** 数据层
 
-![MySQL-Architecture](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/MySQL-Architecture.png)
+![MySQL-Architecture](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/MySQL-Architecture.png?row=true)
 
 ## 1. Application Layer(应用层)
 
@@ -237,7 +237,7 @@ mysql> show grants for root@localhost;
 
 ##### 1.2.2.1 单次连接生命周期
 
-![ConnectionLifecycle](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/connectionlifecycle.gif)
+![ConnectionLifecycle](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/connectionlifecycle.gif?row=true)
 
 **单次连接流程如下：**
 
@@ -252,7 +252,7 @@ mysql> show grants for root@localhost;
 
 ##### 1.2.2.2 连接池生命周期
 
-![PoolingConnectionLifecycle](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/poolingconnectionlifecycle.gif)
+![PoolingConnectionLifecycle](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/poolingconnectionlifecycle.gif?row=true)
 
 **连接池流程如下：**
 
@@ -262,7 +262,7 @@ mysql> show grants for root@localhost;
 
 **关于步骤 2 创建新连接的流程图如下：**
 
-![ConnectionAcquireQuestStates](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/connectionacquirerequeststates.gif)
+![ConnectionAcquireQuestStates](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/connectionacquirerequeststates.gif?row=true)
 
 **使用连接池最直观的优点：**
 
@@ -273,7 +273,7 @@ mysql> show grants for root@localhost;
 
 **MySQL Server(mysqld)** 作为一个`OS进程`执行，有多个线程执行并发活动。MySQL 没有自己的线程实现**（企业版有线程池组件）**，而是`依赖于底层OS的线程实现`。当用户连接到数据库时，将在 `mysqld` 内创建一个用户线程，并且该用户线程执行用户查询，并将结果发送回该用户，直到该用户断开连接为止。
 
-![MySQL-ThreadPool](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/MySQL-ThreadPool.png)
+![MySQL-ThreadPool](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/MySQL-ThreadPool.png?row=true)
 
 上图和 **1.2.2.2 连接池生命周期** 的时序图展示的都是客户端与服务端连接的过程，只不过该图侧重线程的描述。
 

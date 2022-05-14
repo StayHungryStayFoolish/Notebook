@@ -1,6 +1,6 @@
 # 追踪 OutOfMemory 
 
-![Memory-Leaks](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/memory-leaks.jpg)
+![Memory-Leaks](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/memory-leaks.jpg?raw=true)
 
 经验不足的程序员经常认为 **Java** 的 `GC` 使他们完全不必担心内存管理。这是一个普遍的误解：尽管垃圾收集器会尽力而为，但即使是最好的程序员，也有可能陷入严重的内存泄漏。
 
@@ -588,7 +588,7 @@ finally {
 
 - `Java VisualVM`
 
-![jvisual-heap](https://gitee.com/bonismo/notebook-img/raw/master/img/jvm/jcmd-hprof.jpg)
+![jvisual-heap](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/jcmd-hprof.jpg)
 
 - `JDK Mission Control`
 
