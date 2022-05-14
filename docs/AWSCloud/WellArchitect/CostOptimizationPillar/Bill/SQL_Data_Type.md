@@ -152,7 +152,7 @@ WHERE condition_1 AND condition_2 AND condition_3;
 
 2. BETWEEN
 
-*Select values within a given range. The values can be number, dates, text.*
+*Select values within a given range. The values can be number, date, text.*
 
 ```sql
 SELECT column_1, column_2, column_n
