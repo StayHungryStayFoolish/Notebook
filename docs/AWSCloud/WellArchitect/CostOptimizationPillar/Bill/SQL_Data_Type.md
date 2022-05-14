@@ -4,11 +4,11 @@
 
 > Table Name: aws_monthly_cost
 
-| id  | invoice_id | product_name          | usage_start_date    | usage_end_date            | total_cost      |
-|:----|:-----------|:----------------------|:--------------------|:--------------------------|:----------------|
-| 1   | Estimated  | AWS Data Transfer     | `2022-04-01 00:00:00` | `2022-04-30 23:59:59`     | 17.32         |
-| 2   | Estimated  | Amazon Athena         | `2022-04-01 00:00:00` | `2022-04-30 23:59:59`     | 244.80        |
-| 3   | Estimated  | Amazon QuickSight     | `2022-04-01 00:00:00` | `2022-04-30 23:59:59`     | 3.44          |
+| id  | invoice_id | product_name          | usage_start_date       | usage_end_date            | total_cost     |
+|:----|:-----------|:----------------------|:-----------------------|:--------------------------|:---------------|
+| 1   | Estimated  | AWS Data Transfer     | `2022-04-01 00:00:00`  | `2022-04-30 23:59:59`     | 17.32          |
+| 2   | Estimated  | Amazon Athena         | `2022-04-01 00:00:00`  | `2022-04-30 23:59:59`     | 244.80         |
+| 3   | Estimated  | Amazon QuickSight     | `2022-04-01 00:00:00`  | `2022-04-30 23:59:59`     | 3.44           |
 
 ## String Data Types
 
@@ -67,3 +67,197 @@
 | CREATE INDEX    | Used to create and retrieve data from the database very quickly                                  |
 | CHECK           | Ensures that the values in a column satisfies a specific condition                               |
 | FOREIGN KEY     | Prevents actions that would destroy links between tables                                         |
+
+## Operators
+
+### Arithmetic
+
+| Operator | Description |
+|:---------|:------------|
+| `+`      | Add         |
+| `-`      | Subtract    |
+| `*`      | Multiply    |
+| `/`      | Divide      |
+| `%`      | Modulo      |
+
+### Bitwise 
+
+| Operator        | Description  |
+|:----------------|:-------------|
+| `&`             | And          |
+| &VerticalLine;  | Or           |
+| `^`             | exclusive OR |
+
+`&` operator
+```shell
+1 & 1 = 1
+1 & 0 = 1
+0 & 0 = 0
+```
+
+`|` operator
+```shell
+1 | 1 = 1
+1 | 0 = 1
+0 | 0 = 0
+```
+
+`^` operator
+```shell
+1 ^ 1 = 0
+1 ^ 0 = 1
+0 ^ 0 = 0
+```
+
+### Comparison
+
+| Operator | Description              |
+|:---------|:-------------------------|
+| `=`      | Equal to                 |
+| `>`      | Greater than             |
+| `<`      | Less than                |
+| `>=`     | Greater than or equal to |
+| `<=`     | Less than or equal to    |
+| `<>`     | Not equal to             |
+
+### Logical
+
+| Operator  | Description                                                    |
+|:----------|:---------------------------------------------------------------|
+| ALL       | TRUE if all of the subquery values meet the condition          |
+| ANY       | TRUE if any of the subquery values meet the condition          |
+| `AND`     | TRUE if all the conditions separated by AND is TRUE            |
+| `BETWEEN` | TRUE if the operand is within the range of comparisons         |
+| EXISTS    | TRUE if the subquery returns one or more records               |
+| `IN`      | TRUE if the operand is equal to one of a list of expressions   |
+| `LIKE`    | TRUE if the operand matches a pattern                          |
+| `NOT`     | Displays a record if the condition(s) is NOT TRUE              |
+| `OR`      | TRUE if any of the conditions separated by OR is TRUE          |
+| SOME      | TRUE if any of the subquery values meet the condition          |
+
+Example:
+
+*condition use comparison operator*
+> general condition: column = value 
+
+*replace column_name, column_n, value_n, conditions*
+
+1. AND
+
+```sql
+SELECT column_1, column_2, column_n
+FROM `table_name`
+WHERE condition_1 AND condition_2 AND condition_3;
+```
+
+2. BETWEEN
+
+*Select values within a given range. The values can be number, dates, text.*
+
+```sql
+SELECT column_1, column_2, column_n
+FROM `table_name`
+WHERE `column_name` BETWEEN value_1 AND value_2;
+```
+
+3. IN
+
+```sql
+SELECT column_1, column_2, column_n
+FROM `table_name`
+WHERE `column_name` IN (value_1, value_2, value_n);
+```
+
+4, LIKE
+
+> Regex Pattern：
+> 
+> 'a%'  ->      Finds any values that start with "a"
+> 
+> '%a'  ->      Finds any values that end with "a"
+> 
+> '%a%' ->      Finds any values have "a"
+
+```sql
+SELECT column_1, column_2, column_n
+FROM `table_name`
+WHERE `column_name` LIKE `regex_pattern`;
+```
+
+5. NOT
+
+```sql
+SELECT column_1, column_2, column_n
+FROM `table_name`
+WHERE NOT condition;
+```
+
+6. OR
+
+```sql
+SELECT column_1, column_2, column_n
+FROM `table_name`
+WHERE condition_1 OR `condition_2 OR condition_n;
+```
+
+### Numeric Functions
+
+| Function | Description                                                   |
+|:---------|:--------------------------------------------------------------|
+| SUM()    | Calculates the sum of a set of values                         |
+| AVG()    | Returns the average value of an expression                    |
+| MAX()    | Returns the maximum value in a set of values                  |
+| MIN()    | 	Returns the minimum value in a set of values                 |
+| COUNT()  | Returns the number of records returned by a select query      |
+
+Example:
+
+*replace column_n, aggregate_column, conditions, column_name*
+
+1. SUM()
+
+```sql
+SELECT column_1, column_2, column_n,
+       SUM(aggregate_column)
+FROM `table_name`
+[WHERE conditions]
+GROUP BY column_name;
+```
+2. AVG()
+
+```sql
+SELECT column_1, column_2, column_n,
+       SUM(aggregate_column)
+FROM `table_name`
+[WHERE conditions]
+GROUP BY column_name;
+```
+
+3. MAX()
+
+```sql
+SELECT column_1, column_2, column_n,
+       MAX(aggregate_column)
+FROM `table_name`
+[WHERE conditions]
+GROUP BY column_name;
+```
+4. MIN()
+
+```sql
+SELECT column_1, column_2, column_n,
+       MIN(aggregate_column)
+FROM `table_name`
+[WHERE conditions]
+GROUP BY column_name;
+```
+
+5. COUNT()
+
+```sql
+SELECT column_1, column_2, column_n,
+       COUNT(aggregate_column)
+FROM `table_name`
+[WHERE conditions]
+GROUP BY column_name;
+```

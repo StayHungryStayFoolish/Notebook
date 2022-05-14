@@ -19,24 +19,24 @@ CREATE DATABASE IF NOT EXISTS `database_name`;
 
 2. Create table in database
 
-*replace database_name、table_name、column*、column_definition、constraint*
+*replace database_name, table_name, column_n, column_definition, constraint*
 
 ```sql
 USE `database_name`;
 
 CREATE TABLE IF NOT EXISTS `table_name`
 (
-    column1 column_definition [constraint],
-    column2 column_definition [constraint],
-    column3 column_definition [constraint],
-    ....
+    column_1 column_definition [constraint],
+    column_2 column_definition [constraint],
+    column_3 column_definition [constraint],
+    column_n column_definition [constraint]
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 ```
 
 ### ALTER
 
-*replace new_column_name、column_definition、existing_column*
+*replace new_column_name, column_definition, existing_column*
 
 1. Add `new_column_name` to the end of table 
 
@@ -83,7 +83,7 @@ ALTER TABLE `table_name`
 
 ### DROP
 
-*replace database_name、table_name、column*
+*replace database_name, table_name, column*
 
 1. Drop database
 
@@ -104,3 +104,37 @@ DROP TABLE IF EXISTS `table_name`;
  - UPDATE
  - DELETE
 
+### INSERT
+
+1. Add values for all columns
+
+*replace table_name, value_n*
+
+```sql
+INSERT INTO `table_name`
+    VALUES (value_1, value_2, value_3, value_n);
+```
+
+2. Specify the columns and the values to be added 
+
+*replace table_name, column_n, value_n*
+
+```sql
+INSERT INTO `table_name` (column_1, column_2, column_3, column_n)
+    VALUES (value_1, value_2, value_3, value_n);
+```
+
+### UPDATE
+
+1. Specify conditions and modify the existing records
+
+*replace table_name, column_n, value_n*
+
+```sql
+UPDATE `table_name`
+    SET 
+        column_1 = value_1, 
+        column_2 = value_2, 
+        column_n = value_n
+WHERE condition;
+```
