@@ -9,7 +9,7 @@
 | WHERE                  | Used to extract only those records that fulfill a specified condition.                                                            |
 | GROUP BY               | Groups rows that have the same values into summary rows.                                                                          |
 | ORDER BY               | Used to sort the result-set in ascending or descending order.                                                                     |
-| LIMIT n_1 [OFFSET n_2] | Specify the number of records(offset the numbers) to return.                                                                      |
+| LIMIT `n_1` [OFFSET `n_2`] | Specify the number of records(offset the numbers) to return.                                                                      |
 | HAVING                 | The HAVING clause was added to SQL because the WHERE keyword cannot be used with `COUNT(), SUM(), AVG(), MAX(), MIN()` functions. |
 | INNER JOIN ... ON ...  | Selects records that have matching values in both tables.                                                                         |
 | LEFT JOIN ... ON ...   | Returns all records from the `left table`, and the matching records (if any) from the right table.                                |
