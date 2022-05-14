@@ -4,6 +4,8 @@
 
 ![MySQL JOIN](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/mysql_join.png)
 
+![logo](https://docsify.js.org/_media/icon.svg ':size=50x100')
+
 ## 相关技术栈资料完成度
 
 | 目录     | 完成度 | 已完成                                                | 待办                                  |
