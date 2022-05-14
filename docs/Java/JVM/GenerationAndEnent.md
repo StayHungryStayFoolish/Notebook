@@ -6,7 +6,7 @@
 
 ### Weak Generational Hypothesis(弱代际假设)
 
-![Lifetime](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Object-Lifetime.png?raw=true)
+![Lifetime](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Object-Lifetime.png?raw=true)
 
 自 1984 年来，通过对 JVM 内部对象**生命周期**进行了很长时间的观察和研究，大多数对象在刚分配内存后多久就死掉了（不再被引用），而一旦这些对象存活到一定的年龄后**（每次 GC 增加一次年龄）**，又会存活很长一段时间。**简言之：大多数分配的对象都死于年轻时。**
 
@@ -18,7 +18,7 @@
 
 ### Heap Memory 的分代
 
-![HeapMemory](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/HeapMemory.png?raw=true)
+![HeapMemory](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/HeapMemory.png?raw=true)
 
 `Heap Memory` 基于[垃圾删除策略](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_4-%e6%a0%87%e8%ae%b0amp%e6%89%ab%e6%8f%8famp%e5%8e%8b%e5%ae%9eamp%e5%a4%8d%e5%88%b6%e7%ad%96%e7%95%a5)，可以根据对象存活时间的长短，而使用不同的策略，进而根据 `弱代际假设` 理论进行分代。
 
@@ -48,7 +48,7 @@
 
 **Google 到的一张图，GC 事件过程描述了 Minor GC 和 Full GC 的流程图（缺少了 Major GC，因为官方定义也不明确，可以暂时按照下图理解，遇到明确的资料再更新），图中 HandlePromotionFailure = false 的流程请忽略（如有侵权，请联系删除）。**
 
-![GC-Eevnt](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/GC-Event.png?raw=true)
+![GC-Eevnt](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/GC-Event.png?raw=true)
 
 **下边文字描述的是 Minor & Major & Ful GC。与上图无关，请单独理解。**
 

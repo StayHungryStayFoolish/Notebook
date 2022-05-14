@@ -36,7 +36,7 @@
 
 -   C 语言的 `char`存储方式
 
-    -   ![C char](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/c-char.png?raw=true)
+    -   ![C char](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/c-char.png?raw=true)
         -   以 `\0` 结尾，当获取`char`的`length`需要遍历数组直到空字符（**\0**）停止，复杂度为 **0(N)**
         -   `char`本身不记录长度，容易产生缓冲区溢出。
 
@@ -181,11 +181,11 @@ INCRBYFLOAT key increment
             -   哈希对象保存的所有键值对的键和值的字符串长度都小于 64 字节`hash-max-ziplist-value 64`
             -   哈希对象保存的键值对数量小于 512 个`hash-max-ziplist-entries 512`
 
-        ![Ziplist](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/hash-ziplist.jpg?raw=true)
+        ![Ziplist](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/hash-ziplist.jpg?raw=true)
 
     -   **hashtable**
 
-        ![Hashtable](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/hash-table.jpg?raw=true)
+        ![Hashtable](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/hash-table.jpg?raw=true)
 
 ### 2.1 Hash 常用命令
 
@@ -241,7 +241,7 @@ HSTRLEN key filed
 
     -   `quicklist` 结构
 
-        ![QuickList](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/redis_quicklist_structure.png?raw=true)
+        ![QuickList](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/redis_quicklist_structure.png?raw=true)
 
         -   两端各有2个橙黄色的节点，是没有被压缩的。它们的数据指针zl指向真正的 `ziplist`。中间的其它节点是被压缩过的，它们的数据指针zl指向被压缩后的 `ziplist` 结构，即一个 `quicklistLZF` 结构。
 
@@ -347,7 +347,7 @@ BRPOPLPUSH source destination timeout
     -   当 `Set` 内所有元素对象都可以被 `Redis` 解释为整型数值时，且元素数量不超过 `512`  个，使用 `intset` 编码。
     -   当 `Set` 内有元素为 `String ` 类型是，使用 `hashtable` 编码，每个元素对应 `hashtable` 字典的键，值全部设置为 `Null`。
 
-    ![Set](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/set-1.jpg?raw=true)
+    ![Set](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/set-1.jpg?raw=true)
 
 ### 4.1 Set 常用命令
 
@@ -421,9 +421,9 @@ SDIFFSTORE destination key [key ...]
 
     -   `ziplist` 编码的压缩列表底层内部，每个集合元素使用两个紧挨一起的压缩列表节点来保存。第一个节点保存元素的`成员（member）`，第二个元素保存元素的`分值（score）`。分值较小的放置在靠近表头的方向，分值较大的放置在靠近表尾的方向。
 
-        ![ziplist](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/ziplist.jpg?raw=true)
+        ![ziplist](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/ziplist.jpg?raw=true)
 
-        ![ziplist-1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/ziplist-1.jpg?raw=true)
+        ![ziplist-1](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/ziplist-1.jpg?raw=true)
 
     -   `skiplist` 编码使用 `zset` 结构作为底层实现。`zset` 结构包含一个`字典(dict)`和一个`跳跃表(zskiplist)`。
 
@@ -441,7 +441,7 @@ SDIFFSTORE destination key [key ...]
         }zset;
         ```
 
-        ![skiplist](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/skiplist.jpg?raw=true)
+        ![skiplist](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/skiplist.jpg?raw=true)
 
 ### 5.1 ZSet 常用命令
 
@@ -517,25 +517,25 @@ ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight] [AGGREGATE SUM|MI
   1.  计算机分配一个`byte`，初始化为8个为`0`的`bit`。
   2.  根据数组给定的值，在对应的`offset`将`bit`的值修改为`1`标记该元素。
 
-![Bitmap-1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/WeChat6b19a88bb391b20c5e83a940fe8a1366.png?raw=true)
+![Bitmap-1](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/WeChat6b19a88bb391b20c5e83a940fe8a1366.png?raw=true)
 
 -   增加一个元素`5`，使数组变为`[2,4,5,7]`
   
-	![Bitmap-add-5](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/WeChat024dd7db382d59765da9fcdb8f686a04.png?raw=true)
+	![Bitmap-add-5](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/WeChat024dd7db382d59765da9fcdb8f686a04.png?raw=true)
 
 -   删除一个元素`4`，使数组变为`[2，7]`
 
   -   **注意进行与运算时，只有 offset 为 4 的 bit 为 0，其余 bit 都是 1**
   
 
-  ![Bitmap-del-4](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/WeChat6dd72906063050e25089960011af57d2.png?raw=true)
+  ![Bitmap-del-4](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/WeChat6dd72906063050e25089960011af57d2.png?raw=true)
 
 
   - 增加一个元素`20`,使数据变为`[2,4,7,20]`。
     
       - 如果现有数组要增加元素，并且元素大于7，则再分配字节，并且`offset`仍然`从右向左`依次标记。例如增加20，则分配三个字节，分别是`buf[0]`、`buf[1]`、`buf[2]`，在`buf[2]`的`offset`对应元素标记为`1`。其中`buf[1]`的所有元素肯定为`0`。
 
-![Bitmap-add](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/WeChat3386d4b0c2c7bfe6ffe00d8059c13d03.png?raw=true)
+![Bitmap-add](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/WeChat3386d4b0c2c7bfe6ffe00d8059c13d03.png?raw=true)
 
 ### 6.1 Bitmap 常用命令
 
@@ -568,7 +568,7 @@ BITOP operation destkey key [key ...]
 
         -   ascii 码表
 
-            ![ascii](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/ascii.jpg?raw=true)
+            ![ascii](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/ascii.jpg?raw=true)
 
         -   [二进制计算器](https://cn.calcuworld.com/%e4%ba%8c%e8%bf%9b%e5%88%b6%e8%ae%a1%e7%ae%97%e5%99%a8?iframe=1 ':include :type=iframe width=100% height=400px')（该网站计算的值如果不够8位，需要在高位`左侧`补齐0）
     
@@ -667,15 +667,15 @@ BITOP operation destkey key [key ...]
 
     -   buf数组中的buf[1]字节保存了SDS程序自动追加到值的末尾的空字符'\0'。
 
-        ![SDS-Structure](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/bitmap-structure.jpg?raw=true)
+        ![SDS-Structure](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/bitmap-structure.jpg?raw=true)
 
     -   存储一个`字节`的位数组：`0100 1101`，`Redis`在保存数组顺序时，与我们书写顺序时完全相反的。也就是`逆序存储`，在数组中的表示为：`1011 0010`。**注意：数组索引顺序依然是从左到右，不是逆序存储的时候采用了逆序索引，这点在后续会明确解释。**
 
-        ![SDS-Structure](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/bitmap-structure-1.jpg?raw=true)
+        ![SDS-Structure](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/bitmap-structure-1.jpg?raw=true)
 
     -   存储多个`字节`的位数组：`1111 0000 1100 0011 1010 0101`，在 `buf数组中`表示为：`1010 0101 1100 0011 0000 1111`。
 
-        ![SDS-Structure](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/bitmap-structure-2.jpg?raw=true)
+        ![SDS-Structure](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/bitmap-structure-2.jpg?raw=true)
 
     -   `GETBIT <bitarray> <offset>` 命令实现，复杂度为`O(1)`
 
@@ -691,11 +691,11 @@ BITOP operation destkey key [key ...]
         
         -   **示例：**`GETBIT <bitarray> 3`
         
-            ![GETBIT-3](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/GETBIT-3.jpg?raw=true)
+            ![GETBIT-3](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/GETBIT-3.jpg?raw=true)
         
         -   **示例：**`GETBIT <bitarray> 10`
         
-            ![GETBIT-10](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/GETBIT-10.jpg?raw=true)
+            ![GETBIT-10](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/GETBIT-10.jpg?raw=true)
         
     -   `SETBIT <bitarray> <offset> <value>` 命令实现，复杂度为`O(1)`
 
@@ -724,19 +724,19 @@ BITOP operation destkey key [key ...]
 
         -   **示例：**`SETBIT <bitarray> 1 1` 无需扩展字节
 
-            ![SETBIT-1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/SETBIT-1.jpg?raw=true)
+            ![SETBIT-1](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/SETBIT-1.jpg?raw=true)
 
-            ![SETBIE-1-1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/SETBIT-1-1.jpg?raw=true)
+            ![SETBIE-1-1](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/SETBIT-1-1.jpg?raw=true)
 
         -   **示例：**`SETBIT <bitarray> 12 1`需扩展字节
 
-            ![SETBIT-12](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/SETBIT-12.jpg?raw=true)
+            ![SETBIT-12](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/SETBIT-12.jpg?raw=true)
             
-            ![SETBIT-12-1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/SETBIE-12-1.jpg?raw=true)
+            ![SETBIT-12-1](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/SETBIE-12-1.jpg?raw=true)
           
         -   **SETBIT 如果采用正常书写顺序保存，在每次扩展buf数组之后，程序都需要将位数组已有的位进行移动，然后才能执行写入操作，这比SETBIT命令目前的实现方式要复杂，并且移位带来的CPU时间消耗也会影响命令的执行速度。对位数组0100 1101执行命令SETBIT ＜bitarray＞ 12 1，将值改为0001 0000 0100 1101的整个过程。如下图。**
 
-            ![SETBIT-ORDER](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/SETBIE-12-3.jpg?raw=true)
+            ![SETBIT-ORDER](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/SETBIE-12-3.jpg?raw=true)
           
         -   **关于`逆序存储` 的疑问及解释，如果根据上文的逆序存储方式进行验证，会出现以下几个疑问。最后的 Redis 源码解释了该问题，通过 bit = 7 - ( bitoffset & 0x7 ) 计算，实际上的 setbitCommand 操作将 0 1 2 3 4 5 6 7 的操作倒转为了 7 6 5 4 3 2 1 0。对于用户来讲，该操作是无感知的，所以当验证逆序存储是，就会出现了下边几个疑问。**
 
@@ -757,15 +757,15 @@ BITOP operation destkey key [key ...]
 
             -   **Question-1**
 
-              ![Question-1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/bitmap-1.jpg?raw=true)
+              ![Question-1](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/bitmap-1.jpg?raw=true)
 
             -   **Question-2**
 
-              ![Question-2](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/bitmap-2.jpg?raw=true)
+              ![Question-2](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/bitmap-2.jpg?raw=true)
 
             -   **Question-3**
 
-              ![Question-3](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/%20bitmap-3.png?raw=true)
+              ![Question-3](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/%20bitmap-3.png?raw=true)
 
 
 
@@ -839,8 +839,8 @@ BITOP operation destkey key [key ...]
         -   同样举抛硬币的例子，如果只有一组抛硬币实验，运气较好，第一次实验过程就抛了10次才第一次抛到正面，显然根据公式推导得到的实验次数的估计误差较大；如果100个组同时进行抛硬币实验，同时运气这么好的概率就很低了，每组分别进行多次抛硬币实验，并上报各自实验过程中抛到正面的抛掷次数的最大值，就能根据100组的平均值预估整体的实验次数了。
         -   分桶平均的基本原理是将统计数据划分为 `m` 个桶，每个桶分别统计各自的 `k_max` 并能得到各自的基数预估值 **$\widehat{n}$** ，最终对这些 **$\widehat{n}$** 求平均得到整体的基数估计值。`LLC` 中使用几何平均数预估整体的基数值，但是当统计数据量较小时误差较大；`HLL` 在 `LLC` 基础上做了改进，采用调和平均数，调和平均数的优点是可以过滤掉不健康的统计值。
         -   **调和平均数公式**（两者等同）
-            -   ![Harmonic](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/harmonic.svg?raw=true)
-            -   ![Harmonic-1](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/harmonic-1.svg?raw=true)
+            -   ![Harmonic](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/harmonic.svg?raw=true)
+            -   ![Harmonic-1](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/harmonic-1.svg?raw=true)
         -   **Redis 使用分桶数组原因**
             -   分桶数组是为了消减因偶然性带来的误差，提高预估的准确性。
     -   **偏差修正**
@@ -848,7 +848,7 @@ BITOP operation destkey key [key ...]
     
 ### 7.2 Redis 的 HyperLogLog 数据结构
 
-![HyperLogLog-Bucket](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/HyperLogLog.jpg?raw=true)
+![HyperLogLog-Bucket](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/HyperLogLog.jpg?raw=true)
 
 -   `Redis` 的 `HyperLogLog` 占用 **12k** 内存的原因
     -   `Redis` 设置了**16384（2<sup>14</sup>）** 个桶。请留意 14 这个数字，接下来会具体解释。
@@ -983,17 +983,17 @@ PFMERGE destkey sourcekey [sourcekey ...]
 
   - 二位空间的 **Z阶曲线**，只需要把每个 Z 首尾相连即可。
 
-  ![Z](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/z.png?raw=true)
+  ![Z](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/z.png?raw=true)
 
   - **Z 阶曲线**同样可以扩展到**三维空间**。只要 Z 形状足够小并且足够密，也能填满整个三维空间。
 
-  ![Z](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/z-1.png?raw=true)
+  ![Z](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/z-1.png?raw=true)
 
 - **Geohash** 算法的理论基础就是基于 **Z 阶曲线** 的生成原理。
 
   - 地球纬度区间是`[-90,90]`,经度区间是`[-180,180]`。 将它展开想象成一个矩形，如下图所示：
 
-    ![Z-3](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/z-3.png?raw=true)
+    ![Z-3](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/z-3.png?raw=true)
 
   - 如果将地球的表面转换成二维空间的平面。我们先将平面切割成四个正方形，然后用简单的 `0 和 1` 编码来标识这个四个正方形，最后按照编码的大小将四个正方形连接起来，这样整个平面就转换成了一条 **Z 阶曲线** ，变成了一维。我们递归对每个正方形做同样的操作，递归的层次越深，整个平面就逐渐被 **Z 阶曲线** 填充。我们的点也会落在每个小正方形里面，小正方形越小，精度就越高。
 
@@ -1001,7 +1001,7 @@ PFMERGE destkey sourcekey [sourcekey ...]
       - **当将空间划分为四块时候，经度左半区间为 0，右半区间为 1，纬度下半区间为 0，上半区间为 1，于是经纬度二进制编码交叉组合，得到编码的顺序分别是左下角 00，左上角 01，右下脚 10，右上角 11。**
     - **如下图所示：**
 
-    ![Z-2](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/z-2.png?raw=true)
+    ![Z-2](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/z-2.png?raw=true)
 
   - 以上3个图简单的展示了 **Z 阶曲线** 如何**将一个三维空间最终降维到一维空间**。
 
@@ -1026,7 +1026,7 @@ PFMERGE destkey sourcekey [sourcekey ...]
 
     - 当一个经纬度的坐标位于一个地图的网格中，假如该字符串长度是5，则临近格子的字符串前缀（4个字符）完全一致。**如下图：银科大厦的 Hash 字符串位 wx4eqw，周围相邻的前 5 位一样。**
 
-      ![6-5](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/yinke.png?raw=true)
+      ![6-5](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/yinke.png?raw=true)
 
     - 可以在该网站进行测试。[GeoHash-Map](http://geohash.gofreerange.com/)
 
@@ -1131,11 +1131,11 @@ PFMERGE destkey sourcekey [sourcekey ...]
         -   Peano Curve（1890 年）
             -   取一个正方形并且把它分出九个相等的小正方形，然后从左下角的正方形开始至右上角的正方形结束，依次把小正方形的中心用线段连接起来；下一步把每个小正方形分成九个相等的正方形，然后上述方式把其中中心连接起来……将这种操作手续无限进行下去，最终得到的极限情况的曲线就被称作皮亚诺曲线。
 
-        ![PeanoCurve](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/WeChat1bf2f8b89674332c99f07727e0f33b2f.png?raw=true)
+        ![PeanoCurve](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/WeChat1bf2f8b89674332c99f07727e0f33b2f.png?raw=true)
 
     -   Hilbert Curve（一年后，希尔伯特做出了这条曲线）
 
-        ![HilbertCurve](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/20200628224218.png?raw=true)
+        ![HilbertCurve](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/20200628224218.png?raw=true)
 
 -   **分形**
 
@@ -1143,7 +1143,7 @@ PFMERGE destkey sourcekey [sourcekey ...]
 
     -   **Google S2 采用了正方形分形，如下图**
 
-        ![Square-S2](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/WeChatdb1c80b9b20990f096d7e86490b0b646.png?raw=true)
+        ![Square-S2](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/WeChatdb1c80b9b20990f096d7e86490b0b646.png?raw=true)
 
 -   **Google S2 Cell 精度**
 
@@ -1220,7 +1220,7 @@ wx4eqw7tn70
 
     -   虽然有局部保序性，但也有突变性。**相邻的 Z 首尾虽然两个点事相邻的，但是距离相隔很远。**
 
-        ![Z-突变](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/20200628185553.png?raw=true)
+        ![Z-突变](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/20200628185553.png?raw=true)
 
 ### 8.6 Geohash 常用命令
 
@@ -1276,7 +1276,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
 **每个消息流都包含一个 Rax 结构。以消息ID为 key，listpack 结构为 value 存储在 Rax 结构中。每个消息的具体信息存储在这个 listpack 中。**
 
-![StreamStructure](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/StreamStructure.svg?raw=true)
+![StreamStructure](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/StreamStructure.svg?raw=true)
 
 ### 9.1 Stream 数据结构
 
@@ -1286,7 +1286,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
     -    [Wiki 关于 Radix Tree的图示](https://en.wikipedia.org/wiki/Radix_tree) 是字符串查找时，经常使用的一种数据结构，能够在一个字符串集合中快速查找到某个字符串。
 
-        ![Radix-Tree](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/WeChat0e701d81d2e7013595cff8d2b959f319.png?raw=true)
+        ![Radix-Tree](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/WeChat0e701d81d2e7013595cff8d2b959f319.png?raw=true)
 
     -   **Redis Rax 结构由  3 部分组成**
 
@@ -1409,7 +1409,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
         -   指定 ID 为 **>**，则获取消费组内**未被消费起始的消息**。**注意 ID 特殊符号是 >，不同于普通消费者的 $**
         -   **不支持指定消息 ID**
     
-    ![Stream-msq](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Stream-msg.svg?raw=true)
+    ![Stream-msq](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/Stream-msg.svg?raw=true)
 
 ### 9.3 Stream 命令
 
@@ -1467,7 +1467,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
     -   **图示**
 
-        ![Stream-ADD](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Stream-ADD命令.svg?raw=true)
+        ![Stream-ADD](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/Stream-ADD命令.svg?raw=true)
 
 
 
@@ -1485,7 +1485,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
     -   **图示，最后保留了 3、4、5 三个元素，1 和 2 被移除**
 
-        ![Stream-ADD-MAXLEN](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Stream-ADD-MAXLEN命令.svg?raw=true)
+        ![Stream-ADD-MAXLEN](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/Stream-ADD-MAXLEN命令.svg?raw=true)
 
 -   执行 `XREAD` 命令
 
@@ -1515,7 +1515,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
     -   **图示**
 
-        ![Stream-READ-BLOCK](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Stream-READ-BLOCK.svg?raw=true)
+        ![Stream-READ-BLOCK](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/Stream-READ-BLOCK.svg?raw=true)
 
 #### 9.4.2 生产者与消费者组模式
 
@@ -1542,7 +1542,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
   - **图示**
 
-    ![Stream-Create-Group](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Stream-GROUP-CREATE命令.svg?raw=true)
+    ![Stream-Create-Group](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/Stream-GROUP-CREATE命令.svg?raw=true)
 
   - **命令演示**
 
@@ -1765,7 +1765,7 @@ GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH]
 
   - **图示**
 
-      ![Stream-Group-SETID](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/Stream-命令SETID.svg?raw=true)
+      ![Stream-Group-SETID](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/Stream-命令SETID.svg?raw=true)
 
 ##### 9.4.2.2 管理消费者
 

@@ -17,4 +17,4 @@
 
 
 
-![MySQL JOIN](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/mysql_join.png?raw=true)
+![MySQL JOIN](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/MySQL/mysql_join.png?raw=true)

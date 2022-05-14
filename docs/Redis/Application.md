@@ -26,7 +26,7 @@
   
   - `Bloom Filter` 有两个要素：长度为 **n** 的 `bit array` 和 **m** 个独立的 `hash function`，当要写入元素 `x` 的时候，用所有的 `hash function`  对 `x`  进行 `hash 后 mod n ` 得到 **m** 个位置，在 `bit array`  对应位置的 `bit` 设为 **1**，就完成了一次写入，验证元素是否存在，则只需要查看 `bit array` 上对应的 **m** 上的 `bit` 是否全部为 **1** 即可。 
   - 假设长度为 **10** 的 `bit array` 和 **3** 个 `hash function`，当写入元素 `element`，会分别计算 **3** 次 hash 并进行求模运算，然后获取 **3** 个 `index` 的值，最后在 `bit array` 对应的 index 将 `bit` 由 **0** 设置为 **1**。如下图所示
-      - ![BloomFilter](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/BloomFilter.svg?raw=true)
+      - ![BloomFilter](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/BloomFilter.svg?raw=true)
       - **优点**
           - 空间效率高，占用空间很小（可以参考 Bitmap）
           - 查询效率高
@@ -172,7 +172,7 @@
     -   `发送者（Publisher）` 向通道发送消息的客户端
     -   `订阅者（Subscriber）` 订阅频道的客户端
 
-![PUB/SUB](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/PUB_SUB.svg?raw=true)
+![PUB/SUB](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/PUB_SUB.svg?raw=true)
 
 #### 2.3.2 订阅与发布模式基本命令
 
@@ -268,7 +268,7 @@
 
     -   基于 `Redis` 分布式锁的基本架构（省略数据库层面）：
 
-    ![Redis-Lock](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/redis/架构.png?raw=true)
+    ![Redis-Lock](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/redis/架构.png?raw=true)
 
 ### 3.2 Distributed Locks（分布式锁）
 

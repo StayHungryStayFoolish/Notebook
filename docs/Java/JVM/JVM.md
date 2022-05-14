@@ -1,6 +1,6 @@
 # JVM 内存模型
 
-![JRE](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Java-Runtime-data.png?raw=true)
+![JRE](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Java-Runtime-data.png?raw=true)
 
 > 此文只讨论 JVM 内存模型，如需了解上图全部结构，请查看 [JDK 三大组件](http://notebook.bonismo.ink/#/Java/JVM/JDK)。
 
@@ -27,17 +27,17 @@ Java 虚拟机加载代码，验证代码，执行代码，管理内存（这包
 
 ### 1.1 JVM 在 OS 内存结构
 
-![HostMemory](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/HostMemory.png?raw=true)
+![HostMemory](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/HostMemory.png?raw=true)
 
 ### 1.2 JVM 内部内存结构
 
-![jvm_memory_structure](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/jvm_memory_structure.gif?raw=true)
+![jvm_memory_structure](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/jvm_memory_structure.gif?raw=true)
 
 > **在 JVM 内部，存在单独的内存空间（堆，非堆，缓存），以便存储运行时数据和编译后的代码。**
 
 #### 1.2.1 Heap Memory(堆内存)
 
-![HeapMemory](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/HeapMemory.png?raw=true)
+![HeapMemory](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/HeapMemory.png?raw=true)
 
 > **JVM 堆内存采用分代模型，分为两大部分：年轻代、老年代。其中年轻代又分为三个区域：Eden Memory(伊甸园区)、Survivor Memory(幸存者区S0、S1)**
 
@@ -88,7 +88,7 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 >
 > `TLAB` 内部的分配是一个简单的*指针* （这就是为什么有时将其称为指针缓冲分配）的原因。
 
-![TLAB](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/TLAB.svg?raw=true)
+![TLAB](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/TLAB.svg?raw=true)
 
 **上图为线程内对象分配流程**
 
@@ -154,7 +154,7 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 
 #### 1.2.2 Non-Heap Memory(非堆内存)
 
-![Non-Heap Memory](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Non-Heap%20Memory.png?raw=true)
+![Non-Heap Memory](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Non-Heap%20Memory.png?raw=true)
 
 ##### 1.2.2.1 Metaspace
 
@@ -188,7 +188,7 @@ JVM 启动时使用 `-Xms` 指定初始大小、`-Xmx` 指定最大大小。
 
 ### 1.3 堆、非堆与栈的关系
 
-![Heap-Non-Stack](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Stack&Heap.png?raw=true)
+![Heap-Non-Stack](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Stack&Heap.png?raw=true)
 
 **注：Non Heap 图中的 Permanent Generation 在 Java 8 中已更换为 Metaspace**
 
@@ -220,7 +220,7 @@ public class Test {
 }
 ```
 
-![Code-Heap-Stack](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/0_HWkfCG1q4DFsFfoF.jpeg?raw=true)
+![Code-Heap-Stack](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/0_HWkfCG1q4DFsFfoF.jpeg?raw=true)
 
 观察上图可以发现，`int` 类型的 **id = 23** 是在当前 `Stack` 内的 `Frame` 中，**p** 是 `Heap` 内 Person 对象的引用，**pName** 因为是 `String` 类型，所以该引用也指向 `Heap` 内的 `String Pool`。
 
@@ -292,7 +292,7 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
 2. 当一个对象不再使用时，垃圾收集器会回收底层内存，并将其重新用于分配对象。这意味着没有显式删除，也没有将内存还给 `OS`。
 
-![Memory-Layout](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Memroy-Layou.jpeg?raw=true)
+![Memory-Layout](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Memroy-Layou.jpeg?raw=true)
 
 >   **新对象仅在已使用堆的末尾分配。**
 
@@ -300,7 +300,7 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 
 **每个对象树必须具有一个或多个根对象。只要应用程序可以到达这些根，则整个树都可以到达。有一些特殊的对象称为`垃圾回收根（GC根）`。`它们充当垃圾收集标记机制的根对象。`**
 
-![GC-Roots](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/GC-Roots.png?raw=true)
+![GC-Roots](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/GC-Roots.png?raw=true)
 
 **Java 中有四种 GC根（此处查阅多种资料，表述多样化，此处暂时以大多数资料表述的以下 4 种为准）**
 
@@ -347,7 +347,7 @@ JVM 的 `Heap Memory` 主要用于动态分配内存，`OS` 会在程序运行�
 4. **JNI 引用**
 
    -   JNI 引用是本地代码作为 JNI 调用的一部分而创建的 Java 对象。这样创建的对象被特殊对待，因为 JVM 不知道它是否被本地代码引用。这种对象是 GC 根的一种非常特殊的形式。
-   -   <img src="https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/JNI-NativeMethod.png" alt="JNI-NativeMethod" style="zoom: 67%;" />
+   -   <img src="https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/JNI-NativeMethod.png" alt="JNI-NativeMethod" style="zoom: 67%;" />
      
    -   上图大意是：`JNI` 总是使用 `Native Method Stack`，如果 `JNI` 调用的 `Native Method Library(因为一般是 C/C++ 编写)`，则当前 `Native Method Stack` 就是 `C Stack`。当线程调用 Java 方法时，JVM 会创建一个新的 `Frame` 并放进 `Stack`。因此当前的 `Frame` 就变成了特殊的 GC 根。[此处表述略复杂，可以参考 JVM 组件概述内的几个概念](http://notebook.bonismo.ink/#/Java/JVM/JDK?id=_2-jvm-%e7%bb%84%e4%bb%b6%e6%a6%82%e8%bf%b0)
 
@@ -518,9 +518,9 @@ String m = new String("jack")
 m = null;  
 ```
 
-<img src="https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/jack.png" alt="String-Jack" style="zoom:150%;" />
+<img src="https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/jack.png" alt="String-Jack" style="zoom:150%;" />
 
-![String-jack-null](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/jack-null.png?raw=true)
+![String-jack-null](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/jack-null.png?raw=true)
 
 根据上图和代码，解析 GC 步骤为：
 1. 创建了一个 `String`，其中 `m` 引用了 `jack` 。
@@ -556,7 +556,7 @@ public static void testGC(){
 }
 ```
 
-![Loop-Reference](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Loop-Reference.png?raw=true)
+![Loop-Reference](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Loop-Reference.png?raw=true)
 
 根据上图和代码，解析：
 1. 定义了两个对象 `a` 和 `b`，此时引用计数器增加一次，然后`互相引用` 再增加一次，此时两个对象引用计数为 **2**。
@@ -568,7 +568,7 @@ public static void testGC(){
 
 具体请参考 [`2.1 Java Garbage Collection Roots`](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_21-java-garbage-collection-rootsgc-roots-java-%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e6%a0%b9)。
 
-![GC-Roots-Alibaba](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/GC-Roots-Alibaba.png?raw=true)
+![GC-Roots-Alibaba](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/GC-Roots-Alibaba.png?raw=true)
 
 `可达性分析算法` 成功解决了 `引用计数算法` 中的**循环引用**问题。只要对象无法与 `GC Roots` 建立直接或间接连接，系统就会确定该对象将被垃圾回收。
 
@@ -612,7 +612,7 @@ public static void testGC(){
 
 ##### 4.1.2.1 Sweeping 扫除
 
-![Sweeping](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Sweeping.png?raw=true)
+![Sweeping](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Sweeping.png?raw=true)
 
 `Mark-Sweep` 的算法使用了最简单的垃圾删除方法，从概念上讲只是忽略对象。意味着标记阶段完成后，所有不可访问的对象占用的空间都是空闲的，因此可以删除这些对象重新分配新的对象。
 
@@ -624,7 +624,7 @@ public static void testGC(){
 
 ##### 4.1.2.2 Compacting 压实（会发生STW）
 
-![Compacting](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Compacting.png)
+![Compacting](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Compacting.png)
 
 `Mark-Sweep-Compact` 算法通过将所有标记对象移动到内存区域的开始，解决了 `Mark-Sweep` 的缺点。采用 `Mark` 和 `Sweep` 在经过 `Compact` 操作后，通过指针凸起，新的对象分配又是极其便宜。使用这样的方法，**空闲空间的位置始终是已知的**，也不会引发碎片化问题。
 
@@ -634,7 +634,7 @@ public static void testGC(){
 
 ##### 4.1.2.3 Copying 复制（会发生STW）
 
-![Copying](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/Copying.png?raw=true)
+![Copying](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/Copying.png?raw=true)
 
 `Mark-Copy` 算法与 `Mark-Sweep-Compact`  算法非常相似，因为它们也可以重新定位存活对象。**重要的区别是，重定位的目标是一个不同的内存区域，作为幸存者的新空间。`Mark-Copy` 方法具有一些优势，因为复制可以与标记在同一阶段同时发生。**可以参考 [1.2.1.1 Young Gen 内 Eden 和 Survivor 的介绍](http://notebook.bonismo.ink/#/Java/JVM/JVM?id=_1211-young-gen%e5%b9%b4%e8%bd%bb%e4%bb%a3)
 
