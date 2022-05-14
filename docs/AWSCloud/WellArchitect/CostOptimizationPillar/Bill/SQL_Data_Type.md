@@ -4,11 +4,11 @@
 
 > Table Name: aws_monthly_cost
 
-| id  | invoice_id | product_name          | usage_start_date    | usage_end_date      | total_cost |
-|:----|:-----------|:----------------------|:--------------------|:--------------------|:-----------|
-| 1   | Estimated  | AWS Data Transfer     | 2022-04-01 00:00:00 | 2022-04-30 23:59:59 | 17.32      |
-| 2   | Estimated  | Amazon Athena         | 2022-04-01 00:00:00 | 2022-04-30 23:59:59 | 244.80     |
-| 3   | Estimated  | Amazon QuickSight     | 2022-04-01 00:00:00 | 2022-04-30 23:59:59 | 3.44       |
+| id  | invoice_id | product_name          | usage_start_date    | usage_end_date            | total_cost      |
+|:----|:-----------|:----------------------|:--------------------|:--------------------------|:----------------|
+| 1   | Estimated  | AWS Data Transfer     | `2022-04-01 00:00:00` | `2022-04-30 23:59:59`     | 17.32         |
+| 2   | Estimated  | Amazon Athena         | `2022-04-01 00:00:00` | `2022-04-30 23:59:59`     | 244.80        |
+| 3   | Estimated  | Amazon QuickSight     | `2022-04-01 00:00:00` | `2022-04-30 23:59:59`     | 3.44          |
 
 ## String Data Types
 
@@ -54,7 +54,6 @@
 | `TIMESTAMP`            | A timestamp. TIMESTAMP values are stored as the number of seconds since the Unix epoch (`1970-01-01 00:00:00` UTC). Format: `YYYY-MM-DD hh:mm:ss`. The supported range is from `1970-01-01 00:00:01` UTC to `2038-01-09 03:14:07` UTC. Automatic initialization and updating to the current date and time can be specified using DEFAULT CURRENT_TIMESTAMP and ON UPDATE CURRENT_TIMESTAMP in the column definition |
 | TIME                   | A time. Format: `hh:mm:ss`. The supported range is from `-838:59:59` to `838:59:59`                                                                                                                                                                                                                                                                                                                                 |
 | YEAR                   | A year in four-digit format. Values allowed in four-digit format: 1901 to 2155, and 0000.MySQL 8.0 does not support year in two-digit format.                                                                                                                                                                                                                                                                       |
-
 
 ## Column Constraints
 
