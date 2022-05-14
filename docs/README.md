@@ -1,6 +1,8 @@
 # Notebook
 
+![MySQL-Architecture](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/MySQL-Architecture.png)
 
+![MySQL JOIN](https://gitee.com/bonismo/notebook-img/raw/master/img/MySQL/mysql_join.png)
 
 ## 相关技术栈资料完成度
 
