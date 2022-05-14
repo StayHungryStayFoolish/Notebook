@@ -7,6 +7,7 @@
       - [Bill](AWSCloud/WellArchitect/CostOptimizationPillar/Bill/Bill.md)
       - [SQL Tutorial](AWSCloud/WellArchitect/CostOptimizationPillar/Bill/CUR_Tutorial.md)
       - [SQL Data Type](AWSCloud/WellArchitect/CostOptimizationPillar/Bill/SQL_Data_Type.md)
+      - [SQL Basic Syntax](AWSCloud/WellArchitect/CostOptimizationPillar/Bill/SQL_Syntax.md)
     - [Sustainability Pillar](AWSCloud/WellArchitect/SustainabilityPillar/)
 - **Computer Fundamentals**
     - [ComputerTheory](ComputerFundamentals/)
