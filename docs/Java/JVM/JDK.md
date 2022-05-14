@@ -2,7 +2,7 @@
 
 ## 1. JDK 三大组件
 
-![JDK](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/JDK.png)
+![JDK](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/JDK.png?raw=true)
 
 ### 1.1 JDK(Java Development Kit)
 
