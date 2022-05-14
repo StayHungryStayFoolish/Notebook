@@ -34,7 +34,7 @@ JDK 面向的是开发人员，如果只需运行程序，可以单独下载 JRE
 >
 >   5.  Native Method Library(本地方法库)
 
-![JVM-Architecture](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/jvm/JVM-Architecture.png?row=true)
+![JVM-Architecture](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/jvm/JVM-Architecture.png)
 
 `JVM` 是 `JRE` 的实例，存在于内存中并与内存打交道，是 Java 语言实现跨平台的核心，即 `Write once, run anywhere!`
 
