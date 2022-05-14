@@ -15,6 +15,21 @@
 | LEFT JOIN ... ON ...   | Returns all records from the `left table`, and the matching records (if any) from the right table.                                |
 | RIGHT JOIN ... ON ...  | Returns all records from the `right table`, and the matching records (if any) from the left table.                                |
 
+### AS
+
+1. Alias Column 
+
+```sql
+SELECT `column_name` AS `alias_name`
+FROM `table_name`;
+```
+
+2. Alias Table
+
+```sql
+SELECT `column_name`
+FROM `table_name` AS `alias_name`;
+```
 
 
 ![MySQL JOIN](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/MySQL/mysql_join.png?raw=true)
