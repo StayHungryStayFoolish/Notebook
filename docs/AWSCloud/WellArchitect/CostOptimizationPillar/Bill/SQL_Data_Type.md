@@ -1,5 +1,9 @@
 # MySQL 数据类型
 
+## RDBMS(Relational Database Management System)
+
+A relational database defines database relationships in the form of tables.
+
 ## Table Structure
 
 > Table Name: aws_monthly_cost

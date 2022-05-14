@@ -128,6 +128,8 @@ INSERT INTO `table_name` (column_1, column_2, column_3, column_n)
 
 1. Specify conditions and modify the existing records
 
+> condition: column = value
+
 *replace table_name, column_n, value_n*
 
 ```sql
@@ -137,4 +139,51 @@ UPDATE `table_name`
         column_2 = value_2, 
         column_n = value_n
 WHERE condition;
+```
+
+### DELETE
+
+1. Delete existing records in a table.
+
+```sql
+DELETE FROM `table_name` WHERE condition;
+```
+
+## DQL(Data Query Language)
+
+**Keywords**
+ - SHOW
+ - SELECT
+
+### SHOW
+
+1. Query all table names in the database
+
+```sql
+SHOW FULL TABLES FROM `database_name`
+```
+
+2. Query all columns in the table
+
+```sql
+SHOW FULL COLUMNS FROM `table_name`
+```
+
+### SELECT
+
+1. Select all columns in the table
+
+```sql
+SELECT * FROM `table_name`;
+```
+
+2. Specify the columns in the table
+
+```sql
+SELECT 
+    column_1, 
+    column_2,
+    column_3,
+    column_n,
+FROM `table_name`;
 ```
