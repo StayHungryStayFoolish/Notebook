@@ -168,7 +168,7 @@ FROM `table_name`
 WHERE `column_name` IN (value_1, value_2, value_n);
 ```
 
-4, LIKE
+4. LIKE
 
 > Regex Pattern：
 > 
