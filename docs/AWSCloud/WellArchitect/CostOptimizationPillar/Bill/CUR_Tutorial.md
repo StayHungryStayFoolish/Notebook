@@ -92,7 +92,7 @@
 
    ![Create DB](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/Navicat-CreateDB.png?raw=true)
 
-   5.1 Create DB & useå
+   5.1 Create DB & use
 
 ```sql
 CREATE DATABASE IF NOT EXISTS aws_cost DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
