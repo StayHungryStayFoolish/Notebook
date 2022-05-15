@@ -204,7 +204,7 @@ FROM `table_name`
 WHERE condition_1 OR `condition_2 OR condition_n;
 ```
 
-### Numeric Functions
+### Numeric(Aggregate) Functions
 
 | Function | Description                                                   |
 |:---------|:--------------------------------------------------------------|

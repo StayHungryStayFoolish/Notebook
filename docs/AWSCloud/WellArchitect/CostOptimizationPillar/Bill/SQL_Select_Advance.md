@@ -8,9 +8,9 @@
 | DISTINCT                   | Used to return only different values.                                                                                             |
 | WHERE                      | Used to extract only those records that fulfill a specified condition.                                                            |
 | GROUP BY                   | Groups rows that have the same values into summary rows.                                                                          |
+| HAVING                     | The HAVING clause was added to SQL because the WHERE keyword cannot be used with `COUNT(), SUM(), AVG(), MAX(), MIN()` functions. |
 | ORDER BY                   | Used to sort the result-set in ascending or descending order.                                                                     |
 | LIMIT `n_1` [OFFSET `n_2`] | Specify the number of records(offset the numbers) to return.                                                                      |
-| HAVING                     | The HAVING clause was added to SQL because the WHERE keyword cannot be used with `COUNT(), SUM(), AVG(), MAX(), MIN()` functions. |
 | INNER JOIN ... ON ...      | Selects records that have matching values in `both` tables.                                                                       |
 | LEFT JOIN ... ON ...       | Returns all records from the `left table`, and the matching records (if any) from the right table.                                |
 | RIGHT JOIN ... ON ...      | Returns all records from the `right table`, and the matching records (if any) from the left table.                                |
@@ -59,6 +59,60 @@ SELECT column_1, column_2, column_3, column_n
 FROM `table_name`
 WHERE condition;
 ```
+
+### GROUP BY
+
+*GROUP BY clause often used with the aggregation functions(`COUNT(), SUM(), AVG(), MAX(), MIN()`) to group the result-set by one or more columns.*
+
+> GROUP BY often used the columns declared by SELECT 
+
+1. GROUP BY
+
+```sql
+SELECT column_1, column_2, column_3, column_n 
+FROM `table_name`
+WHERE condition
+GROUP BY `column_name(s)`
+```
+
+2. GROUP BY with aggregation function
+
+```sql
+SELECT COUNT(column_1), column_2
+FROM `table_name`
+GROUP BY `column_name(s)`;
+```
+
+### HAVING
+
+*HAVING clause often used with the aggregation functions(`COUNT(), SUM(), AVG(), MAX(), MIN()`).*
+
+```sql
+SELECT column_1, column_2, column_3, column_n
+FROM `table_name`
+[WHERE condition]
+GROUP BY `column_name(s)`
+HAVING condition
+ORDER BY `column_name(s)`;
+```
+
+Example:
+
+```sql
+SELECT COUNT(`column_1`), column_2 
+FROM `table_name`
+GROUP BY `column_2`
+HAVING COUNT(`column_1`) > 5;
+```
+
+### ORDER BY
+
+```sql
+SELECT column_1, column_2, column_n
+FROM `table_name`
+ORDER BY column_1, column_2, column_n ASC|DESC;
+```
+
 
 ### JOIN
 ![MySQL JOIN](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/MySQL/mysql_join.png?raw=true)
