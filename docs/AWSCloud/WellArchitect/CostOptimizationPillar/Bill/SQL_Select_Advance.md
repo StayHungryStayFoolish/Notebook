@@ -42,15 +42,15 @@ FROM `table_name`;
 
 **Operators in The WHERE Clause**
 
-| Operator  | Example                                     |
-|:----------|:--------------------------------------------|
-| `=`       | `WHERE` column = value                        |
-| `>`       | `WHERE` column > value                        |
-| `<`       | `WHERE` column < value                        |
-| `>=`      | `WHERE` column >= value                       |
-| `<=`      | `WHERE` column <= value                       |
-| `<>`      | `WHERE` column <> value                       |
-| `BETWEEN` | `WHERE` column `BETWEEN` value_1 `AND` value_2    |
+| Operator  | Example                                         |
+|:----------|:------------------------------------------------|
+| `=`       | `WHERE` column = value                          |
+| `>`       | `WHERE` column > value                          |
+| `<`       | `WHERE` column < value                          |
+| `>=`      | `WHERE` column >= value                         |
+| `<=`      | `WHERE` column <= value                         |
+| `<>`      | `WHERE` column <> value                         |
+| `BETWEEN` | `WHERE` column `BETWEEN` value_1 `AND` value_2  |
 | `LIKE`    | `WHERE` column `LIKE` `regex_pattern`           |
 | `IN`      | `WHERE` column `IN` (value_1, value_2, value_n) |
 
@@ -99,7 +99,7 @@ ORDER BY `column_name(s)`;
 Example:
 
 ```sql
-SELECT COUNT(`column_1`), column_2 
+SELECT COUNT(column_1), column_2 
 FROM `table_name`
 GROUP BY `column_2`
 HAVING COUNT(`column_1`) > 5;
@@ -107,15 +107,74 @@ HAVING COUNT(`column_1`) > 5;
 
 ### ORDER BY
 
+*Default ASC*
+
 ```sql
 SELECT column_1, column_2, column_n
 FROM `table_name`
 ORDER BY column_1, column_2, column_n ASC|DESC;
 ```
 
+### LIMIT
+
+```sql
+SELECT column_1, column_2, column_3, column_n
+FROM `table_name`
+WHERE condition
+LIMIT `n_1` [OFFSET `n_2`];
+```
 
 ### JOIN
+
 ![MySQL JOIN](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/MySQL/mysql_join.png?raw=true)
+
+Table: `Customers`
+
+| customer_id | customer_name | email           | country  |
+|:------------|:--------------|:----------------|:---------|
+| 1           | Alfred        | alfred@***.com  | America  |
+| 2           | Ana           | ana@***.com     | France   |
+| 3           | Antonio       | antonio@***.com | Mexico   |
+
+Table: `Orders`
+
+| order_id | customer_id | order_date      |
+|:---------|:------------|:----------------|
+| 20220101 | 1           | alfred@***.com  |
+| 20220102 | 2           | ana@***.com     |
+| 20220103 | 3           | antonio@***.com |
+
+The relationship between the two tables above is the "customer_id" column.
+
+#### INNER JOIN...ON...
+
+```sql
+SELECT column_1, column_2, column_3, column_n
+FROM `table_1`
+INNER JOIN `table_2`
+ON table_1.column_name = table_2.column_name
+[WHERE condition];
+```
+
+#### LEFT JOIN...ON...
+
+```sql
+SELECT column_1, column_2, column_3, column_n
+FROM `table_1`
+LEFT JOIN `table_2`
+ON table_1.column_name = table_2.column_name
+[WHERE condition];
+```
+
+#### RIGHT JOIN...ON...
+
+```sql
+SELECT column_1, column_2, column_3, column_n
+FROM `table_1`
+RIGHT JOIN `table_2`
+ON table_1.column_name = table_2.column_name
+[WHERE condition];
+```
 
 ## SELECT Statement
 
