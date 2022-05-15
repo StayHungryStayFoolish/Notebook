@@ -33,6 +33,34 @@ FROM `table_name` AS `alias_name`;
 
 ### DISTINCT
 
+```sql
+SELECT DISTINCT column_1, column_2, column_3, column_n 
+FROM `table_name`;
+```
+
+### WHERE
+
+**Operators in The WHERE Clause**
+
+| Operator  | Example                                     |
+|:----------|:--------------------------------------------|
+| `=`       | `WHERE` column = value                        |
+| `>`       | `WHERE` column > value                        |
+| `<`       | `WHERE` column < value                        |
+| `>=`      | `WHERE` column >= value                       |
+| `<=`      | `WHERE` column <= value                       |
+| `<>`      | `WHERE` column <> value                       |
+| `BETWEEN` | `WHERE` column `BETWEEN` value_1 `AND` value_2    |
+| `LIKE`    | `WHERE` column `LIKE` `regex_pattern`           |
+| `IN`      | `WHERE` column `IN` (value_1, value_2, value_n) |
+
+```sql
+SELECT column_1, column_2, column_3, column_n 
+FROM table_name
+WHERE condition;
+```
+
+### JOIN
 ![MySQL JOIN](https://raw.githubusercontent.com/StayHungryStayFoolish/notebook-img/master/img/MySQL/mysql_join.png?raw=true)
 
 ## SELECT Statement
