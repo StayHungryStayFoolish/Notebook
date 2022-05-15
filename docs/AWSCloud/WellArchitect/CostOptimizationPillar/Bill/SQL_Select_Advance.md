@@ -56,7 +56,7 @@ FROM `table_name`;
 
 ```sql
 SELECT column_1, column_2, column_3, column_n 
-FROM table_name
+FROM `table_name`
 WHERE condition;
 ```
 
