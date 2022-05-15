@@ -115,29 +115,29 @@ CREATE TABLE IF NOT EXISTS Cost
     DEFAULT CHARSET = utf8mb4;
 ```
 
-7. Import Sample Data
+6. Import Sample Data
    
-   7.1 Right-click on the new table name, choose `Import Wizard`
+   6.1 Right-click on the new table name, choose `Import Wizard`
 
    ![Import Wizard](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/navicat-import-sample-data.png?raw=true)
 
-   7.2 In `Import Type` choose `CSV file`
+   6.2 In `Import Type` choose `CSV file`
 
    ![Import Type](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/import-data-csv.png?raw=true)
 
-   7.3 Add csv file, then next `two` steps use the **default** configurations.
+   6.3 Add csv file, then next `two` steps use the **default** configurations.
 
    ![Add file](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/import-data-choose-file.png?raw=true)
 
-   7.4 Fix date format, then next `three` steps use the **default** configurations.
+   6.4 Fix date format, then next `three` steps use the **default** configurations.
 
    ![Fix date](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/import-repair-date.png?raw=true)
 
-   7.5 Start Import
+   6.5 Start Import
 
    ![Start](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/import-start.png?raw=true)
 
-   7.6 Finish
+   6.6 Finish
    
    ![Finish](https://github.com/StayHungryStayFoolish/notebook-img/blob/master/img/MySQL/import-finish.png?raw=true)
    
