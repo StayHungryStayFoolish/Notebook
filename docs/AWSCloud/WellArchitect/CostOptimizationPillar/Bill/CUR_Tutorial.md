@@ -4,8 +4,10 @@
 
 1. Install Navicat(MySQL Client)
 
-   Navicat Download: https://www.navicat.com/en/download/navicat-premium
+   Navicat Windows Download: https://www.navicat.com/en/download/navicat-premium
 
+   Navicat Mac Download: https://mac.qdrayst.com/02/Navicat_Premium_16.0.12_%5BTNT%5D_macwk.com.dmg
+   
 2. Sign up for AWS 
    
     2.1 Open https://portal.aws.amazon.com/billing/signup.
