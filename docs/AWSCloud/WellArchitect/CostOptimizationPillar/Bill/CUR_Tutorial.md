@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-1. Install Navicat(MySQL Client)
+1. Install Navicat(DB Client)
 
    Navicat Windows Download: https://www.navicat.com/en/download/navicat-premium
 
