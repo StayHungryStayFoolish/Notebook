@@ -149,6 +149,66 @@ WHERE condition;
 DELETE FROM `table_name` WHERE condition;
 ```
 
+## DTL(Data Transaction Language)
+
+**Keywords**
+- START TRANSACTION
+- SAVEPOINT
+- ROLLBACK
+- COMMIT
+
+### ACID
+
+- Atomicity
+
+  All operations in a transaction do not end in the middle, either all or none are completed
+
+- Consistency
+
+  The integrity of the data is not compromised before and after the transaction is opened.
+
+- Isolation
+
+  The database allows multiple concurrent transactions to read, write and modify its data. Isolation is to prevent data inconsistency caused by cross execution when multiple transactions are executed concurrently.
+
+- Durability
+
+  After the transaction is completed, changes to the data are permanent and will not be lost even if the system fails.
+
+
+### Transaction
+
+- Show closed transactions
+
+  - COMMIT
+  - ROLLBACK
+
+- Implicitly closing a transaction
+
+  - DDL
+
+```sql
+START TRANSACTION ;
+
+INSERT INTO `table_name`
+    VALUES (value_1, value_2, value_3, value_n);;
+
+
+SAVEPOINT a;
+
+UPDATE `table_name`
+    SET column_name = value 
+WHERE condition;
+
+SAVEPOINT b;
+
+ROLLBACK to a;  
+COMMIT ; 
+
+SELECT *
+FROM `table_name`;
+```
+
 ## DQL(Data Query Language)
 
 **Keywords**
