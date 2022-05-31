@@ -206,13 +206,13 @@ WHERE condition_1 OR `condition_2 OR condition_n;
 
 ### Numeric(Aggregate) Functions
 
-| Function | Description                                                   |
-|:---------|:--------------------------------------------------------------|
-| SUM()    | Calculates the sum of a set of values                         |
-| AVG()    | Returns the average value of an expression                    |
-| MAX()    | Returns the maximum value in a set of values                  |
-| MIN()    | 	Returns the minimum value in a set of values                 |
-| COUNT()  | Returns the number of records returned by a select query      |
+| Function  | Description                                                   |
+|:----------|:--------------------------------------------------------------|
+| `SUM()`    | Calculates the sum of a set of values                         |
+| `AVG()`     | Returns the average value of an expression                    |
+| `MAX()`     | Returns the maximum value in a set of values                  |
+| `MIN()`     | 	Returns the minimum value in a set of values                 |
+| `COUNT()`   | Returns the number of records returned by a select query      |
 
 Example:
 
